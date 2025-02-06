@@ -1,0 +1,11 @@
+docker/
+frontend/node_modules
+frontend/dist
+frontend/.next
+
+
+backend/venv
+
+
+
+
