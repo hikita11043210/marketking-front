@@ -20,7 +20,7 @@ export default function SearchPage() {
     const [totalCount, setTotalCount] = useState(0);
     const [auccat, setAuccat] = useState('');
     const [va, setVa] = useState('');
-    const [priceType, setPriceType] = useState('current');
+    const [priceType, setPriceType] = useState('currentprice');
     const [istatus, setStatus] = useState('all');
     const [fixed, setFixed] = useState('3');
     const [new_item, setNewItem] = useState(false);
@@ -38,10 +38,9 @@ export default function SearchPage() {
             const data = await searchApi.yahooAuction({
                 platform,
                 p,
-                min: priceType === 'current' ? min : undefined,
-                max: priceType === 'current' ? max : undefined,
-                aucmax_bidorbuy_price: priceType === 'buyNow' ? max : undefined,
-                price_type: priceType === 'buyNow' ? '2' : '1',
+                min: min || undefined,
+                max: max || undefined,
+                price_type: priceType || undefined,
                 auccat: auccat || undefined,
                 va: va || undefined,
                 istatus: istatus !== 'all' ? istatus : undefined,
@@ -154,30 +153,34 @@ export default function SearchPage() {
                                                 type="number"
                                                 placeholder="下限"
                                                 value={min}
-                                                onChange={(e: ChangeEvent<HTMLInputElement>) => setMin(e.target.value)}
+                                                onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                                    setMin(e.target.value)
+                                                }}
                                                 className="w-full"
                                             />
                                             <span className="text-sm">～</span>
                                             <Input
+
                                                 type="number"
                                                 placeholder="上限"
                                                 value={max}
-                                                onChange={(e: ChangeEvent<HTMLInputElement>) => setMax(e.target.value)}
+                                                onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                                    setMax(e.target.value)
+                                                }}
                                                 className="w-full"
                                             />
                                         </div>
+
                                         <div className="flex items-center space-x-4">
                                             <div className="flex items-center space-x-2">
                                                 <input
                                                     type="radio"
                                                     id="currentPrice"
                                                     name="priceType"
-                                                    value="current"
-                                                    checked={priceType === 'current'}
+                                                    value="currentprice"
+                                                    checked={priceType === 'currentprice'}
                                                     onChange={(e) => {
                                                         setPriceType(e.target.value);
-                                                        setMin('');
-                                                        setMax('');
                                                     }}
                                                     className="rounded border-gray-300"
                                                 />
@@ -188,12 +191,10 @@ export default function SearchPage() {
                                                     type="radio"
                                                     id="buyNowPrice"
                                                     name="priceType"
-                                                    value="buyNow"
-                                                    checked={priceType === 'buyNow'}
+                                                    value="bidorbuyprice"
+                                                    checked={priceType === 'bidorbuyprice'}
                                                     onChange={(e) => {
                                                         setPriceType(e.target.value);
-                                                        setMin('');
-                                                        setMax('');
                                                     }}
                                                     className="rounded border-gray-300"
                                                 />

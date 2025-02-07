@@ -159,7 +159,7 @@ export default function SettingPage() {
                                                 <FormItem>
                                                     <FormLabel>Client Secret</FormLabel>
                                                     <FormControl>
-                                                        <Input {...field} type="password" />
+                                                        <Input {...field} type="text" />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -201,7 +201,7 @@ export default function SettingPage() {
                                                 <FormItem>
                                                     <FormLabel>Client Secret</FormLabel>
                                                     <FormControl>
-                                                        <Input {...field} type="password" />
+                                                        <Input {...field} type="text" />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>

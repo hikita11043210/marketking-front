@@ -8,14 +8,6 @@ export const validateItemSearchParams = (params: ItemSearchParams): { isValid: b
         errors.push('検索キーワードは必須です');
     }
 
-    // 価格範囲のチェック
-    if (params.aucmax_bidorbuy_price) {
-        const price = parseInt(params.aucmax_bidorbuy_price);
-        if (isNaN(price) || price < 0) {
-            errors.push('価格は0以上の数値を指定してください');
-        }
-    }
-
     // 都道府県コードのチェック
     if (params.dest_pref_code) {
         const prefCode = parseInt(params.dest_pref_code);

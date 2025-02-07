@@ -30,7 +30,7 @@ export async function GET(request: Request) {
         return NextResponse.json<ErrorResponse>(
             {
                 success: false,
-                message: error instanceof Error ? error.message : '商品検索に失敗しました'
+                message: error instanceof Error ? error.message : '商品の取得に失敗しました'
             },
             { status: 500 }
         );

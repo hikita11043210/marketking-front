@@ -26,7 +26,7 @@ interface RegisterModalProps {
 
 // propsを受け取るように修正
 export default function RegisterModal({ isOpen, onClose, selectedItem }: RegisterModalProps) {
-    const [results, setResults] = useState<SearchDetailResult[]>([]);
+    const [results, setResults] = useState<SearchDetailResult>();
 
     // selectedItemが存在する場合のみAPIを呼び出す
     useEffect(() => {
@@ -35,7 +35,8 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
                 try {
                     const data = await searchApi.yahooDetail(selectedItem.url);
                     if (data.success) {
-                        setResults(data.data.items);
+                        setResults(data);
+                        console.log(data)
                     }
                 } catch (error) {
                     console.error('API呼び出しエラー:', error);
@@ -56,7 +57,7 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
             <DialogContent className="sm:max-w-[1600px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>商品登録</DialogTitle>
-                    <DialogDescription id="dialog-description">
+                    <DialogDescription id="dialog-description" className="sr-only">
                         ebay登録フォーム
                     </DialogDescription>
                 </DialogHeader>

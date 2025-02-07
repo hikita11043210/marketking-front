@@ -4,7 +4,6 @@ export type ItemSearchParams = {
     max?: string;
     auccat?: string;
     va?: string;
-    aucmax_bidorbuy_price?: string;
     price_type?: string;
     istatus?: string;
     new?: string;
@@ -37,15 +36,12 @@ export interface SearchResult {
 }
 
 export interface SearchDetailResult {
-    title: string;
-    price: string;
-    buy_now_price: string | null;
-    image_url: string;
-    url: string;
-    seller: string;
-    end_time: string;
-    bid_count: string;
-    shipping?: string;
+    success: boolean;
+    message: string;
+    data: {
+        data: [];
+        missing_keys: string[];
+    };
 }
 
 export interface SearchResponse {

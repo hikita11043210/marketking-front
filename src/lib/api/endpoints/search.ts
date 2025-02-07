@@ -1,14 +1,13 @@
 import apiClient from '../client';  // デフォルトインポートを使用
 import { ItemSearchParams, CategorySearchParams, SearchResult, CategoryResult } from '@/lib/types/search';
 import { ApiResponse } from '@/lib/types/api';
-import type { SearchResponse } from '@/lib/types/search';
+import type { SearchResponse, SearchDetailResult } from '@/lib/types/search';
 
 export interface SearchParams {
     platform: string;
     p: string;
     min?: string;
     max?: string;
-    aucmax_bidorbuy_price?: string;
     price_type?: string;
     auccat?: string;
     va?: string;
@@ -49,7 +48,6 @@ export const searchApi = {
             p: params.p,
             ...(params.min && { min: params.min }),
             ...(params.max && { max: params.max }),
-            ...(params.aucmax_bidorbuy_price && { aucmax_bidorbuy_price: params.aucmax_bidorbuy_price }),
             ...(params.price_type && { price_type: params.price_type }),
             ...(params.auccat && { auccat: params.auccat }),
             ...(params.va && { va: params.va }),
@@ -64,7 +62,7 @@ export const searchApi = {
         return data;
     },
 
-    yahooDetail: async (url: string): Promise<SearchResponse> => {
+    yahooDetail: async (url: string): Promise<SearchDetailResult> => {
         const queryParams = new URLSearchParams({
             url: url,
         });

@@ -29,7 +29,6 @@ export const EbayAuth = () => {
         try {
             setIsLoading(true);
             const response = await ebayApi.getAuthUrl();
-
             if (response.success && response.data?.auth_url) {
                 window.location.href = response.data.auth_url;
             } else {
