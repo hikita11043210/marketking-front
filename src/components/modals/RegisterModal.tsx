@@ -35,8 +35,7 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
                 try {
                     const data = await searchApi.yahooDetail(selectedItem.url);
                     if (data.success) {
-                        setResults(data);
-                        console.log(data)
+                        setResults(data.data);
                     }
                 } catch (error) {
                     console.error('API呼び出しエラー:', error);
@@ -96,6 +95,26 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
                                         <div className="text-sm font-medium text-muted-foreground">送料</div>
                                         <div className="text-base mt-1">{selectedItem?.shipping || '送料情報なし'}</div>
                                     </div>
+                                    {results?.data?.condition && (
+                                        <div>
+                                            <div className="text-sm font-medium text-muted-foreground">商品の状態</div>
+                                            <div className="text-base mt-1">{results.data.condition}</div>
+                                        </div>
+                                    )}
+                                    {results?.data?.categories && results.data.categories.length > 0 && (
+                                        <div>
+                                            <div className="text-sm font-medium text-muted-foreground">カテゴリ</div>
+                                            <div className="text-base mt-1 whitespace-pre-line">
+                                                {results.data.categories.join(' > \n')}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {results?.data?.auction_id && (
+                                        <div>
+                                            <div className="text-sm font-medium text-muted-foreground">オークションID</div>
+                                            <div className="text-base mt-1">{results.data.auction_id}</div>
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

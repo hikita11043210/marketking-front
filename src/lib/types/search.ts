@@ -39,8 +39,19 @@ export interface SearchDetailResult {
     success: boolean;
     message: string;
     data: {
-        data: [];
-        missing_keys: string[];
+        title: string;
+        current_price: string;
+        current_price_in_tax: string;
+        buy_now_price: string;
+        buy_now_price_in_tax: string;
+        categories: string[];
+        condition: string;
+        start_time: string;
+        end_time: string;
+        auction_id: string;
+        images: {
+            url: string[];
+        };
     };
 }
 
