@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ebayApi } from '@/lib/api/endpoints/ebay';
+import { ebayApi } from '@/lib/api/endpoint/ebay';
 // import { useEbayToken } from '@/hooks/useEbayToken';  // トークン取得用フック
 
 const TestDataPage = () => {

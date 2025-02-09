@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { settingApi } from "@/lib/api/endpoints/setting";
+import { settingApi } from "@/lib/api/endpoint/setting";
 import type { Setting } from "@/lib/types/setting";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loading } from "@/components/ui/loading";

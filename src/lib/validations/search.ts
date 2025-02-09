@@ -1,6 +1,6 @@
-import { ItemSearchParams, CategorySearchParams } from '@/lib/types/search';
+import { SearchParams, CategorySearchParams } from '@/lib/types/search';
 
-export const validateItemSearchParams = (params: ItemSearchParams): { isValid: boolean; errors: string[] } => {
+export const validateItemSearchParams = (params: SearchParams): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
     // 必須パラメータのチェック

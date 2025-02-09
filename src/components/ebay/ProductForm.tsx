@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/accordion"
 import { PolicySelector } from './PolicySelector';
 import { useToast } from '@/hooks/use-toast';
-import { ebayApi } from '@/lib/api/endpoints/ebay';
+import { ebayApi } from '@/lib/api/endpoint/ebay';
 import { EbayRegisterData } from '@/lib/types/product';
 import { useState } from 'react';
 import { productFormSchema, type ProductFormValues } from '@/lib/validations/product';

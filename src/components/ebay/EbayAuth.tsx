@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { ebayApi } from '@/lib/api/endpoints/ebay';
+import { ebayApi } from '@/lib/api/endpoint/ebay';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 

@@ -1,5 +1,5 @@
 import type { ApiResponse } from '@/lib/types/api';
-import apiClient from '@/lib/api/client';
+import apiClient from '@/app/api/client';
 import type { EbayAuthResponse, EbayPoliciesResponse, EbayRegisterResponse, EbayItemSpecificsResponse } from '@/lib/types/ebay';
 import type { EbayRegisterData } from '@/lib/types/product';
 

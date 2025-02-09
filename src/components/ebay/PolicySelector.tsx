@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { ebayApi } from '@/lib/api/endpoints/ebay';
+import { ebayApi } from '@/lib/api/endpoint/ebay';
 import { EbayPolicy } from '@/lib/types/ebay';
 import { UseFormReturn } from 'react-hook-form';
 

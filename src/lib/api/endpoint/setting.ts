@@ -1,4 +1,4 @@
-import apiClient from '../client';
+import apiClient from '../../../app/api/client';
 import type { Setting, SettingResponse } from '@/lib/types/setting';
 
 

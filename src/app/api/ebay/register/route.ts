@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import apiClient from '@/lib/api/client';
-import { ebayEndpoints } from '@/lib/api/endpoints/ebay';
+import apiClient from '@/app/api/client';
+import { ebayEndpoints } from '@/lib/api/endpoint/ebay';
 
 export async function POST(request: Request) {
     try {

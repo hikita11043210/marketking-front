@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import RegisterModal from "@/components/modals/RegisterModal";
-import { searchApi } from "@/lib/api/endpoints/search";
-import type { SearchResult, SearchResponse } from "@/lib/types/search";
+import { YahooAuctionEndpoint } from "@/lib/api/endpoint/yahoo-auction";
+import type { SearchResult } from "@/lib/types/search";
 
 export default function SearchPage() {
     const [p, setP] = useState('カメラ');
@@ -26,7 +26,6 @@ export default function SearchPage() {
     const [new_item, setNewItem] = useState(false);
     const [is_postage_mode, setIsPostageMode] = useState(false);
     const [n, setN] = useState('20');
-    const [platform] = useState('yahoo');
     const [selectedItem, setSelectedItem] = useState<SearchResult | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -35,27 +34,27 @@ export default function SearchPage() {
 
         setLoading(true);
         try {
-            const data = await searchApi.yahooAuction({
-                platform,
+            const data = await YahooAuctionEndpoint.getYahooAuctionItems({
                 p,
-                min: min || undefined,
-                max: max || undefined,
+                min: min ? Number(min) : undefined,
+                max: max ? Number(max) : undefined,
                 price_type: priceType || undefined,
                 auccat: auccat || undefined,
                 va: va || undefined,
                 istatus: istatus !== 'all' ? istatus : undefined,
-                fixed: fixed !== '3' ? fixed : undefined,
+                fixed: fixed !== '3' ? Number(fixed) : undefined,
                 new: new_item ? '1' : undefined,
                 is_postage_mode: is_postage_mode ? '1' : undefined,
                 n,
             });
 
             if (data.success) {
-                setResults(data.data.items);
-                setTotalCount(data.data.total);
+                setResults(data.data?.items || []);
+                setTotalCount(data.data?.total || 0);
             } else {
                 console.error('検索エラー:', data.message);
             }
+
         } catch (error) {
             console.error('API呼び出しエラー:', error);
         } finally {
