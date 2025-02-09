@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ebayApi } from '@/lib/api/endpoint/ebay';
 import { EbayRegisterData } from '@/lib/types/product';
 import { useState } from 'react';
-import { productFormSchema, type ProductFormValues } from '@/lib/validations/product';
+import { productFormSchema, type ProductFormValues } from '@/validations/product';
 import { Editor } from '@/components/blocks/editor-00/editor'
 
 interface ProductFormProps {

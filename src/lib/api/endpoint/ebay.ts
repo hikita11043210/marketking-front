@@ -1,7 +1,7 @@
-import type { ApiResponse } from '@/lib/types/api';
-import apiClient from '@/app/api/client';
-import type { EbayAuthResponse, EbayPoliciesResponse, EbayRegisterResponse, EbayItemSpecificsResponse } from '@/lib/types/ebay';
-import type { EbayRegisterData } from '@/lib/types/product';
+import type { ApiResponse } from '@/types/api';
+import apiClient from '@/lib/api/client';
+import type { EbayAuthResponse, EbayPoliciesResponse, EbayRegisterResponse, EbayItemSpecificsResponse } from '@/types/ebay';
+import type { EbayRegisterData } from '@/types/product';
 
 export const ebayEndpoints = {
     auth: '/ebay/auth/',

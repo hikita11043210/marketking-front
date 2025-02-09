@@ -1,4 +1,4 @@
-import type { ShippingCalculatorParams } from '@/lib/types/shipping-calculator';
+import type { ShippingCalculatorParams } from '@/types/shipping-calculator';
 
 export function validateShippingCalculatorParams(params: ShippingCalculatorParams): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];

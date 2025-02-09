@@ -1,8 +1,8 @@
-import apiClient from '../../../app/api/client';  // デフォルトインポートを使用
-import { SearchParams, SearchResult, SearchDetailResult } from '@/lib/types/search';
-import { ApiResponse } from '@/lib/types/api';
+import apiClient from '../client';  // デフォルトインポートを使用
+import { SearchParams, SearchResult, SearchDetailResult } from '@/types/search';
+import { ApiResponse } from '@/types/api';
 
-export const YahooAuctionEndpoint = {
+export const yahooAuctionEndpoints = {
     getYahooAuctionItems: async (params: SearchParams): Promise<ApiResponse<SearchResult>> => {
         const response = await apiClient.get('yahoo-auction/items/', {
             params: {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { settingApi } from '@/lib/api/endpoint/setting';
-import { validateSettingParams } from '@/lib/validations/setting';
+import { validateSettingParams } from '@/validations/setting';
 import type { Setting } from '@/lib/types/setting';
 import type { ErrorResponse } from '@/lib/types/api';
 

@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import RegisterModal from "@/components/modals/RegisterModal";
-import { YahooAuctionEndpoint } from "@/lib/api/endpoint/yahoo-auction";
-import type { SearchResult } from "@/lib/types/search";
+import { yahooAuctionEndpoints } from "@/lib/api/endpoint/yahoo-auction";
+import type { SearchResult } from "@/types/search";
 
 export default function SearchPage() {
     const [p, setP] = useState('カメラ');
@@ -34,7 +34,7 @@ export default function SearchPage() {
 
         setLoading(true);
         try {
-            const data = await YahooAuctionEndpoint.getYahooAuctionItems({
+            const data = await yahooAuctionEndpoints.getYahooAuctionItems({
                 p,
                 min: min ? Number(min) : undefined,
                 max: max ? Number(max) : undefined,

@@ -16,7 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { getShippingCalculatorData, calculateShipping } from '@/lib/api/endpoint/shipping-calculator';
 import type { ShippingResult, Service, Country } from '@/lib/types/shipping-calculator';
-import { validateShippingCalculator } from '@/lib/validations/shipping-calculator';
+import { validateShippingCalculator } from '@/validations/shipping-calculator';
 import { showToast } from '@/lib/toast';
 
 interface ShippingCalculatorFormProps {

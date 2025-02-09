@@ -1,4 +1,4 @@
-import { apiClient } from '../../../app/api/client';
+import { apiClient } from '../client';
 import type { ShippingCalculatorParams, ShippingCalculatorResponse, ServicesResponse } from '@/lib/types/shipping-calculator';
 
 export const shippingCalculatorEndpoints = {

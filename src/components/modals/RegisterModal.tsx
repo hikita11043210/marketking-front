@@ -8,9 +8,9 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProductForm } from "@/components/ebay/ProductForm";
-import type { EbayRegisterData } from '@/lib/types/product';
-import { YahooAuctionEndpoint } from "@/lib/api/endpoint/yahoo-auction";
-import { SearchDetailResult } from '@/lib/types/search';
+import type { EbayRegisterData } from '@/types/product';
+import { yahooAuctionEndpoints } from "@/lib/api/endpoint/yahoo-auction";
+import { SearchDetailResult } from '@/types/search';
 interface RegisterModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -33,7 +33,7 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
         const fetchDetail = async () => {
             if (selectedItem?.url) {
                 try {
-                    const data = await YahooAuctionEndpoint.getYahooAuctionDetail(selectedItem.url);
+                    const data = await yahooAuctionEndpoints.getYahooAuctionDetail(selectedItem.url);
                     if (data.success) {
                         setResults(data.data);
                     }
