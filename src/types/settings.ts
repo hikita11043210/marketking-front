@@ -1,13 +1,16 @@
-export type SettingsData = {
-    yahoo_client_id: string;
-    yahoo_client_secret: string;
-    ebay_client_id: string;
-    ebay_client_secret: string;
-};
+import type { ApiResponse } from './api';
 
-export type UpdateSettingsParams = {
-    yahoo_client_id: string;
-    yahoo_client_secret: string;
+export interface Setting {
     ebay_client_id: string;
     ebay_client_secret: string;
-}; 
+    ebay_dev_id: string;
+    yahoo_client_id: string;
+    yahoo_client_secret: string;
+    ebay_refresh_token?: string;
+}
+
+export interface SettingResponse extends ApiResponse<Setting> {
+    success: boolean;
+    message: string;
+    data: Setting;
+} 

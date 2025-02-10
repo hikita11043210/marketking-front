@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Setting } from '@/types/setting';
+import type { Setting } from '@/types/settings';
 
 export const settingSchema = z.object({
     yahoo_client_id: z.string().min(1, { message: 'Yahoo Client IDは必須です' }).optional(),

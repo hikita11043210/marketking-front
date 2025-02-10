@@ -50,7 +50,6 @@ export type SearchDetailResult = {
     };
 }
 
-
 // カテゴリ検索用のパラメータ
 export type CategorySearchParams = {
     category_id?: string;

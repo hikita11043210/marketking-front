@@ -1,9 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
-import { Button } from "@/components/ui/button";
-
 export default function DashboardPage() {
     return (
         <div>
