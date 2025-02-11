@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import type { Setting } from '@/types/settings';
+import { serverFetch } from '@/app/api/server';
 
 // IPv4形式で明示的に指定
 const API_BASE = process.env.API_BASE_URL?.replace('localhost', '127.0.0.1');
@@ -12,12 +13,10 @@ async function getAuthHeader() {
 
 export async function GET() {
     try {
-        const response = await fetch(`${API_BASE}/api/v1/settings/`, {
-            headers: {
-                'Authorization': await getAuthHeader(),
-            },
+        const response = await serverFetch('/api/v1/settings/', {
             cache: 'no-store',
         });
+
         const data = await response.json();
 
         if (!response.ok) {
@@ -39,11 +38,10 @@ export async function PUT(request: Request) {
     try {
         const settings: Setting = await request.json();
         
-        const response = await fetch(`${API_BASE}/api/v1/settings/`, {
+        const response = await serverFetch('/api/v1/settings/', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': await getAuthHeader(),
             },
             body: JSON.stringify(settings),
         });

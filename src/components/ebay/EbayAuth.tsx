@@ -1,95 +1,120 @@
+// src/components/ebay/EbayAuth.tsx
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { ebayApi } from '@/lib/api/endpoint/ebay';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { showToast } from '@/lib/toast';
 
 export const EbayAuth = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
-    const { toast } = useToast();
 
     useEffect(() => {
-        // eBayトークンの存在確認
-        const ebayToken = localStorage.getItem('ebayToken');
-        setIsConnected(!!ebayToken);
+        checkAuthStatus();
 
         // URLからcodeパラメータを取得
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
 
         if (code) {
-            handleExchangeCode(code);
+            handleCallback(code);
         }
     }, []);
 
-    // 認証URLを取得してリダイレクト
+    const checkAuthStatus = async () => {
+        try {
+            const response = await fetch('/api/ebay/auth/status');
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || '認証状態の確認に失敗しました');
+            }
+
+            setIsConnected(data.isConnected);
+        } catch (error) {
+            showToast.error({
+                description: error instanceof Error ? error.message : '認証状態の確認に失敗しました'
+            });
+        }
+    };
+
     const handleAuth = async () => {
         try {
             setIsLoading(true);
-            const response = await ebayApi.getAuthUrl();
-            if (response.success && response.data?.auth_url) {
-                window.location.href = response.data.auth_url;
+            const response = await fetch('/api/ebay/auth/url');
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || '認証URLの取得に失敗しました');
+            }
+            if (data.url) {
+                window.location.href = data.url;
             } else {
                 throw new Error('認証URLの取得に失敗しました');
             }
         } catch (error) {
-            toast({
-                title: 'エラー',
-                description: error instanceof Error ? error.message : 'eBay認証の開始に失敗しました',
-                variant: 'destructive',
+            showToast.error({
+                description: error instanceof Error ? error.message : 'eBay認証の開始に失敗しました'
             });
         } finally {
             setIsLoading(false);
         }
     };
 
-    // 認証コードをトークンと交換
-    const handleExchangeCode = async (code: string) => {
+    const handleCallback = async (code: string) => {
         try {
             setIsLoading(true);
-            const response = await ebayApi.exchangeCodeForToken(code);
+            const response = await fetch('/api/ebay/auth/callback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code }),
+            });
 
-            if (response.success && response.data?.access_token) {
-                // トークンを保存
-                localStorage.setItem('ebayToken', response.data.access_token);
-                if (response.data.refresh_token) {
-                    localStorage.setItem('ebayRefreshToken', response.data.refresh_token);
-                }
+            const data = await response.json();
 
-                setIsConnected(true);
-                toast({
-                    title: '成功',
-                    description: 'eBayとの連携が完了しました',
-                });
-
-                // URLからcodeパラメータを削除
-                const newUrl = window.location.pathname;
-                window.history.replaceState({}, document.title, newUrl);
-            } else {
-                throw new Error('トークンの取得に失敗しました');
+            if (!response.ok) {
+                throw new Error(data.message || '認証処理に失敗しました');
             }
+
+            setIsConnected(true);
+            showToast.success({
+                description: 'eBayとの連携が完了しました'
+            });
+
+            // URLからcodeパラメータを削除
+            window.history.replaceState({}, document.title, window.location.pathname);
         } catch (error) {
-            toast({
-                title: 'エラー',
-                description: error instanceof Error ? error.message : 'eBayトークンの取得に失敗しました',
-                variant: 'destructive',
+            showToast.error({
+                description: error instanceof Error ? error.message : '認証処理に失敗しました'
             });
         } finally {
             setIsLoading(false);
         }
     };
 
-    // 連携解除
-    const handleDisconnect = () => {
-        localStorage.removeItem('ebayToken');
-        localStorage.removeItem('ebayRefreshToken');
-        setIsConnected(false);
-        toast({
-            title: '連携解除',
-            description: 'eBayとの連携を解除しました',
-        });
+    const handleDisconnect = async () => {
+        try {
+            const response = await fetch('/api/ebay/auth/disconnect', {
+                method: 'POST'
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || '連携解除に失敗しました');
+            }
+
+            setIsConnected(false);
+            showToast.success({
+                description: 'eBayとの連携を解除しました'
+            });
+        } catch (error) {
+            showToast.error({
+                description: error instanceof Error ? error.message : '連携解除に失敗しました'
+            });
+        }
     };
 
     return (
@@ -131,4 +156,4 @@ export const EbayAuth = () => {
             )}
         </div>
     );
-}; 
+};
