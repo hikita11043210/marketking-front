@@ -20,23 +20,27 @@ export default function LoginPage() {
         try {
             setLoading(true);
 
-            console.log("a")
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/login/`, {
+            const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(credentials)
             });
 
-            if (!response.ok) throw new Error('ログインに失敗しました');
+            const data = await response.json();
 
-            showToast.success({
-                description: "ログインに成功しました"
-            });
-            router.push('/dashboard');
+            if (!response.ok) {
+                throw new Error(data.message || 'ログインに失敗しました');
+            }
+
+            showToast.success({ description: "ログインに成功しました" });
+
+            // リダイレクト処理を修正
             router.refresh();
+            router.push('/dashboard');
+
         } catch (error) {
             showToast.error({
-                description: "ログインに失敗しました"
+                description: error instanceof Error ? error.message : "ログインに失敗しました"
             });
         } finally {
             setLoading(false);

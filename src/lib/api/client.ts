@@ -1,13 +1,14 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-    baseURL: `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1` || 'http://localhost:8000',
+    baseURL: 'http://localhost:8000/api/v1',
     timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
     },
 });
+
 
 
 // リクエストインターセプター

@@ -1,5 +1,3 @@
-import type { ApiResponse } from './api';
-
 export interface Setting {
     ebay_client_id: string;
     ebay_client_secret: string;
@@ -8,9 +6,3 @@ export interface Setting {
     yahoo_client_secret: string;
     ebay_refresh_token?: string;
 }
-
-export interface SettingResponse extends ApiResponse<Setting> {
-    success: boolean;
-    message: string;
-    data: Setting;
-} 

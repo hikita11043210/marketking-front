@@ -3,8 +3,8 @@ import type { NextRequest } from 'next/server';
 import { cookieOptions } from '@/lib/auth/cookies';
 
 export async function middleware(request: NextRequest) {
-  const accessToken = request.cookies.get('access_token')?.value;
-  const refreshToken = request.cookies.get('refresh_token')?.value;
+  const accessToken = request.cookies.get('accessToken')?.value;
+  const refreshToken = request.cookies.get('refreshToken')?.value;
 
   if (request.nextUrl.pathname === '/login') {
     if (accessToken) {
@@ -26,7 +26,7 @@ export async function middleware(request: NextRequest) {
         if (response.ok) {
           const tokens = await response.json();
           const nextResponse = NextResponse.next();
-          nextResponse.cookies.set('access_token', tokens.accessToken, {
+          nextResponse.cookies.set('accessToken', tokens.accessToken, {
             ...cookieOptions,
             maxAge: 60 * 60
           });

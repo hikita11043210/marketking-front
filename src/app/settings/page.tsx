@@ -15,11 +15,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { settingApi } from "@/lib/api/endpoint/settings";
-import type { Setting } from "@/lib/types/setting";
+import type { Setting } from "@/types/settings";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loading } from "@/components/ui/loading";
 import { EbayAuth } from '@/components/ebay/EbayAuth';
+import { showToast } from "@/lib/toast";
 
 const settingSchema = z.object({
     ebay_client_id: z.string().min(1, "eBay Client IDは必須です"),
@@ -49,15 +49,17 @@ export default function SettingPage() {
         const fetchSetting = async () => {
             try {
                 setLoading(true);
-                const response = await settingApi.get();
-                if (response.success && response.data) {
-                    setSetting(response.data);
-                    form.reset(response.data);
+                const response = await fetch('/api/settings');
+                const data = await response.json();
+
+                if (response.ok && data) {
+                    setSetting(data.data);
+                    form.reset(data.data);
                 } else {
                     toast({
                         variant: 'destructive',
                         title: 'エラー',
-                        description: response.message || '設定の取得に失敗しました',
+                        description: data.message || '設定の取得に失敗しました',
                     });
                 }
             } catch (error) {
@@ -76,31 +78,30 @@ export default function SettingPage() {
 
     const onSubmit = async (values: z.infer<typeof settingSchema>) => {
         try {
-            const response = await settingApi.update(values);
-            if (response.success) {
-                toast({
-                    title: '成功',
-                    description: '設定を更新しました',
-                });
+            const response = await fetch('/api/settings', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(values),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showToast.success({ description: "設定を更新しました" });
             } else {
-                toast({
-                    variant: 'destructive',
-                    title: 'エラー',
-                    description: response.message || '設定の更新に失敗しました',
-                });
+                showToast.error({ description: '設定の更新に失敗しました' });
             }
         } catch (error) {
-            toast({
-                variant: 'destructive',
-                title: 'エラー',
-                description: '設定の更新中にエラーが発生しました',
-            });
+            showToast.error({ description: '設定の更新中にエラーが発生しました' });
         }
     };
 
     if (loading) {
         return <Loading fullScreen />;
     }
+
 
     return (
         <div className="container mx-auto py-10 space-y-8">
