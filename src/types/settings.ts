@@ -5,4 +5,6 @@ export interface Setting {
     yahoo_client_id: string;
     yahoo_client_secret: string;
     ebay_refresh_token?: string;
+    rate: number;
+    deepl_api_key: string;
 }

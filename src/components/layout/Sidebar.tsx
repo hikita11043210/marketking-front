@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, LogOut } from 'lucide-react';
 import { BiHome, BiSearch } from 'react-icons/bi';
+import { useToast } from "@/hooks/use-toast";
 
 type NavItem = {
     title: string;
@@ -27,8 +28,8 @@ const navigation: NavItem[] = [
         icon: <BiSearch />,
     },
     {
-        title: "リクエスト一覧",
-        href: "/request-list",
+        title: "出品一覧",
+        href: "/listing-list",
         icon: (
             <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -67,6 +68,7 @@ const navigation: NavItem[] = [
 
 export function Sidebar() {
     const router = useRouter();
+    const { toast } = useToast();
     const [openItems, setOpenItems] = useState<string[]>([]);
 
     const toggleItem = (title: string) => {
@@ -75,6 +77,26 @@ export function Sidebar() {
                 ? prev.filter(item => item !== title)
                 : [...prev, title]
         );
+    };
+
+    const handleLogout = async () => {
+        try {
+            const response = await fetch('/api/auth/logout', {
+                method: 'POST',
+            });
+
+            if (response.ok) {
+                router.push('/login');
+            } else {
+                throw new Error('ログアウトに失敗しました');
+            }
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'エラー',
+                description: 'ログアウトに失敗しました',
+            });
+        }
     };
 
     return (
@@ -123,6 +145,15 @@ export function Sidebar() {
                         </div>
                     ))}
                 </nav>
+            </div>
+            <div className="border-t p-4">
+                <button
+                    onClick={handleLogout}
+                    className="flex w-full items-center px-2 py-2 text-sm font-medium text-red-600 rounded-md hover:bg-red-50"
+                >
+                    <LogOut className="h-5 w-5 mr-3" />
+                    ログアウト
+                </button>
             </div>
         </div>
     );

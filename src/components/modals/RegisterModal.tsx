@@ -39,7 +39,7 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
 
                     const response = await fetch(`/api/yahoo-auction/detail?${searchParams}`);
                     const data = await response.json();
-
+                    console.log(data);
                     if (data.success) {
                         setResults(data.data);
                     }

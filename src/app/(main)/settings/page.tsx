@@ -27,6 +27,10 @@ const settingSchema = z.object({
     ebay_dev_id: z.string().min(1, "eBay Dev IDは必須です"),
     yahoo_client_id: z.string().min(1, "Yahoo Client IDは必須です"),
     yahoo_client_secret: z.string().min(1, "Yahoo Client Secretは必須です"),
+    rate: z.string()
+        .min(1, "利益率は必須です")
+        .regex(/^\d+(\.\d{1,2})?$/, "利益率は正の数値で入力してください（小数点以下2桁まで）"),
+    deepl_api_key: z.string().min(1, "DeepL APIキーは必須です"),
 });
 
 export default function SettingPage() {
@@ -42,6 +46,8 @@ export default function SettingPage() {
             ebay_dev_id: "",
             yahoo_client_id: "",
             yahoo_client_secret: "",
+            rate: "30",
+            deepl_api_key: "",
         },
     });
 
@@ -138,6 +144,45 @@ export default function SettingPage() {
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                                 <div className="space-y-6">
+                                    <div className="space-y-4">
+                                        <h4 className="text-base font-medium">基本設定</h4>
+                                        <FormField
+                                            control={form.control}
+                                            name="rate"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>利益率（%）</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            {...field}
+                                                            type="number"
+                                                            step="0.01"
+                                                            min="0"
+                                                            placeholder="例: 30.00"
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="deepl_api_key"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>DeepL APIキー</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            {...field}
+                                                            type="text"
+                                                            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
                                     <div className="space-y-4">
                                         <h4 className="text-base font-medium">eBay設定</h4>
                                         <FormField
