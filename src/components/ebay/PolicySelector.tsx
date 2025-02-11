@@ -2,10 +2,8 @@ import { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { ebayApi } from '@/lib/api/endpoint/ebay';
-import { EbayPolicy } from '@/lib/types/ebay';
+import type { EbayPolicy } from '@/types/ebay';
 import { UseFormReturn } from 'react-hook-form';
-
 
 interface PolicySelectorProps {
     form: UseFormReturn<any>;
@@ -28,15 +26,27 @@ export const PolicySelector = ({ form, marketplaceId = 'EBAY_US' }: PolicySelect
     useEffect(() => {
         const fetchPolicies = async () => {
             try {
-                const response = await ebayApi.getPolicies(marketplaceId, localStorage.getItem('ebayToken') || '');
-                if (response.success) {
+                const token = localStorage.getItem('ebayToken');
+                if (!token) {
+                    throw new Error('認証情報が不足しています');
+                }
+
+                const searchParams = new URLSearchParams({
+                    marketplaceId,
+                    token
+                });
+
+                const response = await fetch(`/api/ebay/policies?${searchParams}`);
+                const data = await response.json();
+
+                if (data.success) {
                     setPolicies({
-                        fulfillment: response.data.fulfillment_policies,
-                        payment: response.data.payment_policies,
-                        return: response.data.return_policies
+                        fulfillment: data.data.fulfillment_policies,
+                        payment: data.data.payment_policies,
+                        return: data.data.return_policies
                     });
                 } else {
-                    throw new Error('ポリシー情報の取得に失敗しました');
+                    throw new Error(data.message || 'ポリシー情報の取得に失敗しました');
                 }
             } catch (error) {
                 toast({

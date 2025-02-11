@@ -1,15 +1,6 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import type { Setting } from '@/types/settings';
 import { serverFetch } from '@/app/api/server';
-
-// IPv4形式で明示的に指定
-const API_BASE = process.env.API_BASE_URL?.replace('localhost', '127.0.0.1');
-async function getAuthHeader() {
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get('accessToken')?.value;
-    return accessToken ? `Bearer ${accessToken}` : '';
-}
 
 export async function GET() {
     try {

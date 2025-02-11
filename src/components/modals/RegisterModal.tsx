@@ -9,8 +9,8 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { ProductForm } from "@/components/ebay/ProductForm";
 import type { EbayRegisterData } from '@/types/product';
-import { yahooAuctionEndpoints } from "@/lib/api/endpoint/yahoo-auction";
-import { SearchDetailResult } from '@/types/search';
+import type { SearchDetailResult } from '@/types/search';
+
 interface RegisterModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -26,14 +26,20 @@ interface RegisterModalProps {
 
 // propsを受け取るように修正
 export default function RegisterModal({ isOpen, onClose, selectedItem }: RegisterModalProps) {
-    const [results, setResults] = useState<SearchDetailResult>();
+    const [results, setResults] = useState<SearchDetailResult | null>(null);
 
     // selectedItemが存在する場合のみAPIを呼び出す
     useEffect(() => {
         const fetchDetail = async () => {
             if (selectedItem?.url) {
                 try {
-                    const data = await yahooAuctionEndpoints.getYahooAuctionDetail(selectedItem.url);
+                    const searchParams = new URLSearchParams({
+                        url: selectedItem.url
+                    });
+
+                    const response = await fetch(`/api/yahoo-auction/detail?${searchParams}`);
+                    const data = await response.json();
+
                     if (data.success) {
                         setResults(data.data);
                     }
@@ -95,24 +101,24 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
                                         <div className="text-sm font-medium text-muted-foreground">送料</div>
                                         <div className="text-base mt-1">{selectedItem?.shipping || '送料情報なし'}</div>
                                     </div>
-                                    {results?.data?.condition && (
+                                    {results?.condition && (
                                         <div>
                                             <div className="text-sm font-medium text-muted-foreground">商品の状態</div>
-                                            <div className="text-base mt-1">{results.data.condition}</div>
+                                            <div className="text-base mt-1">{results.condition}</div>
                                         </div>
                                     )}
-                                    {results?.data?.categories && results.data.categories.length > 0 && (
+                                    {results?.categories && results.categories.length > 0 && (
                                         <div>
                                             <div className="text-sm font-medium text-muted-foreground">カテゴリ</div>
                                             <div className="text-base mt-1 whitespace-pre-line">
-                                                {results.data.categories.join(' > \n')}
+                                                {results.categories.join(' > \n')}
                                             </div>
                                         </div>
                                     )}
-                                    {results?.data?.auction_id && (
+                                    {results?.auction_id && (
                                         <div>
                                             <div className="text-sm font-medium text-muted-foreground">オークションID</div>
-                                            <div className="text-base mt-1">{results.data.auction_id}</div>
+                                            <div className="text-base mt-1">{results.auction_id}</div>
                                         </div>
                                     )}
                                 </div>

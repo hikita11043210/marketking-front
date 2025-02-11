@@ -8,15 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import RegisterModal from "@/components/modals/RegisterModal";
-import { yahooAuctionEndpoints } from "@/lib/api/endpoint/yahoo-auction";
 import type { SearchResult } from "@/types/search";
+
+type SearchItem = SearchResult['items'][0];
 
 export default function SearchPage() {
     const [p, setP] = useState('カメラ');
     const [min, setMin] = useState('');
     const [max, setMax] = useState('');
     const [loading, setLoading] = useState(false);
-    const [results, setResults] = useState<SearchResult[]>([]);
+    const [results, setResults] = useState<SearchResult['items']>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [auccat, setAuccat] = useState('');
     const [va, setVa] = useState('');
@@ -26,7 +27,7 @@ export default function SearchPage() {
     const [new_item, setNewItem] = useState(false);
     const [is_postage_mode, setIsPostageMode] = useState(false);
     const [n, setN] = useState('20');
-    const [selectedItem, setSelectedItem] = useState<SearchResult | null>(null);
+    const [selectedItem, setSelectedItem] = useState<SearchItem | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleSearch = async () => {
@@ -34,19 +35,22 @@ export default function SearchPage() {
 
         setLoading(true);
         try {
-            const data = await yahooAuctionEndpoints.getYahooAuctionItems({
+            const searchParams = new URLSearchParams({
                 p,
-                min: min ? Number(min) : undefined,
-                max: max ? Number(max) : undefined,
-                price_type: priceType || undefined,
-                auccat: auccat || undefined,
-                va: va || undefined,
-                istatus: istatus !== 'all' ? istatus : undefined,
-                fixed: fixed !== '3' ? Number(fixed) : undefined,
-                new: new_item ? '1' : undefined,
-                is_postage_mode: is_postage_mode ? '1' : undefined,
+                ...(min && { min }),
+                ...(max && { max }),
+                ...(priceType && { price_type: priceType }),
+                ...(auccat && { auccat }),
+                ...(va && { va }),
+                ...(istatus !== 'all' && { istatus }),
+                ...(fixed !== '3' && { fixed }),
+                ...(new_item && { new: '1' }),
+                ...(is_postage_mode && { is_postage_mode: '1' }),
                 n,
             });
+
+            const response = await fetch(`/api/yahoo-auction/items?${searchParams}`);
+            const data = await response.json();
 
             if (data.success) {
                 setResults(data.data?.items || []);
@@ -54,7 +58,6 @@ export default function SearchPage() {
             } else {
                 console.error('検索エラー:', data.message);
             }
-
         } catch (error) {
             console.error('API呼び出しエラー:', error);
         } finally {
@@ -68,7 +71,7 @@ export default function SearchPage() {
         }
     };
 
-    const handleRegisterClick = (e: React.MouseEvent, item: SearchResult) => {
+    const handleRegisterClick = (e: React.MouseEvent, item: SearchItem) => {
         e.stopPropagation();
         setSelectedItem(item);
         setIsModalOpen(true);

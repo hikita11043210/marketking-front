@@ -13,8 +13,7 @@ import {
 } from "@/components/ui/accordion"
 import { PolicySelector } from './PolicySelector';
 import { useToast } from '@/hooks/use-toast';
-import { ebayApi } from '@/lib/api/endpoint/ebay';
-import { EbayRegisterData } from '@/lib/types/product';
+import type { EbayRegisterData } from '@/types/product';
 import { useState } from 'react';
 import { productFormSchema, type ProductFormValues } from '@/validations/product';
 import { Editor } from '@/components/blocks/editor-00/editor'
@@ -57,6 +56,11 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
 
     const handleSubmit = async (values: ProductFormValues) => {
         try {
+            const token = localStorage.getItem('ebayToken');
+            if (!token) {
+                throw new Error('認証情報が不足しています');
+            }
+
             const productData: EbayRegisterData = {
                 title: values.title,
                 description: values.description,
@@ -91,18 +95,27 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
                 itemSpecifics: {
                     nameValueList: values.itemSpecifics || [],
                 },
-
             };
 
-            const response = await ebayApi.register(productData);
-            if (response.success) {
+            const response = await fetch('/api/ebay/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(productData),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
                 toast({
                     title: '成功',
                     description: '商品を登録しました',
                 });
                 onSubmit?.(productData);
             } else {
-                throw new Error(response.message || '商品の登録に失敗しました');
+                throw new Error(data.message || '商品の登録に失敗しました');
             }
         } catch (error) {
             toast({
