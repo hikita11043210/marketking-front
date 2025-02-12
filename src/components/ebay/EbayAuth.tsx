@@ -30,7 +30,7 @@ export const EbayAuth = () => {
                 throw new Error(data.message || '認証状態の確認に失敗しました');
             }
 
-            setIsConnected(data.isConnected);
+            setIsConnected(data.is_connected);
         } catch (error) {
             showToast.error({
                 description: error instanceof Error ? error.message : '認証状態の確認に失敗しました'

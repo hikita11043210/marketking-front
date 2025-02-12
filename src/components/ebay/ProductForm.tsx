@@ -12,6 +12,7 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion"
 import { PolicySelector } from './PolicySelector';
+import { CategorySelector } from './CategorySelector';
 import { useToast } from '@/hooks/use-toast';
 import type { EbayRegisterData } from '@/types/product';
 import { useState } from 'react';
@@ -249,28 +250,7 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
                     )}
                 />
 
-                <FormField
-                    control={form.control}
-                    name="categoryId"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel className="text-foreground">カテゴリー</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                    <SelectTrigger className="h-11">
-                                        <SelectValue placeholder="カテゴリーを選択" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="31388">デジタルカメラ</SelectItem>
-                                    <SelectItem value="2">カテゴリー2</SelectItem>
-                                    <SelectItem value="3">カテゴリー3</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <CategorySelector form={form} />
 
                 <PolicySelector form={form} />
 

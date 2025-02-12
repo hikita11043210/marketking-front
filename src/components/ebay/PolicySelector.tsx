@@ -7,10 +7,9 @@ import { UseFormReturn } from 'react-hook-form';
 
 interface PolicySelectorProps {
     form: UseFormReturn<any>;
-    marketplaceId?: string;
 }
 
-export const PolicySelector = ({ form, marketplaceId = 'EBAY_US' }: PolicySelectorProps) => {
+export const PolicySelector = ({ form }: PolicySelectorProps) => {
     const [policies, setPolicies] = useState<EbayPolicies>({
         fulfillment: [],
         payment: [],
@@ -45,7 +44,7 @@ export const PolicySelector = ({ form, marketplaceId = 'EBAY_US' }: PolicySelect
         };
 
         fetchPolicies();
-    }, [marketplaceId, toast]);
+    }, [toast]);
 
     return (
         <div className="space-y-4">
