@@ -18,6 +18,7 @@ import type { EbayRegisterData } from '@/types/product';
 import { useState } from 'react';
 import { productFormSchema, type ProductFormValues } from '@/validations/product';
 import { Editor } from '@/components/blocks/editor-00/editor'
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ProductFormProps {
     initialData?: Partial<EbayRegisterData>;
@@ -47,6 +48,7 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
                 { name: 'Type', value: [''] },
                 { name: 'Model', value: [''] }
             ],
+            images: initialData?.images || [],
         },
     });
 
@@ -91,8 +93,9 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
                 itemSpecifics: {
                     nameValueList: values.itemSpecifics || [],
                 },
+                images: values.images,
             };
-
+            console.log(productData.images);
             //登録処理
 
         } catch (error) {
@@ -156,6 +159,46 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+                {form.getValues('images')?.length > 0 && (
+                    <div className="space-y-4">
+                        <div className="text-sm font-medium text-muted-foreground">選択画像（最大24枚）</div>
+                        <div className="grid grid-cols-5 gap-2">
+                            {form.getValues('images').map((url, index) => (
+                                url && (
+                                    <label
+                                        key={index}
+                                        className="relative aspect-square cursor-pointer"
+                                        htmlFor={`image-${index}`}
+                                    >
+                                        <Checkbox
+                                            id={`image-${index}`}
+                                            checked={!!url}
+                                            onCheckedChange={(checked) => {
+                                                const currentImages = [...form.getValues('images')];
+                                                currentImages[index] = checked ? url : '';
+                                                form.setValue('images', currentImages);
+                                            }}
+                                            className="hidden"
+                                        />
+                                        <div
+                                            className={`w-full h-full bg-cover bg-center border-2 rounded-md ${url
+                                                ? 'border-blue-500'
+                                                : 'border-transparent'
+                                                }`}
+                                            style={{ backgroundImage: `url(${url})` }}
+                                        >
+                                            {url && (
+                                                <div className="absolute right-1 top-1 bg-blue-500 w-4 h-4 rounded-full flex items-center justify-center text-white text-xs">
+                                                    ✓
+                                                </div>
+                                            )}
+                                        </div>
+                                    </label>
+                                )
+                            ))}
+                        </div>
+                    </div>
+                )}
                 <FormField
                     control={form.control}
                     name="title"

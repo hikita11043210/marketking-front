@@ -37,4 +37,5 @@ export interface EbayRegisterData {
             value: string[];
         }>;
     };
+    images: string[];
 }

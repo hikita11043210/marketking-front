@@ -23,6 +23,7 @@ export const productFormSchema = z.object({
         { name: 'Model', value: [''] }
     ]),
     currency: z.string().default('USD'),
+    images: z.array(z.string()).default([]),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>; 

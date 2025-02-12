@@ -10,7 +10,6 @@ export async function GET(request: Request) {
         });
 
         const data = await response.json();
-
         if (!response.ok) {
             return NextResponse.json({
                 error: 'yahoo_auction_detail_fetch_failed',

@@ -27,21 +27,21 @@ interface RegisterModalProps {
 // propsを受け取るように修正
 export default function RegisterModal({ isOpen, onClose, selectedItem }: RegisterModalProps) {
     const [results, setResults] = useState<SearchDetailResult | null>(null);
+    const [selectedImages, setSelectedImages] = useState<string[]>([]); // 追加: 選択された画像を管理するstate
 
     // selectedItemが存在する場合のみAPIを呼び出す
     useEffect(() => {
         const fetchDetail = async () => {
             if (selectedItem?.url) {
                 try {
-                    const searchParams = new URLSearchParams({
-                        url: selectedItem.url
-                    });
-
-                    const response = await fetch(`/api/yahoo-auction/detail?${searchParams}`);
+                    setSelectedImages([]);
+                    const response = await fetch(`/api/yahoo-auction/detail?url=${encodeURIComponent(selectedItem.url)}`);
                     const data = await response.json();
                     if (data.success) {
-                        setResults(data.data);
+                        setResults(data.data.data);
+                        setSelectedImages(data.data.data.images.url);
                     }
+                    await new Promise(resolve => setTimeout(resolve, 3000));
                 } catch (error) {
                     console.error('API呼び出しエラー:', error);
                 }
@@ -126,18 +126,25 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
                     <div className="space-y-6">
                         <Card>
                             <CardContent className="pt-6">
-                                <ProductForm
-                                    initialData={{
-                                        title: selectedItem?.title || '',
-                                        startPrice: {
-                                            value: selectedItem?.price || '',
-                                            currencyId: 'USD',
-                                        },
-                                        currency: 'USD',
-                                    }}
-                                    onSubmit={handleSubmit}
-                                    onCancel={onClose}
-                                />
+                                {selectedImages.length > 0 ? (
+                                    <ProductForm
+                                        initialData={{
+                                            title: selectedItem?.title || '',
+                                            startPrice: {
+                                                value: selectedItem?.price || '',
+                                                currencyId: 'USD',
+                                            },
+                                            currency: 'USD',
+                                            images: selectedImages,
+                                        }}
+                                        onSubmit={handleSubmit}
+                                        onCancel={onClose}
+                                    />
+                                ) : (
+                                    <div className="flex justify-center items-center h-32 text-muted-foreground">
+                                        画像データを読み込み中...
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
