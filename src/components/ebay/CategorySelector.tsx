@@ -86,7 +86,7 @@ export const CategorySelector = ({ form }: CategorySelectorProps) => {
                 name="categoryId"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel>カテゴリー選択</FormLabel>
+                        <FormLabel className="text-muted-foreground">カテゴリー選択</FormLabel>
                         <Select
                             value={field.value}
                             onValueChange={(value) => {

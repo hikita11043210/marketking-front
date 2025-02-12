@@ -161,7 +161,7 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
                     name="title"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel className="text-foreground">タイトル</FormLabel>
+                            <FormLabel className="text-muted-foreground">タイトル</FormLabel>
                             <FormControl>
                                 <Input {...field} className="h-11" />
                             </FormControl>
@@ -174,7 +174,7 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
                     name="description"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel className="text-foreground">説明</FormLabel>
+                            <FormLabel className="text-muted-foreground">説明</FormLabel>
                             <Editor
                                 editorSerializedState={field.value ? JSON.parse(field.value) : undefined}
                                 onSerializedChange={(value) => {
@@ -190,7 +190,7 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
                     name="price"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel className="text-foreground">価格</FormLabel>
+                            <FormLabel className="text-muted-foreground">価格</FormLabel>
                             <FormControl>
                                 <Input {...field} type="number" className="h-11" />
                             </FormControl>
@@ -204,7 +204,7 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
                     name="quantity"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel className="text-foreground">数量</FormLabel>
+                            <FormLabel className="text-muted-foreground">数量</FormLabel>
                             <FormControl>
                                 <Input {...field} type="number" className="h-11" />
                             </FormControl>
@@ -218,7 +218,7 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
                     name="condition"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel className="text-foreground">商品の状態</FormLabel>
+                            <FormLabel className="text-muted-foreground">商品の状態</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                     <SelectTrigger className="h-11">
@@ -241,7 +241,7 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
                     name="conditionDescription"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel className="text-foreground">商品の状態の説明</FormLabel>
+                            <FormLabel className="text-muted-foreground">商品の状態の説明</FormLabel>
                             <FormControl>
                                 <Textarea {...field} placeholder="商品の状態について詳しく説明してください" className="min-h-[100px] resize-none" />
                             </FormControl>

@@ -58,12 +58,9 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[1600px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[1600px] max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
                 <DialogHeader>
                     <DialogTitle>商品登録</DialogTitle>
-                    <DialogDescription id="dialog-description" className="sr-only">
-                        ebay登録フォーム
-                    </DialogDescription>
                 </DialogHeader>
                 <div className="grid grid-cols-[1fr,2fr] gap-8">
                     {/* 左側：選択商品の情報 */}

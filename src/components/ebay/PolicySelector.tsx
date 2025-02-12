@@ -53,7 +53,7 @@ export const PolicySelector = ({ form }: PolicySelectorProps) => {
                 name="fulfillmentPolicyId"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel className="text-foreground">配送ポリシー（Shipping Policy）</FormLabel>
+                        <FormLabel className="text-muted-foreground">配送ポリシー（Shipping Policy）</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                                 <SelectTrigger className="h-11">
@@ -78,7 +78,7 @@ export const PolicySelector = ({ form }: PolicySelectorProps) => {
                 name="paymentPolicyId"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel className="text-foreground">支払いポリシー（Payment Policy）</FormLabel>
+                        <FormLabel className="text-muted-foreground">支払いポリシー（Payment Policy）</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                                 <SelectTrigger className="h-11">
@@ -103,7 +103,7 @@ export const PolicySelector = ({ form }: PolicySelectorProps) => {
                 name="returnPolicyId"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel className="text-foreground">返品ポリシー（Return Policy）</FormLabel>
+                        <FormLabel className="text-muted-foreground">返品ポリシー（Return Policy）</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                                 <SelectTrigger className="h-11">
