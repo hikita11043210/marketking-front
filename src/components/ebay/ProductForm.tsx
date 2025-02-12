@@ -56,11 +56,6 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
 
     const handleSubmit = async (values: ProductFormValues) => {
         try {
-            const token = localStorage.getItem('ebayToken');
-            if (!token) {
-                throw new Error('認証情報が不足しています');
-            }
-
             const productData: EbayRegisterData = {
                 title: values.title,
                 description: values.description,
@@ -79,7 +74,7 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
                 paymentMethods: ['PayPal'],
                 condition: {
                     conditionId: values.condition,
-                    conditionDescription: values.conditionDescription,
+                    conditionDescription: values.conditionDescription ?? '',
                 },
                 returnPolicy: {
                     returnsAccepted: true,
@@ -97,26 +92,8 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
                 },
             };
 
-            const response = await fetch('/api/ebay/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify(productData),
-            });
+            //登録処理
 
-            const data = await response.json();
-
-            if (data.success) {
-                toast({
-                    title: '成功',
-                    description: '商品を登録しました',
-                });
-                onSubmit?.(productData);
-            } else {
-                throw new Error(data.message || '商品の登録に失敗しました');
-            }
         } catch (error) {
             toast({
                 title: 'エラー',

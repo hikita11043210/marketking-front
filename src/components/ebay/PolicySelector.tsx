@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import type { EbayPolicy } from '@/types/ebay';
+import type { EbayPolicies } from '@/types/ebay';
 import { UseFormReturn } from 'react-hook-form';
 
 interface PolicySelectorProps {
@@ -11,11 +11,7 @@ interface PolicySelectorProps {
 }
 
 export const PolicySelector = ({ form, marketplaceId = 'EBAY_US' }: PolicySelectorProps) => {
-    const [policies, setPolicies] = useState<{
-        fulfillment: EbayPolicy[];
-        payment: EbayPolicy[];
-        return: EbayPolicy[];
-    }>({
+    const [policies, setPolicies] = useState<EbayPolicies>({
         fulfillment: [],
         payment: [],
         return: []
@@ -26,25 +22,16 @@ export const PolicySelector = ({ form, marketplaceId = 'EBAY_US' }: PolicySelect
     useEffect(() => {
         const fetchPolicies = async () => {
             try {
-                const token = localStorage.getItem('ebayToken');
-                if (!token) {
-                    throw new Error('認証情報が不足しています');
-                }
-
-                const searchParams = new URLSearchParams({
-                    marketplaceId,
-                    token
-                });
-
-                const response = await fetch(`/api/ebay/policies?${searchParams}`);
+                const response = await fetch(`/api/ebay/policies`);
                 const data = await response.json();
 
                 if (data.success) {
                     setPolicies({
-                        fulfillment: data.data.fulfillment_policies,
-                        payment: data.data.payment_policies,
-                        return: data.data.return_policies
+                        fulfillment: data.fulfillment.fulfillmentPolicies,
+                        payment: data.payment.paymentPolicies,
+                        return: data.return.returnPolicies
                     });
+
                 } else {
                     throw new Error(data.message || 'ポリシー情報の取得に失敗しました');
                 }
@@ -67,16 +54,16 @@ export const PolicySelector = ({ form, marketplaceId = 'EBAY_US' }: PolicySelect
                 name="fulfillmentPolicyId"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel className="text-foreground">出荷ポリシー</FormLabel>
+                        <FormLabel className="text-foreground">配送ポリシー（Shipping Policy）</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                                 <SelectTrigger className="h-11">
-                                    <SelectValue placeholder="出荷ポリシーを選択" />
+                                    <SelectValue placeholder="配送ポリシーを選択" />
                                 </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                                 {policies.fulfillment.map((policy) => (
-                                    <SelectItem key={policy.policyId} value={policy.policyId}>
+                                    <SelectItem key={policy.fulfillmentPolicyId} value={policy.fulfillmentPolicyId}>
                                         {policy.name}
                                     </SelectItem>
                                 ))}
@@ -92,7 +79,7 @@ export const PolicySelector = ({ form, marketplaceId = 'EBAY_US' }: PolicySelect
                 name="paymentPolicyId"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel className="text-foreground">支払いポリシー</FormLabel>
+                        <FormLabel className="text-foreground">支払いポリシー（Payment Policy）</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                                 <SelectTrigger className="h-11">
@@ -101,7 +88,7 @@ export const PolicySelector = ({ form, marketplaceId = 'EBAY_US' }: PolicySelect
                             </FormControl>
                             <SelectContent>
                                 {policies.payment.map((policy) => (
-                                    <SelectItem key={policy.policyId} value={policy.policyId}>
+                                    <SelectItem key={policy.paymentPolicyId} value={policy.paymentPolicyId}>
                                         {policy.name}
                                     </SelectItem>
                                 ))}
@@ -117,7 +104,7 @@ export const PolicySelector = ({ form, marketplaceId = 'EBAY_US' }: PolicySelect
                 name="returnPolicyId"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel className="text-foreground">返品ポリシー</FormLabel>
+                        <FormLabel className="text-foreground">返品ポリシー（Return Policy）</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                                 <SelectTrigger className="h-11">
@@ -126,7 +113,7 @@ export const PolicySelector = ({ form, marketplaceId = 'EBAY_US' }: PolicySelect
                             </FormControl>
                             <SelectContent>
                                 {policies.return.map((policy) => (
-                                    <SelectItem key={policy.policyId} value={policy.policyId}>
+                                    <SelectItem key={policy.returnPolicyId} value={policy.returnPolicyId}>
                                         {policy.name}
                                     </SelectItem>
                                 ))}

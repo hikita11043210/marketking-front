@@ -1,4 +1,4 @@
-import { ShippingServiceOption } from '@/lib/types/shipping-calculator';
+import { ShippingServiceOption } from '@/types/shipping-calculator';
 
 export interface EbayRegisterData {
     title: string;
@@ -18,6 +18,7 @@ export interface EbayRegisterData {
     paymentMethods: string[];
     condition: {
         conditionId: string;
+        conditionDescription: string;
     };
     returnPolicy: {
         returnsAccepted: boolean;

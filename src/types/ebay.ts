@@ -14,16 +14,50 @@ export interface EbayAuthResponse extends ApiResponse<{
 export interface EbayTokenResponse extends ApiResponse<EbayAuthTokens> {}
 
 // eBayポリシー関連の型
-export interface EbayPolicy {
-    policyId: string;
+export interface FulfillmentPolicy {
     name: string;
-    description?: string;
+    marketplaceId: string;
+    categoryTypes: Array<any>;
+    handlingTime: { value: number, unit: string };
+    shipToLocations: { regionIncluded: Array<any>, regionExcluded: Array<any> };
+    shippingOptions: Array<any>;
+    globalShipping: boolean;
+    pickupDropOff: boolean;
+    freightShipping: boolean;
+    fulfillmentPolicyId: string;
+}
+
+export interface PaymentPolicy {
+    categoryTypes: Array<any>;
+    description: string;
+    immediatePay: boolean;
+    marketplaceId: string;
+    name: string;
+    paymentMethods: Array<any>;
+    paymentPolicyId: string;
+}
+
+export interface ReturnPolicy {
+    categoryTypes: Array<any>;
+    internationalOverride: {
+        returnsAccepted: boolean;
+        returnMethod: string;
+        returnPeriod: { value: number, unit: string };
+        returnShippingCostPayer: string;
+    };
+    marketplaceId: string;
+    name: string;
+    refundMethod: string;
+    returnPeriod: { value: number, unit: string };
+    returnPolicyId: string;
+    returnShippingCostPayer: string;
+    returnsAccepted: boolean;
 }
 
 export interface EbayPolicies {
-    fulfillment_policies: EbayPolicy[];
-    payment_policies: EbayPolicy[];
-    return_policies: EbayPolicy[];
+    fulfillment: FulfillmentPolicy[];
+    payment: PaymentPolicy[];
+    return: ReturnPolicy[];
 }
 
 export interface EbayPoliciesResponse extends ApiResponse<EbayPolicies> {}

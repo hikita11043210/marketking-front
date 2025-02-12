@@ -60,7 +60,6 @@ export function ShippingCalculatorForm({ onCalculate }: ShippingCalculatorFormPr
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Form submitted');
         setLoading(true);
         setError(null);
 
@@ -80,22 +79,18 @@ export function ShippingCalculatorForm({ onCalculate }: ShippingCalculatorFormPr
             height: parseInt(dimensions.height) || 0,
             weight: parseFloat(dimensions.weight) || 0
         };
-        console.log('Params:', params);
 
         const validation = validateShippingCalculator(params);
-        console.log('Validation result:', validation);
         if (!validation.isValid) {
             setLoading(false);
-            validation.errors.forEach(error => {
+            validation.errors.forEach((error: string) => {
                 showToast.error({ description: error });
             });
             return;
         }
 
         try {
-            console.log('Calling API...');
             const response = await calculateShipping(params);
-            console.log('API response:', response);
             if (response.success && response.data) {
                 onCalculate(response.data);
                 showToast.success({ description: "送料の計算が完了しました" });

@@ -39,7 +39,6 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
 
                     const response = await fetch(`/api/yahoo-auction/detail?${searchParams}`);
                     const data = await response.json();
-                    console.log(data);
                     if (data.success) {
                         setResults(data.data);
                     }
@@ -133,7 +132,10 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
                                 <ProductForm
                                     initialData={{
                                         title: selectedItem?.title || '',
-                                        price: selectedItem?.price || '',
+                                        startPrice: {
+                                            value: selectedItem?.price || '',
+                                            currencyId: 'USD',
+                                        },
                                         currency: 'USD',
                                     }}
                                     onSubmit={handleSubmit}
