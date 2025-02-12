@@ -264,13 +264,13 @@ export default function SearchPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {results.map((item, index) => (
-                        <Card key={index} className="flex flex-col h-[360px]">
+                        <Card key={index} className="flex flex-col h-[400px]">
                             <div
                                 className="flex flex-col flex-1 cursor-pointer hover:opacity-80 transition-opacity overflow-hidden"
                                 onClick={() => window.open(item.url, '_blank')}
                             >
                                 <CardHeader className="p-3 pb-2 flex-none">
-                                    <div className="relative w-full pt-[35%]">
+                                    <div className="relative w-full pt-[50%]">
                                         <div
                                             className="absolute inset-0 bg-center bg-no-repeat bg-contain"
                                             style={{ backgroundImage: `url(${item.image_url})` }}
@@ -283,7 +283,7 @@ export default function SearchPage() {
                                     </h2>
                                     <div className="space-y-2">
                                         <div className="flex justify-between items-center">
-                                            <p className="text-base font-bold text-primary w-[180px]">
+                                            <p className="text-base font-bold text-primary w-[160px]">
                                                 現在価格: ¥{Number(item.price).toLocaleString()}
                                             </p>
                                             <p className="text-sm font-medium text-orange-600">
