@@ -18,21 +18,23 @@ import type { SearchDetailResult } from '@/types/search';
 
 interface ProductFormProps {
     initialData?: SearchDetailResult | null;
+    translateTitle: string;
+    translateCondition: string;
     onCancel?: () => void;
 }
 
-export const ProductForm = ({ initialData, onCancel }: ProductFormProps) => {
+export const ProductForm = ({ initialData, translateTitle, translateCondition, onCancel }: ProductFormProps) => {
     const { toast } = useToast();
     const [allImages, setAllImages] = useState<string[]>(initialData?.images.url || []);
-
     const form = useForm<ProductFormValues>({
         resolver: zodResolver(productFormSchema),
         defaultValues: {
-            title: initialData?.title || '',
+            title: translateTitle,
             description: '',
-            price: initialData?.current_price || '',
+            price: initialData?.current_price ? initialData?.current_price.replace(',', '') : initialData?.buy_now_price ? initialData?.buy_now_price.replace(',', '') : '0',
             quantity: "1",
-            condition: initialData?.condition || '1000',
+            condition: initialData?.condition === '未使用' ? '1' : initialData?.condition === '未使用に近い' ? '3' : '2',
+            conditionDescription: translateCondition,
             categoryId: initialData?.categories[0] || '',
             ebayItemId: '',
             itemSpecifics: [
@@ -175,7 +177,17 @@ export const ProductForm = ({ initialData, onCancel }: ProductFormProps) => {
                         <FormItem>
                             <FormLabel className="text-muted-foreground">価格</FormLabel>
                             <FormControl>
-                                <Input {...field} type="number" className="h-11" />
+                                <Input
+                                    {...field}
+                                    type="text"
+                                    className="h-11"
+                                    value={field.value ? Number(field.value).toLocaleString() : ''}
+                                    onChange={(e) => {
+                                        // 数値以外を除去してフォームに設定
+                                        const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                                        field.onChange(numericValue);
+                                    }}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -209,9 +221,9 @@ export const ProductForm = ({ initialData, onCancel }: ProductFormProps) => {
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="1000">新品</SelectItem>
-                                    <SelectItem value="2000">中古</SelectItem>
-                                    <SelectItem value="3000">未使用に近い</SelectItem>
+                                    <SelectItem value="1">新品</SelectItem>
+                                    <SelectItem value="2">中古</SelectItem>
+                                    <SelectItem value="3">未使用に近い</SelectItem>
                                 </SelectContent>
                             </Select>
                             <FormMessage />

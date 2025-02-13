@@ -3,7 +3,7 @@ import * as z from 'zod';
 export const productFormSchema = z.object({
     title: z.string().min(1, '商品名を入力してください'),
     description: z.string().min(1, '商品の説明を入力してください'),
-    price: z.string().min(1, '価格を入力してください'),
+    price: z.string().transform((val) => val.replace(/,/g, '')),
     quantity: z.string().min(1, '数量を入力してください'),
     condition: z.string().min(1, '商品の状態を選択してください'),
     conditionDescription: z.string().optional(),

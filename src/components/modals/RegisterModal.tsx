@@ -9,40 +9,50 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { ProductForm } from "@/components/ebay/ProductForm";
 import type { EbayRegisterData } from '@/types/product';
-import type { SearchDetailResult } from '@/types/search';
+import type { SearchDetailResult, SearchResult } from '@/types/search';
 
 interface RegisterModalProps {
     isOpen: boolean;
     onClose: () => void;
-    selectedItem: {
-        title: string;
-        price: string;
-        buy_now_price: string | null;
-        image_url: string;
-        shipping?: string;
-        url: string;
-    } | null;
+    selectedItem: SearchResult;
 }
 
-// propsを受け取るように修正
 export default function RegisterModal({ isOpen, onClose, selectedItem }: RegisterModalProps) {
     const [detailData, setDetailData] = useState<SearchDetailResult>();
     const [selectedImages, setSelectedImages] = useState<string[]>([]); // 追加: 選択された画像を管理するstate
-
-    // selectedItemが存在する場合のみAPIを呼び出す
+    const [translate_title, setTranslateTitle] = useState<string>('');
+    const [translate_condition, setTranslateCondition] = useState<string>('');
     useEffect(() => {
         const fetchDetail = async () => {
             if (selectedItem?.url) {
                 try {
                     setSelectedImages([]);
-                    const response = await fetch(`/api/yahoo-auction/detail?url=${encodeURIComponent(selectedItem.url)}`);
-                    const data = await response.json();
+                    let response = await fetch(`/api/yahoo-auction/detail?url=${encodeURIComponent(selectedItem.url)}`);
+                    let data = await response.json();
                     if (data.success) {
-                        console.log("api呼び出し")
                         setDetailData(data.data.data);
                         setSelectedImages(data.data.data.images.url);
+
+                        // タイトル翻訳
+                        response = await fetch(`/api/translate?text=${encodeURIComponent(selectedItem.title)}`);
+                        data = await response.json();
+                        if (data.success) {
+                            setTranslateTitle(data.data.translated_text);
+                        } else {
+                            setTranslateTitle(selectedItem.title);
+                        }
+
+                        // 商品状態翻訳
+                        if (detailData?.condition) {
+                            response = await fetch(`/api/translate?text=${encodeURIComponent(detailData?.condition || '')}`);
+                            data = await response.json();
+                            if (data.success) {
+                                setTranslateCondition(data.data.translated_text);
+                            } else {
+                                setTranslateCondition(detailData?.condition || '');
+                            }
+                        }
                     }
-                    await new Promise(resolve => setTimeout(resolve, 3000));
                 } catch (error) {
                     console.error('API呼び出しエラー:', error);
                 }
@@ -51,11 +61,6 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
 
         fetchDetail();
     }, [selectedItem]);
-
-
-    const handleSubmit = (data: EbayRegisterData) => {
-        onClose();
-    };
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -98,6 +103,12 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
                                         <div className="text-sm font-medium text-muted-foreground">送料</div>
                                         <div className="text-base mt-1">{selectedItem?.shipping || '送料情報なし'}</div>
                                     </div>
+                                    {selectedItem?.end_time && (
+                                        <div>
+                                            <div className="text-sm font-medium text-muted-foreground">終了時間</div>
+                                            <div className="text-base mt-1">残り：{selectedItem.end_time}</div>
+                                        </div>
+                                    )}
                                     {detailData?.condition && (
                                         <div>
                                             <div className="text-sm font-medium text-muted-foreground">商品の状態</div>
@@ -127,9 +138,11 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
                     <div className="space-y-6">
                         <Card>
                             <CardContent className="pt-6">
-                                {selectedImages.length > 0 ? (
+                                {selectedImages.length > 0 && translate_title && translate_condition ? (
                                     <ProductForm
                                         initialData={detailData}
+                                        translateTitle={translate_title}
+                                        translateCondition={translate_condition}
                                         onCancel={onClose}
                                     />
                                 ) : (

@@ -4,11 +4,18 @@ import { serverFetch } from '@/app/api/server';
 export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
-        
-        const response = await serverFetch(`/api/v1/translation/?${searchParams}`, {
+
+        if (process.env.MODE === 'dev') {
+            return NextResponse.json(NextResponse.json({
+                error: 'dev mode',
+                message: 'dev mode'
+            }, { status: 400 })
+            );
+        }
+
+        const response = await serverFetch(`/api/v1/translate/?${searchParams}`, {
             cache: 'no-store',
         });
-
         const data = await response.json();
 
         if (!response.ok) {

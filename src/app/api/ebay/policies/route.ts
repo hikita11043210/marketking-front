@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { serverFetch } from '@/app/api/server';
-import { cookies } from 'next/headers';
 
 // サーバーサイドキャッシュ（推奨）
 const cache = new Map<string, { data: any; timestamp: number }>();

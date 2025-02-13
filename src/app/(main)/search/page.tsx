@@ -7,16 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import RegisterModal from "@/components/modals/RegisterModal";
-import type { SearchResult } from "@/types/search";
-
-type SearchItem = SearchResult['items'][0];
+import type { SearchResults, SearchResult } from "@/types/search";
 
 export default function SearchPage() {
     const [p, setP] = useState('カメラ');
     const [min, setMin] = useState('');
     const [max, setMax] = useState('');
     const [loading, setLoading] = useState(false);
-    const [results, setResults] = useState<SearchResult['items']>([]);
+    const [results, setResults] = useState<SearchResults['items']>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [auccat, setAuccat] = useState('');
     const [va, setVa] = useState('');
@@ -26,7 +24,7 @@ export default function SearchPage() {
     const [new_item, setNewItem] = useState(false);
     const [is_postage_mode, setIsPostageMode] = useState(false);
     const [n, setN] = useState('20');
-    const [selectedItem, setSelectedItem] = useState<SearchItem | null>(null);
+    const [selectedItem, setSelectedItem] = useState<SearchResult | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleSearch = async () => {
@@ -70,7 +68,7 @@ export default function SearchPage() {
         }
     };
 
-    const handleRegisterClick = (e: React.MouseEvent, item: SearchItem) => {
+    const handleRegisterClick = (e: React.MouseEvent, item: SearchResult) => {
         e.stopPropagation();
         setSelectedItem(item);
         setIsModalOpen(true);

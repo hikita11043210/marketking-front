@@ -18,19 +18,21 @@ export type SearchParams = {
 };
 
 // 検索結果一覧の型定義
-export type SearchResult = {
-    items: {
-        title: string;
-        price: string;
-        buy_now_price: string | null;
-        image_url: string;
-        url: string;
-        seller: string;
-        end_time: string;
-        bid_count: string;
-        shipping?: string;
-    }[];
+export type SearchResults = {
+    items: SearchResult[];
     total: number;
+}
+
+export type SearchResult = {
+    title: string;
+    price: number;
+    buy_now_price: number | null;
+    image_url: string;
+    url: string;
+    seller: string;
+    end_time: string;
+    bid_count: number;
+    shipping?: string;
 }
 
 // 商品詳細の型定義

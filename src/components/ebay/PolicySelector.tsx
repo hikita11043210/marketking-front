@@ -57,7 +57,7 @@ export const PolicySelector = ({ form }: PolicySelectorProps) => {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                                 <SelectTrigger className="h-11">
-                                    <SelectValue placeholder="配送ポリシーを選択" />
+                                    <SelectValue placeholder="" />
                                 </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -82,7 +82,7 @@ export const PolicySelector = ({ form }: PolicySelectorProps) => {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                                 <SelectTrigger className="h-11">
-                                    <SelectValue placeholder="支払いポリシーを選択" />
+                                    <SelectValue placeholder="" />
                                 </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -107,7 +107,7 @@ export const PolicySelector = ({ form }: PolicySelectorProps) => {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                                 <SelectTrigger className="h-11">
-                                    <SelectValue placeholder="返品ポリシーを選択" />
+                                    <SelectValue placeholder="" />
                                 </SelectTrigger>
                             </FormControl>
                             <SelectContent>
