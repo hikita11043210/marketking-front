@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     try {
         // キャッシュキー（ユーザー別に分ける場合はセッションIDなどを追加）
         const cacheKey = 'ebay-policies';
-        
+
         // キャッシュチェック（有効期間5分）
         if (cache.has(cacheKey) && Date.now() - cache.get(cacheKey)!.timestamp < 300_000) {
             return NextResponse.json(cache.get(cacheKey)!.data);
@@ -20,7 +20,6 @@ export async function GET(request: Request) {
         });
 
         const data = await response.json();
-
 
         if (!response.ok) {
             return NextResponse.json({

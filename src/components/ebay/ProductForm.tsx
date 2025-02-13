@@ -5,56 +5,43 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from "@/components/ui/accordion"
 import { PolicySelector } from './PolicySelector';
 import { CategorySelector } from './CategorySelector';
+import { ItemSpecifics } from './ItemSpecifics';
 import { useToast } from '@/hooks/use-toast';
 import type { EbayRegisterData } from '@/types/product';
 import { useState } from 'react';
 import { productFormSchema, type ProductFormValues } from '@/validations/product';
 import { Editor } from '@/components/blocks/editor-00/editor'
 import { Checkbox } from "@/components/ui/checkbox";
+import type { SearchDetailResult } from '@/types/search';
 
 interface ProductFormProps {
-    initialData?: Partial<EbayRegisterData>;
-    onSubmit?: (data: EbayRegisterData) => void;
+    initialData?: SearchDetailResult | null;
     onCancel?: () => void;
 }
 
-export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProps) => {
+export const ProductForm = ({ initialData, onCancel }: ProductFormProps) => {
     const { toast } = useToast();
-    const [isLoading, setIsLoading] = useState(false);
-    const [itemSpecifics, setItemSpecifics] = useState<Array<{ name: string; value: string[] }>>([]);
+    const [allImages, setAllImages] = useState<string[]>(initialData?.images.url || []);
+
     const form = useForm<ProductFormValues>({
         resolver: zodResolver(productFormSchema),
         defaultValues: {
             title: initialData?.title || '',
-            description: initialData?.description || '',
-            price: initialData?.startPrice?.value || '',
-            quantity: String(initialData?.quantity || '1'),
-            condition: initialData?.condition?.conditionId || '1000',
-            categoryId: initialData?.primaryCategory?.categoryId || '',
-            fulfillmentPolicyId: initialData?.fulfillmentPolicyId || '',
-            paymentPolicyId: initialData?.paymentPolicyId || '',
-            returnPolicyId: initialData?.returnPolicyId || '',
+            description: '',
+            price: initialData?.current_price || '',
+            quantity: "1",
+            condition: initialData?.condition || '1000',
+            categoryId: initialData?.categories[0] || '',
             ebayItemId: '',
-            itemSpecifics: initialData?.itemSpecifics?.nameValueList || [
+            itemSpecifics: [
                 { name: 'Brand', value: [''] },
                 { name: 'Type', value: [''] },
                 { name: 'Model', value: [''] }
             ],
-            images: initialData?.images || [],
+            images: initialData?.images.url || [],
         },
-    });
-
-    const { fields, append } = useFieldArray({
-        control: form.control,
-        name: "itemSpecifics"
     });
 
     const handleSubmit = async (values: ProductFormValues) => {
@@ -107,87 +94,40 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
         }
     };
 
-    const handleFetchItemSpecifics = async () => {
-        const ebayItemId = form.getValues('ebayItemId');
-        if (!ebayItemId) {
-            toast({
-                title: 'エラー',
-                description: 'eBay商品IDを入力してください',
-                variant: 'destructive',
-            });
-            return;
-        }
-
-        try {
-            setIsLoading(true);
-            // 既存のフィールドをクリア
-            form.setValue('itemSpecifics', []);
-
-            // テスト用のサンプルデータを追加
-            const testSpecs = [
-                { name: 'ブランド', value: ['テストブランド'] },
-                { name: '型番', value: ['TEST-001'] },
-                { name: 'カラー', value: ['ブラック'] },
-                { name: 'サイズ', value: ['M'] },
-                { name: '素材', value: ['コットン'] }
-            ];
-
-            // 各テストデータを1つずつappendで追加
-            testSpecs.forEach(spec => {
-                append(spec);
-            });
-
-            // 取得したItem Specifics表示用
-            setItemSpecifics(testSpecs);
-
-            toast({
-                title: '成功',
-                description: 'テスト用のItem Specificsを追加しました',
-            });
-
-        } catch (error) {
-            toast({
-                title: 'エラー',
-                description: error instanceof Error ? error.message : 'Item Specificsの取得に失敗しました',
-                variant: 'destructive',
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-                {form.getValues('images')?.length > 0 && (
+                {allImages.length > 0 && (
                     <div className="space-y-4">
                         <div className="text-sm font-medium text-muted-foreground">選択画像（最大24枚）</div>
                         <div className="grid grid-cols-5 gap-2">
-                            {form.getValues('images').map((url, index) => (
+                            {allImages.map((url, index) => (
                                 url && (
                                     <label
-                                        key={index}
+                                        key={url}
                                         className="relative aspect-square cursor-pointer"
-                                        htmlFor={`image-${index}`}
+                                        htmlFor={`image-${url}`}
                                     >
                                         <Checkbox
-                                            id={`image-${index}`}
-                                            checked={!!url}
+                                            id={`image-${url}`}
+                                            checked={form.getValues('images').includes(url)}
                                             onCheckedChange={(checked) => {
-                                                const currentImages = [...form.getValues('images')];
-                                                currentImages[index] = checked ? url : '';
-                                                form.setValue('images', currentImages);
+                                                const currentSelected = form.getValues('images');
+                                                const newSelected = checked
+                                                    ? [...currentSelected, url]
+                                                    : currentSelected.filter(selectedUrl => selectedUrl !== url);
+                                                form.setValue('images', newSelected, { shouldDirty: true, shouldValidate: true });
                                             }}
                                             className="hidden"
                                         />
                                         <div
-                                            className={`w-full h-full bg-cover bg-center border-2 rounded-md ${url
+                                            className={`w-full h-full bg-cover bg-center border-2 rounded-md ${form.getValues('images').includes(url)
                                                 ? 'border-blue-500'
                                                 : 'border-transparent'
                                                 }`}
                                             style={{ backgroundImage: `url(${url})` }}
                                         >
-                                            {url && (
+                                            {form.getValues('images').includes(url) && (
                                                 <div className="absolute right-1 top-1 bg-blue-500 w-4 h-4 rounded-full flex items-center justify-center text-white text-xs">
                                                     ✓
                                                 </div>
@@ -297,95 +237,7 @@ export const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProp
 
                 <PolicySelector form={form} />
 
-                <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="item-specifics">
-                        <div className="flex items-center justify-between">
-                            <AccordionTrigger className="flex-1">Item Specifics</AccordionTrigger>
-                            <div className="flex items-center gap-2 px-4">
-                                <FormField
-                                    control={form.control}
-                                    name="ebayItemId"
-                                    render={({ field }) => (
-                                        <FormItem className="flex-1">
-                                            <FormControl>
-                                                <Input {...field} placeholder="eBay商品ID" className="h-9 w-[200px]" />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    onClick={handleFetchItemSpecifics}
-                                    disabled={isLoading}
-                                    className="h-9"
-                                >
-                                    {isLoading ? (
-                                        <>
-                                            <span className="loading loading-spinner loading-sm mr-2"></span>
-                                            取得中...
-                                        </>
-                                    ) : (
-                                        'Item Specificsを取得'
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
-                        <AccordionContent>
-                            <div className="space-y-4 pt-4">
-                                <div className="grid grid-cols-1 gap-4">
-                                    {fields.map((field, index) => (
-                                        <div key={field.id} className="flex items-center gap-4">
-                                            <FormField
-                                                control={form.control}
-                                                name={`itemSpecifics.${index}.name`}
-                                                render={({ field }) => (
-                                                    <FormItem className="flex-1">
-                                                        <FormControl>
-                                                            <Input
-                                                                {...field}
-                                                                placeholder="項目名"
-                                                                className="w-full"
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            <FormField
-                                                control={form.control}
-                                                name={`itemSpecifics.${index}.value.0`}
-                                                render={({ field }) => (
-                                                    <FormItem className="flex-1">
-                                                        <FormControl>
-                                                            <Input
-                                                                {...field}
-                                                                placeholder="値"
-                                                                className="w-full"
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => {
-                                        append({ name: '', value: [''] });
-                                    }}
-                                    className="w-full mt-4"
-                                >
-                                    項目を追加
-                                </Button>
-                            </div>
-                        </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
+                <ItemSpecifics form={form} />
 
                 <div className="flex justify-end gap-3">
                     {onCancel && (

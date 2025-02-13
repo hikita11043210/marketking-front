@@ -26,7 +26,7 @@ interface RegisterModalProps {
 
 // propsを受け取るように修正
 export default function RegisterModal({ isOpen, onClose, selectedItem }: RegisterModalProps) {
-    const [results, setResults] = useState<SearchDetailResult | null>(null);
+    const [detailData, setDetailData] = useState<SearchDetailResult>();
     const [selectedImages, setSelectedImages] = useState<string[]>([]); // 追加: 選択された画像を管理するstate
 
     // selectedItemが存在する場合のみAPIを呼び出す
@@ -38,7 +38,8 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
                     const response = await fetch(`/api/yahoo-auction/detail?url=${encodeURIComponent(selectedItem.url)}`);
                     const data = await response.json();
                     if (data.success) {
-                        setResults(data.data.data);
+                        console.log("api呼び出し")
+                        setDetailData(data.data.data);
                         setSelectedImages(data.data.data.images.url);
                     }
                     await new Promise(resolve => setTimeout(resolve, 3000));
@@ -97,24 +98,24 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
                                         <div className="text-sm font-medium text-muted-foreground">送料</div>
                                         <div className="text-base mt-1">{selectedItem?.shipping || '送料情報なし'}</div>
                                     </div>
-                                    {results?.condition && (
+                                    {detailData?.condition && (
                                         <div>
                                             <div className="text-sm font-medium text-muted-foreground">商品の状態</div>
-                                            <div className="text-base mt-1">{results.condition}</div>
+                                            <div className="text-base mt-1">{detailData.condition}</div>
                                         </div>
                                     )}
-                                    {results?.categories && results.categories.length > 0 && (
+                                    {detailData?.categories && detailData.categories.length > 0 && (
                                         <div>
                                             <div className="text-sm font-medium text-muted-foreground">カテゴリ</div>
                                             <div className="text-base mt-1 whitespace-pre-line">
-                                                {results.categories.join(' > \n')}
+                                                {detailData.categories.join(' > \n')}
                                             </div>
                                         </div>
                                     )}
-                                    {results?.auction_id && (
+                                    {detailData?.auction_id && (
                                         <div>
                                             <div className="text-sm font-medium text-muted-foreground">オークションID</div>
-                                            <div className="text-base mt-1">{results.auction_id}</div>
+                                            <div className="text-base mt-1">{detailData.auction_id}</div>
                                         </div>
                                     )}
                                 </div>
@@ -128,16 +129,7 @@ export default function RegisterModal({ isOpen, onClose, selectedItem }: Registe
                             <CardContent className="pt-6">
                                 {selectedImages.length > 0 ? (
                                     <ProductForm
-                                        initialData={{
-                                            title: selectedItem?.title || '',
-                                            startPrice: {
-                                                value: selectedItem?.price || '',
-                                                currencyId: 'USD',
-                                            },
-                                            currency: 'USD',
-                                            images: selectedImages,
-                                        }}
-                                        onSubmit={handleSubmit}
+                                        initialData={detailData}
                                         onCancel={onClose}
                                     />
                                 ) : (

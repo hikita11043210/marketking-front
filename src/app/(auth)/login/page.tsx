@@ -13,8 +13,8 @@ export default function LoginPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [credentials, setCredentials] = useState({
-        username: '',
-        password: ''
+        username: 'toshiki',
+        password: 'popo3gou'
     });
 
     const onSubmit = async (e: React.FormEvent) => {

@@ -17,7 +17,7 @@ export type SearchParams = {
     n?: string;
 };
 
-// 検索結果の型定義
+// 検索結果一覧の型定義
 export type SearchResult = {
     items: {
         title: string;
@@ -33,9 +33,9 @@ export type SearchResult = {
     total: number;
 }
 
+// 商品詳細の型定義
 export type SearchDetailResult = {
     title: string;
-
     current_price: string;
     current_price_in_tax: string;
     buy_now_price: string;
