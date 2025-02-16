@@ -13,6 +13,7 @@ import type { SearchDetailResult } from '@/types/search';
 import type { FulfillmentPolicy, PaymentPolicy, ReturnPolicy } from '@/types/ebay/policy';
 import type { ItemSpecificsResponse } from '@/types/ebay/itemSpecifics';
 import type { SearchResult } from '@/types/search';
+import type { PriceCalculation } from '@/types/price';
 
 interface ProductFormProps {
     initialData?: SearchDetailResult | null;
@@ -26,6 +27,7 @@ interface ProductFormProps {
         return: ReturnPolicy[];
     };
     isLoadingPolicies: boolean;
+    price: PriceCalculation;
 }
 
 interface Category {
@@ -39,6 +41,7 @@ const productFormSchema = z.object({
     title: z.string().min(1, 'タイトルを入力してください'),
     description: z.string().min(1, '説明を入力してください'),
     price: z.string().min(1, '価格を入力してください'),
+    final_profit: z.string(),
     quantity: z.string().min(1, '数量を入力してください'),
     condition: z.string().min(1, '商品の状態を選択してください'),
     conditionDescription: z.string().optional(),
@@ -67,7 +70,8 @@ export const ProductForm = ({
     translateCondition,
     onCancel,
     policies,
-    isLoadingPolicies
+    isLoadingPolicies,
+    price
 }: ProductFormProps) => {
     const { toast } = useToast();
     const [allImages, setAllImages] = useState<string[]>(initialData?.images.url || []);
@@ -80,11 +84,8 @@ export const ProductForm = ({
         defaultValues: {
             title: translateTitle,
             description: '',
-            price: initialData?.buy_now_price ?
-                initialData.buy_now_price.replace(/[^0-9]/g, '') :
-                initialData?.current_price ?
-                    initialData.current_price.replace(/[^0-9]/g, '') :
-                    '0',
+            price: price.calculated_price_dollar.toString(),
+            final_profit: price.final_profit_dollar.toString(),
             quantity: "1",
             condition: initialData?.condition === '未使用' ? '1' : initialData?.condition === '未使用に近い' ? '3' : '2',
             conditionDescription: translateCondition,
@@ -328,28 +329,42 @@ export const ProductForm = ({
                 />
 
                 {/* 価格フィールド */}
-                <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel className="text-muted-foreground">価格</FormLabel>
-                            <FormControl>
-                                <Input
-                                    {...field}
-                                    type="text"
-                                    className="h-11"
-                                    value={field.value ? Number(field.value).toLocaleString() : ''}
-                                    onChange={(e) => {
-                                        const numericValue = e.target.value.replace(/[^0-9]/g, '');
-                                        field.onChange(numericValue);
-                                    }}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <div className="grid grid-cols-[2fr,3fr] gap-4 items-end">
+                    <FormField
+                        control={form.control}
+                        name="price"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-muted-foreground">価格（＄）</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        {...field}
+                                        type="text"
+                                        className="h-11"
+                                        value={field.value ? Number(field.value).toLocaleString() : ''}
+                                        onChange={(e) => {
+                                            const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                                            field.onChange(numericValue);
+                                        }}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="final_profit"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-muted-foreground">最終利益（￥）</FormLabel>
+                                <div className="h-11 px-3 border rounded-md bg-muted flex items-center text-muted-foreground">
+                                    {Number(field.value).toLocaleString()}
+                                </div>
+                            </FormItem>
+                        )}
+                    />
+                </div>
 
                 <FormField
                     control={form.control}

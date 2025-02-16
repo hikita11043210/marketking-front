@@ -6,7 +6,7 @@ import { ProductForm } from './ProductForm';
 import { useToast } from '@/hooks/use-toast';
 import type { SearchDetailResult, SearchResult } from '@/types/search';
 import type { FulfillmentPolicy, PaymentPolicy, ReturnPolicy, EbayPoliciesResponse } from '@/types/ebay/policy';
-
+import type { PriceCalculation } from '@/types/price';
 interface RegisterModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -20,6 +20,7 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
     const [translate_title, setTranslateTitle] = useState<string>('');
     const [translate_condition, setTranslateCondition] = useState<string>('');
     const [isLoadingPolicies, setIsLoadingPolicies] = useState(true);
+    const [price, setPrice] = useState<PriceCalculation>();
     const [policies, setPolicies] = useState<{
         fulfillment: FulfillmentPolicy[];
         payment: PaymentPolicy[];
@@ -63,6 +64,10 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
             if (selectedItem?.url) {
                 try {
                     setSelectedImages([]);
+                    setSelectedImages([]);
+                    setTranslateTitle('');
+                    setTranslateCondition('');
+                    setPrice(undefined);
                     let response = await fetch(`/api/yahoo-auction/detail?url=${encodeURIComponent(selectedItem.url)}`);
                     let data = await response.json();
                     if (data.success) {
@@ -80,12 +85,37 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
 
                         // 商品状態翻訳
                         if (detailData?.condition) {
-                            response = await fetch(`/api/translate?text=${encodeURIComponent(detailData?.condition || '')}`);
+                            response = await fetch(`/api/translate?text=${encodeURIComponent(detailData?.condition)}`);
                             data = await response.json();
                             if (data.success) {
                                 setTranslateCondition(data.data.translated_text);
                             } else {
                                 setTranslateCondition(detailData?.condition || '');
+                            }
+                        }
+
+                        // 価格計算用の配列を作成
+                        const extractShippingCost = (shipping: string): string => {
+                            // 数値とカンマのみを抽出
+                            const matches = shipping.match(/[0-9,]+/);
+                            if (matches) {
+                                // カンマを除去して返す
+                                return matches[0].replace(/,/g, '');
+                            }
+                            return '0';
+                        };
+
+                        const priceArray = [
+                            selectedItem.buy_now_price || selectedItem.price || '0',
+                            extractShippingCost(selectedItem.shipping || '0'),
+                        ];
+
+                        // 価格取得
+                        if (priceArray.length > 0) {
+                            response = await fetch(`/api/calculator/price?${priceArray.map(price => `money[]=${encodeURIComponent(price)}`).join('&')}`);
+                            data = await response.json();
+                            if (data.success) {
+                                setPrice(data.data);
                             }
                         }
                     }
@@ -112,7 +142,7 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
                 <div className="space-y-6">
                     <Card>
                         <CardContent className="pt-6">
-                            {selectedImages.length > 0 && translate_title && translate_condition ? (
+                            {selectedImages.length > 0 && translate_title && translate_condition && price ? (
                                 <ProductForm
                                     initialData={detailData}
                                     selectedItem={selectedItem}
@@ -121,10 +151,11 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
                                     onCancel={onClose}
                                     policies={policies}
                                     isLoadingPolicies={isLoadingPolicies}
+                                    price={price}
                                 />
                             ) : (
                                 <div className="flex justify-center items-center h-32 text-muted-foreground">
-                                    画像データを読み込み中...
+                                    データを読み込み中...
                                 </div>
                             )}
                         </CardContent>

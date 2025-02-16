@@ -6,7 +6,7 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url);
         const q = searchParams.get('q');
 
-        const response = await serverFetch(`/api/v1/ebay/category?q=${q}`, {
+        const response = await serverFetch(`/api/v1/category?q=${q}`, {
             cache: 'no-store',
         });
 

@@ -4,35 +4,27 @@ import { serverFetch } from '@/app/api/server';
 export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
-        const text = searchParams.get('text');
+        const money = searchParams.getAll('money[]');
 
-        if (!text) {
+        if (!money.length) {
             return NextResponse.json({
                 success: false,
                 error: 'invalid_parameter',
-                message: '翻訳するテキストが指定されていません'
+                message: 'URLパラメータが指定されていません'
             }, { status: 400 });
         }
 
-        if (process.env.MODE === 'dev') {
-            return NextResponse.json({
-                success: true,
-                data: {
-                    translated_text: text // 開発モードでは元のテキストをそのまま返す
-                }
-            });
-        }
-
-        const response = await serverFetch(`/api/v1/translate/?${searchParams}`, {
+        const response = await serverFetch(`/api/v1/price-calculator?${money.map(money => `money[]=${encodeURIComponent(money)}`).join('&')}`, {
             cache: 'no-store',
         });
+
         const data = await response.json();
 
         if (!response.ok) {
             return NextResponse.json({
                 success: false,
-                error: 'translation_fetch_failed',
-                message: data.message || '翻訳の取得に失敗しました'
+                error: 'ebay_price_fetch_failed',
+                message: data.message || '価格情報の取得に失敗しました'
             }, { status: response.status });
         }
 
