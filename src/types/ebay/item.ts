@@ -1,4 +1,15 @@
-import { ShippingServiceOption } from '@/types/shipping-calculator';
+import type { ApiResponse } from '../common/api';
+
+export interface EbayItemSpecifics {
+    nameValueList: Array<{
+        name: string;
+        value: string[];
+    }>;
+}
+
+export interface EbayItemSpecificsResponse extends ApiResponse<{
+    itemSpecifics: EbayItemSpecifics;
+}> {}
 
 export interface EbayRegisterData {
     title: string;
@@ -25,17 +36,22 @@ export interface EbayRegisterData {
         returnsPeriod: string;
         returnsDescription: string;
     };
-    shippingDetails: {
-        shippingServiceOptions: ShippingServiceOption[];
-    };
     fulfillmentPolicyId?: string;
     paymentPolicyId?: string;
     returnPolicyId?: string;
-    itemSpecifics: {
-        nameValueList: Array<{
-            name: string;
-            value: string[];
-        }>;
-    };
+    itemSpecifics: EbayItemSpecifics;
     images: string[];
 }
+
+export interface EbayRegisterResponse extends ApiResponse<{
+    itemId: string;
+    fees: {
+        fee: {
+            name: string;
+            amount: {
+                value: string;
+                currencyId: string;
+            };
+        }[];
+    };
+}> {} 

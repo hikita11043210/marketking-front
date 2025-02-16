@@ -15,7 +15,7 @@ export async function GET(request: Request) {
         if (!response.ok) {
             return NextResponse.json({
                 error: 'ebay_item_specifics_fetch_failed',
-                message: data.message || '商品の詳細情報の取得に失敗しました'
+                message: data.message || 'Item Specificsの取得に失敗しました'
             }, { status: response.status });
         }
 

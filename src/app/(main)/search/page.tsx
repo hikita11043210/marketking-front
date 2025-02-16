@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import RegisterModal from "@/components/modals/RegisterModal";
+import { RegisterModal } from "@/components/forms/ebay/ProductForm/RegisterModal";
 import type { SearchResults, SearchResult } from "@/types/search";
 
 export default function SearchPage() {

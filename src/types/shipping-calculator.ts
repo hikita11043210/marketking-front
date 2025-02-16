@@ -51,24 +51,3 @@ export interface ShippingCalculatorData {
     services: Service[];
     countries: Country[];
 }
-
-export type ShippingService = {
-    id: string;
-    name: string;
-    price: number;
-    estimated_days: string;
-    carrier: string;
-};
-
-export type ShippingCalculatorResult = {
-    available_services: ShippingService[];
-};
-
-export interface ShippingServiceOption {
-    shippingService: string;
-    shippingServiceCost: {
-        value: string;
-        currencyId: string;
-    };
-    freeShipping?: boolean;
-} 

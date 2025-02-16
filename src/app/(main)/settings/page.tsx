@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Setting } from "@/types/settings";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loading } from "@/components/ui/loading";
-import { EbayAuth } from '@/components/ebay/EbayAuth';
+import { EbayAuth } from '@/components/layout/EbayAuth';
 import { showToast } from "@/lib/toast";
 
 const settingSchema = z.object({
