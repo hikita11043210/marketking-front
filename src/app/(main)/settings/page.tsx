@@ -20,11 +20,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Loading } from "@/components/ui/loading";
 import { EbayAuth } from '@/components/layout/EbayAuth';
 import { showToast } from "@/lib/toast";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 const settingSchema = z.object({
     ebay_client_id: z.string().min(1, "eBay Client IDは必須です"),
     ebay_client_secret: z.string().min(1, "eBay Client Secretは必須です"),
     ebay_dev_id: z.string().min(1, "eBay Dev IDは必須です"),
+    ebay_store_type_id: z.string().min(1, "eBayストアタイプは必須です"),
     yahoo_client_id: z.string().min(1, "Yahoo Client IDは必須です"),
     yahoo_client_secret: z.string().min(1, "Yahoo Client Secretは必須です"),
     rate: z.string()
@@ -44,6 +52,7 @@ export default function SettingPage() {
             ebay_client_id: "",
             ebay_client_secret: "",
             ebay_dev_id: "",
+            ebay_store_type_id: "",
             yahoo_client_id: "",
             yahoo_client_secret: "",
             rate: "30",
@@ -60,7 +69,13 @@ export default function SettingPage() {
 
                 if (response.ok && data) {
                     setSetting(data.data);
-                    form.reset(data.data);
+                    // ebay_store_type_idを文字列に変換して設定
+                    const formData = {
+                        ...data.data,
+                        ebay_store_type_id: data.data.ebay_store_type_id?.toString() || "",
+                        rate: data.data.rate?.toString() || "30"
+                    };
+                    form.reset(formData);
                 } else {
                     toast({
                         variant: 'destructive',
@@ -145,7 +160,6 @@ export default function SettingPage() {
                             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                                 <div className="space-y-6">
                                     <div className="space-y-4">
-                                        <h4 className="text-base font-medium">基本設定</h4>
                                         <FormField
                                             control={form.control}
                                             name="rate"
@@ -185,6 +199,34 @@ export default function SettingPage() {
                                     </div>
                                     <div className="space-y-4">
                                         <h4 className="text-base font-medium">eBay設定</h4>
+                                        <FormField
+                                            control={form.control}
+                                            name="ebay_store_type_id"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>ストアタイプ</FormLabel>
+                                                    <Select
+                                                        onValueChange={field.onChange}
+                                                        value={field.value}
+                                                        defaultValue={field.value}
+                                                    >
+                                                        <FormControl>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="ストアタイプを選択" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {setting?.ebay_store_types?.map((type) => (
+                                                                <SelectItem key={type.id} value={type.id.toString()}>
+                                                                    {type.store_type}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
                                         <FormField
                                             control={form.control}
                                             name="ebay_client_id"

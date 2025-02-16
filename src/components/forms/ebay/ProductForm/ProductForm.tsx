@@ -3,7 +3,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -13,9 +12,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { SearchDetailResult } from '@/types/search';
 import type { FulfillmentPolicy, PaymentPolicy, ReturnPolicy } from '@/types/ebay/policy';
 import type { ItemSpecificsResponse } from '@/types/ebay/itemSpecifics';
+import type { SearchResult } from '@/types/search';
 
 interface ProductFormProps {
     initialData?: SearchDetailResult | null;
+    selectedItem: SearchResult;
     translateTitle: string;
     translateCondition: string;
     onCancel?: () => void;
@@ -61,6 +62,7 @@ type ProductFormValues = z.infer<typeof productFormSchema>;
 
 export const ProductForm = ({
     initialData,
+    selectedItem,
     translateTitle,
     translateCondition,
     onCancel,
@@ -78,7 +80,11 @@ export const ProductForm = ({
         defaultValues: {
             title: translateTitle,
             description: '',
-            price: initialData?.current_price ? initialData?.current_price.replace(',', '') : initialData?.buy_now_price ? initialData?.buy_now_price.replace(',', '') : '0',
+            price: initialData?.buy_now_price ?
+                initialData.buy_now_price.replace(/[^0-9]/g, '') :
+                initialData?.current_price ?
+                    initialData.current_price.replace(/[^0-9]/g, '') :
+                    '0',
             quantity: "1",
             condition: initialData?.condition === '未使用' ? '1' : initialData?.condition === '未使用に近い' ? '3' : '2',
             conditionDescription: translateCondition,
@@ -321,6 +327,7 @@ export const ProductForm = ({
                     )}
                 />
 
+                {/* 価格フィールド */}
                 <FormField
                     control={form.control}
                     name="price"

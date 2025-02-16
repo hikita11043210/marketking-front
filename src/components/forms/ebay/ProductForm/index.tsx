@@ -115,6 +115,7 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
                             {selectedImages.length > 0 && translate_title && translate_condition ? (
                                 <ProductForm
                                     initialData={detailData}
+                                    selectedItem={selectedItem}
                                     translateTitle={translate_title}
                                     translateCondition={translate_condition}
                                     onCancel={onClose}
