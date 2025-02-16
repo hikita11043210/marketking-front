@@ -3,7 +3,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { BaseRegisterModal } from '@/components/shared/modals/BaseRegisterModal';
 import { ProductInfo } from './ProductInfo';
 import { ProductForm } from './ProductForm';
+import { useToast } from '@/hooks/use-toast';
 import type { SearchDetailResult, SearchResult } from '@/types/search';
+import type { FulfillmentPolicy, PaymentPolicy, ReturnPolicy, EbayPoliciesResponse } from '@/types/ebay/policy';
 
 interface RegisterModalProps {
     isOpen: boolean;
@@ -12,10 +14,49 @@ interface RegisterModalProps {
 }
 
 export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalProps) => {
+    const { toast } = useToast();
     const [detailData, setDetailData] = useState<SearchDetailResult>();
     const [selectedImages, setSelectedImages] = useState<string[]>([]);
     const [translate_title, setTranslateTitle] = useState<string>('');
     const [translate_condition, setTranslateCondition] = useState<string>('');
+    const [isLoadingPolicies, setIsLoadingPolicies] = useState(true);
+    const [policies, setPolicies] = useState<{
+        fulfillment: FulfillmentPolicy[];
+        payment: PaymentPolicy[];
+        return: ReturnPolicy[];
+    }>({
+        fulfillment: [],
+        payment: [],
+        return: []
+    });
+
+    // ポリシー情報の取得
+    useEffect(() => {
+        const loadPolicies = async () => {
+            setIsLoadingPolicies(true);
+            try {
+                const response = await fetch('/api/ebay/policies');
+                const data: EbayPoliciesResponse = await response.json();
+                if (data.success && data.data) {
+                    setPolicies({
+                        fulfillment: data.data.fulfillment.fulfillmentPolicies,
+                        payment: data.data.payment.paymentPolicies,
+                        return: data.data.return.returnPolicies
+                    });
+                }
+            } catch (error) {
+                toast({
+                    title: 'エラー',
+                    description: error instanceof Error ? error.message : 'ポリシー情報の取得に失敗しました',
+                    variant: 'destructive'
+                });
+            } finally {
+                setIsLoadingPolicies(false);
+            }
+        };
+
+        loadPolicies();
+    }, [toast]);
 
     useEffect(() => {
         const fetchDetail = async () => {
@@ -77,6 +118,8 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
                                     translateTitle={translate_title}
                                     translateCondition={translate_condition}
                                     onCancel={onClose}
+                                    policies={policies}
+                                    isLoadingPolicies={isLoadingPolicies}
                                 />
                             ) : (
                                 <div className="flex justify-center items-center h-32 text-muted-foreground">

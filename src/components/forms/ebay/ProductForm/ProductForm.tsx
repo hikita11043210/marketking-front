@@ -7,14 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Editor } from '@/components/blocks/editor-00/editor';
 import { Checkbox } from "@/components/ui/checkbox";
 import type { SearchDetailResult } from '@/types/search';
-import type { EbayCategory } from '@/types/ebay/category';
-import type { EbayPolicies, FulfillmentPolicy, PaymentPolicy, ReturnPolicy } from '@/types/ebay/policy';
-import type { EbayCategoryResponse } from '@/types/ebay/category';
-import type { EbayPoliciesResponse } from '@/types/ebay/policy';
+import type { FulfillmentPolicy, PaymentPolicy, ReturnPolicy } from '@/types/ebay/policy';
 import type { ItemSpecificsResponse } from '@/types/ebay/itemSpecifics';
 
 interface ProductFormProps {
@@ -22,6 +19,12 @@ interface ProductFormProps {
     translateTitle: string;
     translateCondition: string;
     onCancel?: () => void;
+    policies: {
+        fulfillment: FulfillmentPolicy[];
+        payment: PaymentPolicy[];
+        return: ReturnPolicy[];
+    };
+    isLoadingPolicies: boolean;
 }
 
 interface Category {
@@ -56,19 +59,16 @@ const productFormSchema = z.object({
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
 
-export const ProductForm = ({ initialData, translateTitle, translateCondition, onCancel }: ProductFormProps) => {
+export const ProductForm = ({
+    initialData,
+    translateTitle,
+    translateCondition,
+    onCancel,
+    policies,
+    isLoadingPolicies
+}: ProductFormProps) => {
     const { toast } = useToast();
     const [allImages, setAllImages] = useState<string[]>(initialData?.images.url || []);
-    const [isLoadingPolicies, setIsLoadingPolicies] = useState(true);
-    const [policies, setPolicies] = useState<{
-        fulfillment: FulfillmentPolicy[];
-        payment: PaymentPolicy[];
-        return: ReturnPolicy[];
-    }>({
-        fulfillment: [],
-        payment: [],
-        return: []
-    });
     const [isLoadingCategories, setIsLoadingCategories] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -97,34 +97,6 @@ export const ProductForm = ({ initialData, translateTitle, translateCondition, o
         control: form.control,
         name: "itemSpecifics"
     });
-
-    // ポリシー情報の取得
-    useEffect(() => {
-        const loadPolicies = async () => {
-            setIsLoadingPolicies(true);
-            try {
-                const response = await fetch('/api/ebay/policies');
-                const data: EbayPoliciesResponse = await response.json();
-                if (data.success && data.data) {
-                    setPolicies({
-                        fulfillment: data.data.fulfillment.fulfillmentPolicies,
-                        payment: data.data.payment.paymentPolicies,
-                        return: data.data.return.returnPolicies
-                    });
-                }
-            } catch (error) {
-                toast({
-                    title: 'エラー',
-                    description: error instanceof Error ? error.message : 'ポリシー情報の取得に失敗しました',
-                    variant: 'destructive'
-                });
-            } finally {
-                setIsLoadingPolicies(false);
-            }
-        };
-
-        loadPolicies();
-    }, [toast]);
 
     // カテゴリー検索
     const handleSearchCategories = async () => {
@@ -182,7 +154,7 @@ export const ProductForm = ({ initialData, translateTitle, translateCondition, o
                 // 既存のItem Specificsをクリア
                 form.setValue('itemSpecifics', []);
                 // 新しいItem Specificsを追加
-                data.data.item_specifics.forEach((spec) => {
+                data.data.item_specifics.forEach((spec: { name: string; values: string[] }) => {
                     appendItemSpecific({
                         name: spec.name,
                         value: spec.values
@@ -416,7 +388,7 @@ export const ProductForm = ({ initialData, translateTitle, translateCondition, o
                         <FormItem>
                             <FormLabel className="text-muted-foreground">商品の状態の説明</FormLabel>
                             <FormControl>
-                                <Textarea {...field} placeholder="商品の状態について詳しく説明してください" className="min-h-[100px] resize-none" />
+                                <Input {...field} type="text" className="h-11" />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
