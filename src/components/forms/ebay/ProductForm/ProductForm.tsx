@@ -470,26 +470,34 @@ export const ProductForm = ({
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder="カテゴリーを選択">
-                                                {form.watch('categoryId') && (
+                                                {form.watch('categoryId') ? (
                                                     <div className="flex flex-col items-start">
                                                         <span className="text-sm block">{categories.find(c => c.categoryId === form.watch('categoryId'))?.categoryName}</span>
                                                         <span className="text-xs text-muted-foreground block">{categories.find(c => c.categoryId === form.watch('categoryId'))?.path}</span>
                                                     </div>
+                                                ) : (
+                                                    <div className="text-muted-foreground text-left">テキスト検索をしてください</div>
                                                 )}
                                             </SelectValue>
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {categories.map((category) => (
-                                            <SelectItem
-                                                key={category.categoryId}
-                                                value={category.categoryId}
-                                                className="flex flex-col items-start"
-                                            >
-                                                <span className="text-sm block">{category.categoryName}</span>
-                                                <span className="text-xs text-muted-foreground block">{category.path}</span>
-                                            </SelectItem>
-                                        ))}
+                                        {categories.length > 0 ? (
+                                            categories.map((category) => (
+                                                <SelectItem
+                                                    key={category.categoryId}
+                                                    value={category.categoryId}
+                                                    className="flex flex-col items-start"
+                                                >
+                                                    <span className="text-sm block">{category.categoryName}</span>
+                                                    <span className="text-xs text-muted-foreground block">{category.path}</span>
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <div className="p-2 text-sm text-muted-foreground text-left">
+                                                カテゴリーを検索してください
+                                            </div>
+                                        )}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
