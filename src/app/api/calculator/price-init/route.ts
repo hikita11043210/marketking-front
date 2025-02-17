@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { serverFetch } from '@/app/api/server';
 
-export async function POST(request: Request) {
+export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const money = searchParams.getAll('money[]');
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
             }, { status: 400 });
         }
 
-        const response = await serverFetch(`/api/v1/calculator-price?${money.map(money => `money[]=${encodeURIComponent(money)}`).join('&')}`, {
+        const response = await serverFetch(`/api/v1/calculator-price-init?${money.map(money => `money[]=${encodeURIComponent(money)}`).join('&')}`, {
             cache: 'no-store',
         });
 

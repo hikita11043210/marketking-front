@@ -85,7 +85,7 @@ export const ProductForm = ({
             title: translateTitle,
             description: '',
             price: price.calculated_price_dollar.toString(),
-            final_profit: price.final_profit_dollar.toString(),
+            final_profit: price.final_profit_yen.toString(),
             quantity: "1",
             condition: initialData?.condition === '未使用' ? '1' : initialData?.condition === '未使用に近い' ? '3' : '2',
             conditionDescription: translateCondition,

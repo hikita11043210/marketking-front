@@ -4,9 +4,11 @@ import { BaseRegisterModal } from '@/components/shared/modals/BaseRegisterModal'
 import { ProductInfo } from './ProductInfo';
 import { ProductForm } from './ProductForm';
 import { useToast } from '@/hooks/use-toast';
+import { extractShippingCost } from '@/lib/utils/price';
 import type { SearchDetailResult, SearchResult } from '@/types/search';
 import type { FulfillmentPolicy, PaymentPolicy, ReturnPolicy, EbayPoliciesResponse } from '@/types/ebay/policy';
 import type { PriceCalculation } from '@/types/price';
+
 interface RegisterModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -95,16 +97,6 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
                         }
 
                         // 価格計算用の配列を作成
-                        const extractShippingCost = (shipping: string): string => {
-                            // 数値とカンマのみを抽出
-                            const matches = shipping.match(/[0-9,]+/);
-                            if (matches) {
-                                // カンマを除去して返す
-                                return matches[0].replace(/,/g, '');
-                            }
-                            return '0';
-                        };
-
                         const priceArray = [
                             selectedItem.buy_now_price || selectedItem.price || '0',
                             extractShippingCost(selectedItem.shipping || '0'),
@@ -112,7 +104,7 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
 
                         // 価格取得
                         if (priceArray.length > 0) {
-                            response = await fetch(`/api/calculator/price?${priceArray.map(price => `money[]=${encodeURIComponent(price)}`).join('&')}`);
+                            response = await fetch(`/api/calculator/price-init?${priceArray.map(price => `money[]=${encodeURIComponent(price)}`).join('&')}`);
                             data = await response.json();
                             if (data.success) {
                                 setPrice(data.data);
