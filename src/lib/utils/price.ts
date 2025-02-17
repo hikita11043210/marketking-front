@@ -12,12 +12,3 @@ export const extractShippingCost = (shipping: string): string => {
     }
     return '0';
 };
-
-/**
- * 数値を通貨形式にフォーマットします
- * @param value - フォーマットする数値
- * @returns カンマ区切りの文字列
- */
-export const formatCurrency = (value: number): string => {
-    return value.toLocaleString();
-}; 

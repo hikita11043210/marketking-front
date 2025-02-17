@@ -1,30 +1,35 @@
 import { NextResponse } from 'next/server';
 import { serverFetch } from '@/app/api/server';
 
-export async function POST(request: Request) {
+export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
-        const money = searchParams.getAll('money[]');
-
-        if (!money.length) {
+        const price = searchParams.get('price');
+        if (!price) {
             return NextResponse.json({
                 success: false,
                 error: 'invalid_parameter',
-                message: 'URLパラメータが指定されていません'
+                message: '価格が指定されていません'
             }, { status: 400 });
         }
 
-        const response = await serverFetch(`/api/v1/calculator-price?${money.map(money => `money[]=${encodeURIComponent(money)}`).join('&')}`, {
+        // 価格計算APIを呼び出し（POSTメソッドで送信）
+        const response = await serverFetch(`/api/v1/calculator-price/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                money: price
+            }),
             cache: 'no-store',
         });
-
         const data = await response.json();
-
         if (!response.ok) {
             return NextResponse.json({
                 success: false,
-                error: 'ebay_price_fetch_failed',
-                message: data.message || '価格情報の取得に失敗しました'
+                error: 'price_calculation_failed',
+                message: data.message || '価格計算に失敗しました'
             }, { status: response.status });
         }
 

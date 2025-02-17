@@ -342,9 +342,23 @@ export const ProductForm = ({
                                         type="text"
                                         className="h-11"
                                         value={field.value ? Number(field.value).toLocaleString() : ''}
-                                        onChange={(e) => {
-                                            const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                                        onChange={async (e) => {
+                                            let numericValue = e.target.value.replace(/[^0-9]/g, '');
+                                            if (numericValue == '') {
+                                                numericValue = '0';
+                                            }
                                             field.onChange(numericValue);
+
+                                            // 価格が変更されたら最終利益を更新
+                                            try {
+                                                const response = await fetch(`/api/calculator/price?price=${encodeURIComponent(numericValue)}`);
+                                                const data = await response.json();
+                                                if (data.success) {
+                                                    form.setValue('final_profit', data.data.final_profit_yen.toString());
+                                                }
+                                            } catch (error) {
+                                                console.error('価格計算エラー:', error);
+                                            }
                                         }}
                                     />
                                 </FormControl>
