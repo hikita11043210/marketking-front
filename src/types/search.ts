@@ -50,6 +50,7 @@ export type SearchDetailResult = {
     images: {
         url: string[];
     };
+    description: string;
 }
 
 // カテゴリ検索用のパラメータ

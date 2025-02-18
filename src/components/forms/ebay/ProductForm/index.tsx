@@ -65,34 +65,34 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
         const fetchDetail = async () => {
             if (selectedItem?.url) {
                 try {
-                    setSelectedImages([]);
+                    setDetailData(undefined);
                     setSelectedImages([]);
                     setTranslateTitle('');
                     setTranslateCondition('');
                     setPrice(undefined);
-                    let response = await fetch(`/api/yahoo-auction/detail?url=${encodeURIComponent(selectedItem.url)}`);
-                    let data = await response.json();
+                    const response = await fetch(`/api/yahoo-auction/detail?url=${encodeURIComponent(selectedItem.url)}`);
+                    const data = await response.json();
                     if (data.success) {
                         setDetailData(data.data.data);
                         setSelectedImages(data.data.data.images.url);
 
                         // タイトル翻訳
-                        response = await fetch(`/api/translate?text=${encodeURIComponent(selectedItem.title)}`);
-                        data = await response.json();
-                        if (data.success) {
-                            setTranslateTitle(data.data.translated_text);
+                        const response_title_translate = await fetch(`/api/translate?text=${encodeURIComponent(selectedItem.title)}`);
+                        const data_title_translate = await response_title_translate.json();
+                        if (data_title_translate.success) {
+                            setTranslateTitle(data_title_translate.data.translated_text);
                         } else {
                             setTranslateTitle(selectedItem.title);
                         }
 
                         // 商品状態翻訳
-                        if (detailData?.condition) {
-                            response = await fetch(`/api/translate?text=${encodeURIComponent(detailData?.condition)}`);
-                            data = await response.json();
-                            if (data.success) {
-                                setTranslateCondition(data.data.translated_text);
+                        if (data.data.data.condition) {
+                            const response_condition_translate = await fetch(`/api/translate?text=${encodeURIComponent(data.data.data.condition)}`);
+                            const data_condition_translate = await response_condition_translate.json();
+                            if (data_condition_translate.success) {
+                                setTranslateCondition(data_condition_translate.data.translated_text);
                             } else {
-                                setTranslateCondition(detailData?.condition || '');
+                                setTranslateCondition(data.data.data.condition || '');
                             }
                         }
 
@@ -104,10 +104,10 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
 
                         // 価格取得
                         if (priceArray.length > 0) {
-                            response = await fetch(`/api/calculator/price-init?${priceArray.map(price => `money[]=${encodeURIComponent(price)}`).join('&')}`);
-                            data = await response.json();
-                            if (data.success) {
-                                setPrice(data.data);
+                            const response_price = await fetch(`/api/calculator/price-init?${priceArray.map(price => `money[]=${encodeURIComponent(price)}`).join('&')}`);
+                            const data_price = await response_price.json();
+                            if (data_price.success) {
+                                setPrice(data_price.data);
                             }
                         }
                     }
