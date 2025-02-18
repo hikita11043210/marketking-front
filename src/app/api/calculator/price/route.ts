@@ -5,7 +5,8 @@ export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const price = searchParams.get('price');
-        if (!price) {
+        const money = searchParams.getAll('money[]');
+        if (!price || !money) {
             return NextResponse.json({
                 success: false,
                 error: 'invalid_parameter',
@@ -20,7 +21,8 @@ export async function GET(request: Request) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                money: price
+                price: price,
+                money: money
             }),
             cache: 'no-store',
         });

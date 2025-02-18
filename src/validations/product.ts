@@ -8,7 +8,7 @@ export const productFormSchema = z.object({
     condition: z.string().min(1, '商品の状態を選択してください'),
     conditionDescription: z.string().optional(),
     categoryId: z.string().min(1, 'カテゴリーを選択してください'),
-    fulfillmentPolicyId: z.string().min(1, '配送ポリシーを選択してください'),
+    shippingPolicyId: z.string().min(1, '配送ポリシーを選択してください'),
     paymentPolicyId: z.string().min(1, '支払いポリシーを選択してください'),
     returnPolicyId: z.string().min(1, '返品ポリシーを選択してください'),
     ebayItemId: z.string().optional(),

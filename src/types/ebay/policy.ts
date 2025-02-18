@@ -1,6 +1,6 @@
 import type { ApiResponse } from '../common/api';
 
-export interface FulfillmentPolicy {
+export interface ShippingPolicy {
     name: string;
     marketplaceId: string;
     categoryTypes: Array<{
@@ -78,7 +78,7 @@ export interface PolicyGroup<T> {
 export interface EbayPolicies {
     fulfillment: {
         total: number;
-        fulfillmentPolicies: FulfillmentPolicy[];
+        fulfillmentPolicies: ShippingPolicy[];
     };
     payment: {
         total: number;

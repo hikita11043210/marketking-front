@@ -6,7 +6,7 @@ import { ProductForm } from './ProductForm';
 import { useToast } from '@/hooks/use-toast';
 import { extractShippingCost } from '@/lib/utils/price';
 import type { SearchDetailResult, SearchResult } from '@/types/search';
-import type { FulfillmentPolicy, PaymentPolicy, ReturnPolicy, EbayPoliciesResponse } from '@/types/ebay/policy';
+import type { ShippingPolicy, PaymentPolicy, ReturnPolicy, EbayPoliciesResponse } from '@/types/ebay/policy';
 import type { PriceCalculation } from '@/types/price';
 
 interface RegisterModalProps {
@@ -24,11 +24,11 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
     const [isLoadingPolicies, setIsLoadingPolicies] = useState(true);
     const [price, setPrice] = useState<PriceCalculation>();
     const [policies, setPolicies] = useState<{
-        fulfillment: FulfillmentPolicy[];
+        shipping: ShippingPolicy[];
         payment: PaymentPolicy[];
         return: ReturnPolicy[];
     }>({
-        fulfillment: [],
+        shipping: [],
         payment: [],
         return: []
     });
@@ -42,7 +42,7 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
                 const data: EbayPoliciesResponse = await response.json();
                 if (data.success && data.data) {
                     setPolicies({
-                        fulfillment: data.data.fulfillment.fulfillmentPolicies,
+                        shipping: data.data.fulfillment.fulfillmentPolicies,
                         payment: data.data.payment.paymentPolicies,
                         return: data.data.return.returnPolicies
                     });

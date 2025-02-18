@@ -7,13 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import { Editor } from '@/components/blocks/editor-00/editor';
 import { Checkbox } from "@/components/ui/checkbox";
 import type { SearchDetailResult } from '@/types/search';
-import type { FulfillmentPolicy, PaymentPolicy, ReturnPolicy } from '@/types/ebay/policy';
+import type { ShippingPolicy, PaymentPolicy, ReturnPolicy } from '@/types/ebay/policy';
 import type { ItemSpecificsResponse } from '@/types/ebay/itemSpecifics';
 import type { SearchResult } from '@/types/search';
 import type { PriceCalculation } from '@/types/price';
+import { extractShippingCost } from '@/lib/utils/price';
+import { convertYahooDate } from '@/lib/utils/convert-date';
 
 interface ProductFormProps {
     initialData?: SearchDetailResult | null;
@@ -22,7 +23,7 @@ interface ProductFormProps {
     translateCondition: string;
     onCancel?: () => void;
     policies: {
-        fulfillment: FulfillmentPolicy[];
+        shipping: ShippingPolicy[];
         payment: PaymentPolicy[];
         return: ReturnPolicy[];
     };
@@ -38,26 +39,29 @@ interface Category {
 
 // フォームのバリデーションスキーマ
 const productFormSchema = z.object({
-    title: z.string().min(1, 'タイトルを入力してください'),
-    description: z.string().min(1, '説明を入力してください'),
-    price: z.string().min(1, '価格を入力してください'),
+    title: z.string().min(1, { message: 'タイトルを入力してください' }),
+    description: z.string().min(1, { message: '説明を入力してください' }),
+    price: z.string().min(1, { message: '価格を入力してください' }),
     final_profit: z.string(),
-    quantity: z.string().min(1, '数量を入力してください'),
-    condition: z.string().min(1, '商品の状態を選択してください'),
-    conditionDescription: z.string().optional(),
-    categoryId: z.string().min(1, 'カテゴリーを選択してください'),
+    final_profit_dollar: z.string(),
+    quantity: z.string().min(1, { message: '数量を入力してください' }),
+    condition: z.string().min(1, { message: '商品の状態を選択してください' }),
+    conditionDescription: z.string().min(1, { message: '商品の詳細を入力してください' }),
+    categoryId: z.string().min(1, { message: 'カテゴリーを選択してください' }),
     categoryName: z.string().optional(),
     currency: z.string().default('USD'),
-    fulfillmentPolicyId: z.string().min(1, '配送ポリシーを選択してください'),
-    paymentPolicyId: z.string().min(1, '支払いポリシーを選択してください'),
-    returnPolicyId: z.string().min(1, '返品ポリシーを選択してください'),
+    shippingPolicyId: z.string().min(1, { message: '配送ポリシーを選択してください' }),
+    paymentPolicyId: z.string().min(1, { message: '支払いポリシーを選択してください' }),
+    returnPolicyId: z.string().min(1, { message: '返品ポリシーを選択してください' }),
     ebayItemId: z.string().optional(),
     itemSpecifics: z.array(
         z.object({
-            name: z.string().min(1, '項目名を入力してください'),
-            value: z.array(z.string()).min(1, '値を入力してください'),
+            name: z.string().min(1, { message: '項目名を入力してください' }),
+            value: z.array(
+                z.string().min(1, { message: '値を入力してください' })
+            ).min(1, { message: '少なくとも1つの値を入力してください' })
         })
-    ).min(1, '少なくとも1つのItem Specificsを追加してください'),
+    ).min(1, { message: '少なくとも1つの項目を追加してください' }),
     images: z.array(z.string()).min(1, '少なくとも1枚の画像を選択してください'),
 });
 
@@ -83,15 +87,16 @@ export const ProductForm = ({
         resolver: zodResolver(productFormSchema),
         defaultValues: {
             title: translateTitle,
-            description: initialData?.description || '',  // 直接文字列として受け取る
+            description: initialData?.description || '',
             price: price.calculated_price_dollar.toString(),
             final_profit: price.final_profit_yen.toString(),
+            final_profit_dollar: price.final_profit_dollar.toString(),
             quantity: "1",
-            condition: initialData?.condition === '未使用' ? '1' : initialData?.condition === '未使用に近い' ? '3' : '2',
+            condition: initialData?.condition === '未使用' ? 'NEW' : initialData?.condition === '未使用に近い' ? 'USED_VERY_GOOD' : 'USED_GOOD',
             conditionDescription: translateCondition,
-            categoryId: initialData?.categories[0] || '',
+            categoryId: '',
             ebayItemId: '',
-            itemSpecifics: [],
+            itemSpecifics: [{ name: '', value: [''] }],
             images: initialData?.images.url || [],
         },
     });
@@ -226,43 +231,65 @@ export const ProductForm = ({
         removeItemSpecific(index);
     };
 
+    const handlePriceChange = async () => {
+        const value = form.getValues('price');
+        // カンマを削除して数値処理
+        const numericValue = value.replace(/,/g, '');
+
+        if (!numericValue) {
+            form.setValue('final_profit', '0');
+            form.setValue('final_profit_dollar', '0');
+            return;
+        }
+
+        const priceArray = [
+            selectedItem.buy_now_price || selectedItem.price || '0',
+            extractShippingCost(selectedItem.shipping || '0'),
+        ];
+
+        try {
+            const response = await fetch(`/api/calculator/price?${priceArray.map(price => `money[]=${encodeURIComponent(price)}`).join('&')}&price=${encodeURIComponent(numericValue)}`);
+            const data = await response.json();
+            if (data.success) {
+                form.setValue('final_profit', data.data.final_profit_yen.toString());
+                form.setValue('final_profit_dollar', data.data.final_profit_dollar.toString());
+            }
+        } catch (error) {
+            console.error('価格計算エラー:', error);
+        }
+    };
+
     const handleSubmit = async (values: ProductFormValues) => {
         try {
             const productData = {
-                title: values.title,
-                description: values.description,
-                primaryCategory: {
+                product_data: {
+                    images: values.images,
+                    title: values.title,
+                    description: values.description,
+                    price: values.price,
+                    quantity: parseInt(values.quantity),
                     categoryId: values.categoryId,
-                },
-                startPrice: {
-                    value: values.price,
-                    currencyId: values.currency,
-                },
-                quantity: parseInt(values.quantity),
-                listingDuration: 'GTC',
-                listingType: 'FixedPriceItem',
-                country: 'JP',
-                currency: values.currency,
-                paymentMethods: ['PayPal'],
-                condition: {
-                    conditionId: values.condition,
+                    condition: values.condition,
                     conditionDescription: values.conditionDescription ?? '',
+                    shippingPolicyId: values.shippingPolicyId,
+                    paymentPolicyId: values.paymentPolicyId,
+                    returnPolicyId: values.returnPolicyId,
+                    itemSpecifics: {
+                        nameValueList: values.itemSpecifics,
+                    },
                 },
-                returnPolicy: {
-                    returnsAccepted: true,
-                    returnsPeriod: '14',
-                    returnsDescription: '商品到着後14日以内に返品可能',
+                yahoo_auction_data: {
+                    yahoo_auction_id: initialData?.auction_id,
+                    yahoo_auction_url: selectedItem.url,
+                    yahoo_auction_item_name: selectedItem.title,
+                    yahoo_auction_item_price: selectedItem.buy_now_price || selectedItem.price,
+                    yahoo_auction_shipping: extractShippingCost(selectedItem.shipping || '0'),
+                    yahoo_auction_end_time: convertYahooDate(initialData?.end_time),
                 },
-                shippingDetails: {
-                    shippingServiceOptions: [],
-                },
-                fulfillmentPolicyId: values.fulfillmentPolicyId,
-                paymentPolicyId: values.paymentPolicyId,
-                returnPolicyId: values.returnPolicyId,
-                itemSpecifics: {
-                    nameValueList: values.itemSpecifics,
-                },
-                images: values.images,
+                other: {
+                    ebay_shipping_price: '',
+                    final_profit: values.final_profit_dollar,
+                }
             };
 
             const response = await fetch('/api/ebay/register', {
@@ -400,24 +427,19 @@ export const ProductForm = ({
                                         {...field}
                                         type="text"
                                         className="h-11"
+                                        maxLength={5}
                                         placeholder="価格（＄）"
-                                        value={field.value ? Number(field.value).toLocaleString() : ''}
-                                        onChange={async (e) => {
-                                            let numericValue = e.target.value.replace(/[^0-9]/g, '');
-                                            if (numericValue == '') {
-                                                numericValue = '0';
-                                            }
-                                            field.onChange(numericValue);
+                                        value={field.value ? field.value.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''}
+                                        onChange={(e) => {
+                                            // カンマを削除して数値のみを保持
+                                            const rawValue = e.target.value.replace(/,/g, '');
+                                            // 数値とドット以外を削除
+                                            const sanitizedValue = rawValue.replace(/[^\d.]/g, '');
+                                            // 小数点が2つ以上ある場合、最初の小数点以外を削除
+                                            const finalValue = sanitizedValue.replace(/\.(?=.*\.)/g, '');
 
-                                            try {
-                                                const response = await fetch(`/api/calculator/price?price=${encodeURIComponent(numericValue)}`);
-                                                const data = await response.json();
-                                                if (data.success) {
-                                                    form.setValue('final_profit', data.data.final_profit_yen.toString());
-                                                }
-                                            } catch (error) {
-                                                console.error('価格計算エラー:', error);
-                                            }
+                                            field.onChange(finalValue);
+                                            handlePriceChange();
                                         }}
                                     />
                                 </FormControl>
@@ -434,6 +456,12 @@ export const ProductForm = ({
                                 <div className="h-11 px-3 border rounded-md bg-muted flex items-center text-muted-foreground">
                                     ￥{Number(field.value).toLocaleString()}
                                 </div>
+                                <FormControl>
+                                    <Input
+                                        type="hidden"
+                                        {...form.register('final_profit_dollar')}
+                                    />
+                                </FormControl>
                             </FormItem>
                         )}
                     />
@@ -469,9 +497,11 @@ export const ProductForm = ({
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="1">新品</SelectItem>
-                                        <SelectItem value="2">中古</SelectItem>
-                                        <SelectItem value="3">未使用に近い</SelectItem>
+                                        <SelectItem value="NEW">新品</SelectItem>
+                                        <SelectItem value="USED_VERY_GOOD">中古・非常に良い</SelectItem>
+                                        <SelectItem value="USED_GOOD">中古</SelectItem>
+                                        <SelectItem value="USED_ACCEPTABLE">使用可能</SelectItem>
+                                        <SelectItem value="FOR_PARTS_OR_NOT_WORKING">故障・動作しない・部品が欠損</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -581,7 +611,7 @@ export const ProductForm = ({
                     <div className="space-y-4">
                         <FormField
                             control={form.control}
-                            name="fulfillmentPolicyId"
+                            name="shippingPolicyId"
                             render={({ field }) => (
                                 <FormItem>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -591,7 +621,7 @@ export const ProductForm = ({
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {policies.fulfillment.map((policy) => (
+                                            {policies.shipping.map((policy) => (
                                                 <SelectItem key={policy.fulfillmentPolicyId} value={policy.fulfillmentPolicyId}>
                                                     {policy.name}
                                                 </SelectItem>
@@ -707,7 +737,7 @@ export const ProductForm = ({
                                 <FormField
                                     control={form.control}
                                     name={`itemSpecifics.${index}.value`}
-                                    render={({ field }) => (
+                                    render={({ field, fieldState }) => (
                                         <FormItem className="flex-1">
                                             <FormControl>
                                                 <Input
@@ -717,7 +747,11 @@ export const ProductForm = ({
                                                     className="w-full"
                                                 />
                                             </FormControl>
-                                            <FormMessage />
+                                            {fieldState.error && (
+                                                <FormMessage>
+                                                    {fieldState.error.message ?? '無効な入力値です'}
+                                                </FormMessage>
+                                            )}
                                         </FormItem>
                                     )}
                                 />

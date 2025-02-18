@@ -36,7 +36,7 @@ export interface EbayRegisterData {
         returnsPeriod: string;
         returnsDescription: string;
     };
-    fulfillmentPolicyId?: string;
+    shippingPolicyId?: string;
     paymentPolicyId?: string;
     returnPolicyId?: string;
     itemSpecifics: EbayItemSpecifics;
