@@ -82,6 +82,8 @@ export const ProductForm = ({
     const [isLoadingCategories, setIsLoadingCategories] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isLoadingItemSpecifics, setIsLoadingItemSpecifics] = useState(false);
+    const [conditions, setConditions] = useState<{ conditionId: string; conditionDescription: string; }[]>([]);
 
     const form = useForm<ProductFormValues>({
         resolver: zodResolver(productFormSchema),
@@ -92,7 +94,7 @@ export const ProductForm = ({
             final_profit: price.final_profit_yen.toString(),
             final_profit_dollar: price.final_profit_dollar.toString(),
             quantity: "1",
-            condition: initialData?.condition === '未使用' ? 'NEW' : initialData?.condition === '未使用に近い' ? 'USED_VERY_GOOD' : 'USED_GOOD',
+            condition: '',
             conditionDescription: translateCondition,
             categoryId: '',
             ebayItemId: '',
@@ -259,6 +261,30 @@ export const ProductForm = ({
         }
     };
 
+    const handleCategorySelect = async (categoryId: string) => {
+        try {
+            setIsLoadingItemSpecifics(true);
+            const response = await fetch(`/api/ebay/condition?categoryId=${categoryId}`);
+            const data = await response.json();
+            console.log(data);
+            if (data.success && data.data[0]) {
+                setConditions(data.data[0]);
+                // 初期値として最初のコンディションをセット
+                if (data.data[0].length > 0) {
+                    form.setValue('condition', data.data[0][0].conditionId);
+                }
+            }
+        } catch (error) {
+            toast({
+                title: 'エラー',
+                description: error instanceof Error ? error.message : 'Conditionの取得に失敗しました',
+                variant: 'destructive'
+            });
+        } finally {
+            setIsLoadingItemSpecifics(false);
+        }
+    };
+
     const handleSubmit = async (values: ProductFormValues) => {
         try {
             const productData = {
@@ -269,7 +295,10 @@ export const ProductForm = ({
                     price: values.price,
                     quantity: parseInt(values.quantity),
                     categoryId: values.categoryId,
-                    condition: values.condition,
+                    condition: {
+                        conditionId: values.condition,
+                        conditionDescription: conditions.find(c => c.conditionId === values.condition)?.conditionDescription || '',
+                    },
                     conditionDescription: values.conditionDescription ?? '',
                     shippingPolicyId: values.shippingPolicyId,
                     paymentPolicyId: values.paymentPolicyId,
@@ -286,12 +315,12 @@ export const ProductForm = ({
                     yahoo_auction_shipping: extractShippingCost(selectedItem.shipping || '0'),
                     yahoo_auction_end_time: convertYahooDate(initialData?.end_time),
                 },
-                other: {
+                other_data: {
                     ebay_shipping_price: '',
                     final_profit: values.final_profit_dollar,
                 }
             };
-
+            console.log(productData);
             const response = await fetch('/api/ebay/register', {
                 method: 'POST',
                 headers: {
@@ -311,10 +340,10 @@ export const ProductForm = ({
                 description: '商品を登録しました',
             });
 
-            // 成功時のコールバック
-            if (onCancel) {
-                onCancel();
-            }
+            // // 成功時のコールバック
+            // if (onCancel) {
+            //     onCancel();
+            // }
 
         } catch (error) {
             toast({
@@ -483,48 +512,6 @@ export const ProductForm = ({
                     )}
                 />
 
-                <FormField
-                    control={form.control}
-                    name="condition"
-                    render={({ field }) => (
-                        <FormItem className="grid grid-cols-[200px,1fr] items-center">
-                            <FormLabel className="text-muted-foreground">商品の状態</FormLabel>
-                            <div>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger className="h-11">
-                                            <SelectValue placeholder="商品の状態を選択" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="NEW">新品</SelectItem>
-                                        <SelectItem value="USED_VERY_GOOD">中古・非常に良い</SelectItem>
-                                        <SelectItem value="USED_GOOD">中古</SelectItem>
-                                        <SelectItem value="USED_ACCEPTABLE">使用可能</SelectItem>
-                                        <SelectItem value="FOR_PARTS_OR_NOT_WORKING">故障・動作しない・部品が欠損</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </div>
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="conditionDescription"
-                    render={({ field }) => (
-                        <FormItem className="grid grid-cols-[200px,1fr] items-center">
-                            <FormLabel className="text-muted-foreground">商品の状態の説明</FormLabel>
-                            <div>
-                                <FormControl>
-                                    <Input {...field} type="text" className="h-11" />
-                                </FormControl>
-                                <FormMessage />
-                            </div>
-                        </FormItem>
-                    )}
-                />
 
                 {/* カテゴリー選択 */}
                 <div className="grid grid-cols-[200px,1fr] items-start">
@@ -562,12 +549,13 @@ export const ProductForm = ({
                                             const selectedCategory = categories.find(cat => cat.categoryId === value);
                                             if (selectedCategory) {
                                                 form.setValue('categoryName', selectedCategory.categoryName);
+                                                handleCategorySelect(value);
                                             }
                                         }}
                                     >
                                         <FormControl>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="カテゴリーを選択">
+                                                <SelectValue placeholder="">
                                                     {form.watch('categoryId') ? (
                                                         <div className="flex flex-col items-start">
                                                             <span className="text-sm block">{categories.find(c => c.categoryId === form.watch('categoryId'))?.categoryName}</span>
@@ -605,6 +593,49 @@ export const ProductForm = ({
                     </div>
                 </div>
 
+                <FormField
+                    control={form.control}
+                    name="condition"
+                    render={({ field }) => (
+                        <FormItem className="grid grid-cols-[200px,1fr] items-center">
+                            <FormLabel className="text-muted-foreground">商品の状態</FormLabel>
+                            <div>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger className="h-11">
+                                            <SelectValue placeholder="" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {conditions.map((condition) => (
+                                            <SelectItem key={condition.conditionId} value={condition.conditionId}>
+                                                {condition.conditionDescription}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </div>
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="conditionDescription"
+                    render={({ field }) => (
+                        <FormItem className="grid grid-cols-[200px,1fr] items-center">
+                            <FormLabel className="text-muted-foreground">商品の状態の説明</FormLabel>
+                            <div>
+                                <FormControl>
+                                    <Input {...field} type="text" className="h-11" />
+                                </FormControl>
+                                <FormMessage />
+                            </div>
+                        </FormItem>
+                    )}
+                />
+
                 {/* ポリシー選択 */}
                 <div className="grid grid-cols-[200px,1fr] items-start">
                     <FormLabel className="text-muted-foreground">ポリシー選択</FormLabel>
@@ -617,7 +648,7 @@ export const ProductForm = ({
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
                                             <SelectTrigger className="h-11" disabled={isLoadingPolicies}>
-                                                <SelectValue placeholder={isLoadingPolicies ? "読み込み中..." : "配送ポリシー（Shipping Policy）"} />
+                                                <SelectValue placeholder={isLoadingPolicies ? "読み込み中..." : ""} />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
@@ -641,7 +672,7 @@ export const ProductForm = ({
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
                                             <SelectTrigger className="h-11" disabled={isLoadingPolicies}>
-                                                <SelectValue placeholder={isLoadingPolicies ? "読み込み中..." : "支払いポリシー（Payment Policy）"} />
+                                                <SelectValue placeholder={isLoadingPolicies ? "読み込み中..." : ""} />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
@@ -665,7 +696,7 @@ export const ProductForm = ({
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
                                             <SelectTrigger className="h-11" disabled={isLoadingPolicies}>
-                                                <SelectValue placeholder={isLoadingPolicies ? "読み込み中..." : "返品ポリシー（Return Policy）"} />
+                                                <SelectValue placeholder={isLoadingPolicies ? "読み込み中..." : ""} />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
