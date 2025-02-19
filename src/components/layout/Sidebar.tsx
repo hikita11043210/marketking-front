@@ -23,13 +23,13 @@ const navigation: NavItem[] = [
         icon: <BiHome />,
     },
     {
-        title: "検索",
-        href: "/search",
+        title: "Yahooオークション検索",
+        href: "/yahoo-auction-search",
         icon: <BiSearch />,
     },
     {
         title: "出品一覧",
-        href: "/listing-list",
+        href: "/list",
         icon: (
             <svg
                 xmlns="http://www.w3.org/2000/svg"

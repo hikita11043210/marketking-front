@@ -340,10 +340,10 @@ export const ProductForm = ({
                 description: '商品を登録しました',
             });
 
-            // // 成功時のコールバック
-            // if (onCancel) {
-            //     onCancel();
-            // }
+            // 成功時のコールバック
+            if (onCancel) {
+                onCancel();
+            }
 
         } catch (error) {
             toast({
@@ -555,16 +555,7 @@ export const ProductForm = ({
                                     >
                                         <FormControl>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="">
-                                                    {form.watch('categoryId') ? (
-                                                        <div className="flex flex-col items-start">
-                                                            <span className="text-sm block">{categories.find(c => c.categoryId === form.watch('categoryId'))?.categoryName}</span>
-                                                            <span className="text-xs text-muted-foreground block">{categories.find(c => c.categoryId === form.watch('categoryId'))?.path}</span>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="text-muted-foreground text-left">テキスト検索をしてください</div>
-                                                    )}
-                                                </SelectValue>
+                                                <SelectValue placeholder="" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
@@ -573,14 +564,12 @@ export const ProductForm = ({
                                                     <SelectItem
                                                         key={category.categoryId}
                                                         value={category.categoryId}
-                                                        className="flex flex-col items-start"
                                                     >
-                                                        <span className="text-sm block">{category.categoryName}</span>
-                                                        <span className="text-xs text-muted-foreground block">{category.path}</span>
+                                                        {category.categoryName}
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <div className="p-2 text-sm text-muted-foreground text-left">
+                                                <div className="p-2 text-sm text-muted-foreground">
                                                     カテゴリーを検索してください
                                                 </div>
                                             )}
