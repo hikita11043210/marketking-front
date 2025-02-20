@@ -342,7 +342,7 @@ export const ProductForm = ({
 
             // 成功時のコールバック
             if (onCancel) {
-                onCancel();
+                // onCancel();
             }
 
         } catch (error) {
