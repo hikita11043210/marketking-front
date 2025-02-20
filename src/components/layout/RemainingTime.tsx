@@ -47,9 +47,9 @@ export const RemainingTime = ({ endDate }: { endDate: Date }) => {
             ) : (
                 <>
                     <span>{remaining}</span>
-                    <div className="text-xs text-muted-foreground">
+                    {/* <div className="text-xs text-muted-foreground">
                         ({dateString})
-                    </div>
+                    </div> */}
                 </>
             )}
         </div>

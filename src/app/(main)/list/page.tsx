@@ -19,6 +19,7 @@ interface ListItem {
     id: number;
     status: string;
     sku: string;
+    offer_id: string;
     ebay_price: string;
     ebay_shipping_price: string;
     final_profit: string;
@@ -61,47 +62,68 @@ export default function ListPage() {
         totalItems: 0,
     });
 
-    useEffect(() => {
-        const fetchItems = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                const params = new URLSearchParams({
-                    search: searchTerm,
-                    page: pagination.currentPage.toString(),
-                    limit: '10',
-                });
-                const response = await fetch(`/api/ebay/list?${params.toString()}`);
-                const data: ApiResponse = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error?.message || 'データの取得に失敗しました');
-                }
-
-                setItems(data.items || []);
-                setPagination({
-                    currentPage: data.currentPage,
-                    totalPages: data.totalPages,
-                    totalItems: data.totalItems,
-                });
-            } catch (error) {
-                console.error('Failed to fetch items:', error);
-                setError(error instanceof Error ? error.message : 'データの取得に失敗しました');
-                setItems([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchItems();
-    }, [searchTerm, pagination.currentPage]);
-
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         const params = new URLSearchParams(searchParams);
         params.set('search', searchTerm);
         params.set('page', '1');
         router.push(`/list?${params.toString()}`);
+    };
+
+    const handleWithdraw = async (offer_id: string, sku: string) => {
+        try {
+            const response = await fetch(`/api/ebay/offer`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'withdraw',
+                    offer_id,
+                    sku
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || '取下げに失敗しました');
+            }
+
+            // 成功したら一覧を再取得
+            fetchItems();
+        } catch (error) {
+            console.error('Failed to withdraw item:', error);
+            setError(error instanceof Error ? error.message : '取下げに失敗しました');
+        }
+    };
+
+    const handleRelist = async (offer_id: string, sku: string) => {
+        try {
+            const response = await fetch(`/api/ebay/offer`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'publish',
+                    offer_id,
+                    sku
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || '再出品に失敗しました');
+            }
+
+            // 成功したら一覧を再取得
+            fetchItems();
+        } catch (error) {
+            console.error('Failed to relist item:', error);
+            setError(error instanceof Error ? error.message : '再出品に失敗しました');
+        }
     };
 
     const getStatusBadge = (status: string) => {
@@ -119,6 +141,41 @@ export default function ListPage() {
             </Badge>
         );
     };
+
+    const fetchItems = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const params = new URLSearchParams({
+                search: searchTerm,
+                page: pagination.currentPage.toString(),
+                limit: '10',
+            });
+            const response = await fetch(`/api/ebay/list?${params.toString()}`);
+            const data: ApiResponse = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error?.message || 'データの取得に失敗しました');
+            }
+
+            setItems(data.items || []);
+            setPagination({
+                currentPage: data.currentPage,
+                totalPages: data.totalPages,
+                totalItems: data.totalItems,
+            });
+        } catch (error) {
+            console.error('Failed to fetch items:', error);
+            setError(error instanceof Error ? error.message : 'データの取得に失敗しました');
+            setItems([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchItems();
+    }, [searchTerm, pagination.currentPage]);
 
     return (
         <div>
@@ -199,13 +256,33 @@ export default function ListPage() {
                                             <RemainingTime endDate={new Date(item.yahoo_auction_end_time)} />
                                         </TableCell>
                                         <TableCell>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => {/* 編集処理 */ }}
-                                            >
-                                                編集
-                                            </Button>
+                                            <div className="flex gap-2">
+                                                {item.status === '出品中' && (
+                                                    <Button
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        onClick={() => handleWithdraw(item.offer_id, item.sku)}
+                                                    >
+                                                        取下げ
+                                                    </Button>
+                                                )}
+                                                {item.status === '取下げ' && (
+                                                    <Button
+                                                        variant="default"
+                                                        size="sm"
+                                                        onClick={() => handleRelist(item.offer_id, item.sku)}
+                                                    >
+                                                        再出品
+                                                    </Button>
+                                                )}
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => {/* 編集処理 */ }}
+                                                >
+                                                    編集
+                                                </Button>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))
