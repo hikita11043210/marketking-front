@@ -106,19 +106,22 @@ export default function ListPage() {
 
     const getStatusBadge = (status: string) => {
         const statusColors: { [key: string]: string } = {
-            '出品中': 'bg-green-500',
-            '終了': 'bg-red-500',
-            '下書き': 'bg-gray-500',
+            '出品中': 'bg-green-500 text-white',
+            '取下げ': 'bg-gray-500 text-white',
+            '売却': 'bg-blue-500 text-white',
+            '仕入済み': 'bg-yellow-500 text-white',
+            '完了': 'bg-purple-500 text-white',
+            '出品失敗': 'bg-red-500 text-white',
         };
         return (
-            <Badge className={`${statusColors[status] || 'bg-gray-500'}`}>
+            <Badge className={`${statusColors[status] || 'bg-gray-500 text-white'} whitespace-nowrap min-w-[80px] justify-center`}>
                 {status}
             </Badge>
         );
     };
 
     return (
-        <div className="p-6">
+        <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">出品一覧</h1>
                 <form onSubmit={handleSearch} className="flex gap-2">
@@ -144,15 +147,15 @@ export default function ListPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="w-24">状態</TableHead>
-                                <TableHead className="w-40">SKU</TableHead>
-                                <TableHead className="w-28">販売価格</TableHead>
-                                <TableHead className="w-24">送料</TableHead>
-                                <TableHead className="w-28">最終利益</TableHead>
-                                <TableHead className="w-96">商品名</TableHead>
-                                <TableHead className="w-36">仕入価格</TableHead>
-                                <TableHead className="w-28">残り</TableHead>
-                                <TableHead className="w-20">操作</TableHead>
+                                <TableHead className="w-24 whitespace-nowrap">状態</TableHead>
+                                <TableHead className="w-40 whitespace-nowrap">SKU</TableHead>
+                                <TableHead className="w-28 whitespace-nowrap">販売価格</TableHead>
+                                <TableHead className="w-24 whitespace-nowrap">送料</TableHead>
+                                <TableHead className="w-28 whitespace-nowrap">最終利益</TableHead>
+                                <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
+                                <TableHead className="w-40 whitespace-nowrap">仕入価格</TableHead>
+                                <TableHead className="w-36 whitespace-nowrap">残り</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">操作</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -172,8 +175,10 @@ export default function ListPage() {
                                 items.map((item) => (
                                     <TableRow key={item.id}>
                                         <TableCell>{getStatusBadge(item.status)}</TableCell>
-                                        <TableCell className="truncate" title={item.sku}>
-                                            {item.sku}
+                                        <TableCell>
+                                            <div className="truncate max-w-[160px]" title={item.sku}>
+                                                {item.sku}
+                                            </div>
                                         </TableCell>
                                         <TableCell>¥{Number(item.ebay_price).toLocaleString()}</TableCell>
                                         <TableCell>¥{Number(item.ebay_shipping_price).toLocaleString()}</TableCell>
@@ -190,7 +195,7 @@ export default function ListPage() {
                                             </a>
                                         </TableCell>
                                         <TableCell>¥{Number(item.purchase_price).toLocaleString()}</TableCell>
-                                        <TableCell>
+                                        <TableCell className="whitespace-nowrap">
                                             <RemainingTime endDate={new Date(item.yahoo_auction_end_time)} />
                                         </TableCell>
                                         <TableCell>
