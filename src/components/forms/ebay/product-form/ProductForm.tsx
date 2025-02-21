@@ -193,14 +193,26 @@ export const ProductForm = ({
             const response = await fetch(`/api/ebay/itemSpecifics?ebayItemId=${ebayItemId}`);
             const data: ItemSpecificsResponse = await response.json();
             if (data.success && data.data?.item_specifics) {
-                // 既存のItem Specificsをクリア
-                form.setValue('itemSpecifics', []);
-                // 新しいItem Specificsを追加
+                const currentItemSpecifics = form.getValues('itemSpecifics');
+
                 data.data.item_specifics.forEach((spec: { name: string; values: string[] }) => {
-                    appendItemSpecific({
-                        name: spec.name,
-                        value: spec.values
-                    });
+                    // 既存の項目名を検索
+                    const existingIndex = currentItemSpecifics.findIndex(
+                        item => item.name.toLowerCase() === spec.name.toLowerCase()
+                    );
+
+                    if (existingIndex === -1) {
+                        // 新規項目の場合は追加
+                        appendItemSpecific({
+                            name: spec.name,
+                            value: spec.values
+                        });
+                    } else {
+                        // 既存の項目の場合は値を更新
+                        const updatedItemSpecifics = [...currentItemSpecifics];
+                        updatedItemSpecifics[existingIndex].value = spec.values;
+                        form.setValue('itemSpecifics', updatedItemSpecifics);
+                    }
                 });
 
                 toast({
@@ -264,16 +276,46 @@ export const ProductForm = ({
     const handleCategorySelect = async (categoryId: string) => {
         try {
             setIsLoadingItemSpecifics(true);
-            const response = await fetch(`/api/ebay/condition?categoryId=${categoryId}`);
-            const data = await response.json();
-            console.log(data);
-            if (data.success && data.data[0]) {
-                setConditions(data.data[0]);
+            // 既存のCondition取得処理
+            const conditionResponse = await fetch(`/api/ebay/condition?categoryId=${categoryId}`);
+            const conditionData = await conditionResponse.json();
+            if (conditionData.success && conditionData.data[0]) {
+                setConditions(conditionData.data[0]);
                 // 初期値として最初のコンディションをセット
-                if (data.data[0].length > 0) {
-                    form.setValue('condition', data.data[0][0].conditionId);
+                if (conditionData.data[0].length > 0) {
+                    form.setValue('condition', conditionData.data[0][0].conditionId);
                 }
             }
+
+            // Item Specifics取得処理を追加
+            const itemSpecificsResponse = await fetch(`/api/ebay/categoryItemSpecifics?categoryId=${categoryId}`);
+            const itemSpecificsData = await itemSpecificsResponse.json();
+            console.log('カテゴリーのItem Specifics:', itemSpecificsData);
+
+            if (itemSpecificsData.success && Array.isArray(itemSpecificsData.data)) {
+                const currentItemSpecifics = form.getValues('itemSpecifics');
+
+                itemSpecificsData.data.forEach((name: string) => {
+                    // 既存の項目名を検索
+                    const existingIndex = currentItemSpecifics.findIndex(
+                        item => item.name.toLowerCase() === name.toLowerCase()
+                    );
+
+                    if (existingIndex === -1) {
+                        // 新規項目の場合は追加
+                        appendItemSpecific({
+                            name: name,
+                            value: ['']
+                        });
+                    }
+                });
+
+                toast({
+                    title: '成功',
+                    description: '必須のItem Specificsを更新しました',
+                });
+            }
+
         } catch (error) {
             toast({
                 title: 'エラー',
@@ -354,6 +396,37 @@ export const ProductForm = ({
         }
     };
 
+    const handleTranslateTitle = async (value: string) => {
+        if (!value) {
+            toast({
+                title: 'エラー',
+                description: '翻訳するテキストを入力してください',
+                variant: 'destructive'
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/translate?text=${encodeURIComponent(value)}`);
+            const data = await response.json();
+            if (data.success) {
+                form.setValue('title', data.data.translated_text);
+                toast({
+                    title: '成功',
+                    description: '翻訳が完了しました',
+                });
+            } else {
+                throw new Error(data.message || '翻訳に失敗しました');
+            }
+        } catch (error) {
+            toast({
+                title: 'エラー',
+                description: error instanceof Error ? error.message : '翻訳に失敗しました',
+                variant: 'destructive'
+            });
+        }
+    };
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
@@ -407,7 +480,18 @@ export const ProductForm = ({
                     name="title"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel className="text-muted-foreground">タイトル</FormLabel>
+                            <div className="flex items-center justify-between">
+                                <FormLabel className="text-muted-foreground">タイトル</FormLabel>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="ml-2 bg-gray-200 hover:bg-gray-300"
+                                    onClick={() => handleTranslateTitle(field.value)}
+                                >
+                                    翻訳
+                                </Button>
+                            </div>
                             <FormControl>
                                 <Input {...field} className="h-11" />
                             </FormControl>
