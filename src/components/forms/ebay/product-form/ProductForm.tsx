@@ -98,7 +98,7 @@ export const ProductForm = ({
             conditionDescription: translateCondition,
             categoryId: '',
             ebayItemId: '',
-            itemSpecifics: [{ name: '', value: [''] }],
+            itemSpecifics: [],
             images: initialData?.images.url || [],
         },
     });
@@ -206,7 +206,7 @@ export const ProductForm = ({
                         appendItemSpecific({
                             name: spec.name,
                             value: spec.values
-                        });
+                        }, { focusIndex: -1 });
                     } else {
                         // 既存の項目の場合は値を更新
                         const updatedItemSpecifics = [...currentItemSpecifics];
@@ -290,7 +290,6 @@ export const ProductForm = ({
             // Item Specifics取得処理を追加
             const itemSpecificsResponse = await fetch(`/api/ebay/categoryItemSpecifics?categoryId=${categoryId}`);
             const itemSpecificsData = await itemSpecificsResponse.json();
-            console.log('カテゴリーのItem Specifics:', itemSpecificsData);
 
             if (itemSpecificsData.success && Array.isArray(itemSpecificsData.data)) {
                 const currentItemSpecifics = form.getValues('itemSpecifics');
@@ -306,7 +305,7 @@ export const ProductForm = ({
                         appendItemSpecific({
                             name: name,
                             value: ['']
-                        });
+                        }, { focusIndex: -1 });
                     }
                 });
 
