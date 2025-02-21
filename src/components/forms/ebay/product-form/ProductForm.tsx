@@ -486,7 +486,7 @@ export const ProductForm = ({
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className="ml-2 bg-gray-200 hover:bg-gray-300"
+                                    className="ml-2 bg-blue-100 hover:bg-blue-200 text-blue-700"
                                     onClick={() => handleTranslateTitle(field.value)}
                                 >
                                     翻訳
@@ -510,7 +510,7 @@ export const ProductForm = ({
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className="ml-2 bg-gray-200 hover:bg-gray-300"
+                                    className="ml-2 bg-blue-100 hover:bg-blue-200 text-blue-700"
                                     onClick={() => handleTranslateDescription(field.value)}
                                 >
                                     翻訳
@@ -615,7 +615,7 @@ export const ProductForm = ({
                                 onClick={handleSearchCategories}
                                 disabled={isLoadingCategories}
                                 variant="secondary"
-                                className="ml-2 bg-gray-200 hover:bg-gray-300"
+                                className="ml-2 bg-blue-100 hover:bg-blue-200 text-blue-700"
                             >
                                 検索
                             </Button>
@@ -790,7 +790,7 @@ export const ProductForm = ({
                 {/* Item Specifics */}
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <div className="text-sm font-medium text-muted-foreground">Item Specifics</div>
+                        <div className="text-sm font-medium text-muted-foreground">商品詳細</div>
                         <div className="flex items-center gap-2">
                             <FormField
                                 control={form.control}
@@ -812,9 +812,9 @@ export const ProductForm = ({
                                 type="button"
                                 onClick={handleFetchItemSpecifics}
                                 variant="secondary"
-                                className="h-11 bg-gray-200 hover:bg-gray-300"
+                                className="h-11 bg-blue-200 hover:bg-blue-200 text-blue-700"
                             >
-                                Item Specificsを取得
+                                商品詳細を取得
                             </Button>
                         </div>
                     </div>

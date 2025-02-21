@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { RemainingTime } from "@/components/layout/RemainingTime";
+
 interface ListItem {
     id: number;
     status: string;
@@ -49,6 +50,48 @@ interface ApiResponse {
     };
 }
 
+interface LoadingButtonProps {
+    loading: boolean;
+    loadingText: string;
+    defaultText: string;
+    onClick: () => void;
+    disabled?: boolean;
+    className?: string;
+    size?: 'sm' | 'default' | 'lg';
+}
+
+const LoadingButton = ({
+    loading,
+    loadingText,
+    defaultText,
+    onClick,
+    disabled,
+    className,
+    size = 'default'
+}: LoadingButtonProps) => {
+    return (
+        <Button
+            className={`${className} relative min-w-[64px] px-2`}
+            size={size}
+            onClick={onClick}
+            disabled={disabled || loading}
+        >
+            <span className={`${loading ? 'invisible' : ''}`}>
+                {defaultText}
+            </span>
+            {loading && (
+                <span className="absolute inset-0 flex items-center justify-center">
+                    <svg className="animate-spin h-4 w-4 absolute" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    <span className="invisible">{defaultText}</span>
+                </span>
+            )}
+        </Button>
+    );
+};
+
 export default function ListPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -61,6 +104,7 @@ export default function ListPage() {
         totalPages: 1,
         totalItems: 0,
     });
+    const [actionLoading, setActionLoading] = useState<string>('');
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -72,6 +116,7 @@ export default function ListPage() {
 
     const handleWithdraw = async (offer_id: string, sku: string) => {
         try {
+            setActionLoading(`withdraw-${offer_id}`);
             const response = await fetch(`/api/ebay/offer`, {
                 method: 'POST',
                 headers: {
@@ -95,11 +140,14 @@ export default function ListPage() {
         } catch (error) {
             console.error('Failed to withdraw item:', error);
             setError(error instanceof Error ? error.message : '取下げに失敗しました');
+        } finally {
+            setActionLoading('');
         }
     };
 
     const handleRelist = async (offer_id: string, sku: string) => {
         try {
+            setActionLoading(`relist-${offer_id}`);
             const response = await fetch(`/api/ebay/offer`, {
                 method: 'POST',
                 headers: {
@@ -123,6 +171,32 @@ export default function ListPage() {
         } catch (error) {
             console.error('Failed to relist item:', error);
             setError(error instanceof Error ? error.message : '再出品に失敗しました');
+        } finally {
+            setActionLoading('');
+        }
+    };
+
+    const handleSynchronize = async () => {
+        try {
+            console.log('synchronize');
+            setActionLoading('sync');
+            const response = await fetch('/api/synchronize/status', {
+                method: 'GET',
+            });
+
+            const data = await response.json();
+            console.log(data);
+            if (!response.ok) {
+                throw new Error(data.message || '同期に失敗しました');
+            }
+
+            // 成功したら一覧を再取得
+            fetchItems();
+        } catch (error) {
+            console.error('Failed to synchronize:', error);
+            setError(error instanceof Error ? error.message : '同期に失敗しました');
+        } finally {
+            setActionLoading('');
         }
     };
 
@@ -181,16 +255,27 @@ export default function ListPage() {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">出品一覧</h1>
-                <form onSubmit={handleSearch} className="flex gap-2">
-                    <Input
-                        type="text"
-                        placeholder="検索..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-64"
+                <div className="flex gap-4">
+                    <LoadingButton
+                        className="bg-blue-500 hover:bg-blue-600 text-white"
+                        size="sm"
+                        onClick={handleSynchronize}
+                        loading={actionLoading === 'sync'}
+                        loadingText="同期中..."
+                        defaultText="eBay同期"
+                        disabled={!!actionLoading}
                     />
-                    <Button type="submit">検索</Button>
-                </form>
+                    <form onSubmit={handleSearch} className="flex gap-2">
+                        <Input
+                            type="text"
+                            placeholder="検索..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-64"
+                        />
+                        <Button type="submit">検索</Button>
+                    </form>
+                </div>
             </div>
 
             {error && (
@@ -204,7 +289,7 @@ export default function ListPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="w-24 whitespace-nowrap">状態</TableHead>
+                                <TableHead className="w-24 whitespace-nowrap text-center">状態</TableHead>
                                 <TableHead className="w-40 whitespace-nowrap">SKU</TableHead>
                                 <TableHead className="w-28 whitespace-nowrap">販売価格</TableHead>
                                 <TableHead className="w-24 whitespace-nowrap">送料</TableHead>
@@ -212,7 +297,7 @@ export default function ListPage() {
                                 <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
                                 <TableHead className="w-40 whitespace-nowrap">仕入価格</TableHead>
                                 <TableHead className="w-36 whitespace-nowrap">残り</TableHead>
-                                <TableHead className="w-20 whitespace-nowrap">操作</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap text-center">操作</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -258,27 +343,32 @@ export default function ListPage() {
                                         <TableCell>
                                             <div className="flex gap-2">
                                                 {item.status === '出品中' && (
-                                                    <Button
-                                                        variant="destructive"
+                                                    <LoadingButton
+                                                        className="bg-gray-500 hover:bg-gray-600 text-white"
                                                         size="sm"
                                                         onClick={() => handleWithdraw(item.offer_id, item.sku)}
-                                                    >
-                                                        取下げ
-                                                    </Button>
+                                                        loading={actionLoading === `withdraw-${item.offer_id}`}
+                                                        loadingText="取下げ"
+                                                        defaultText="取下げ"
+                                                        disabled={!!actionLoading}
+                                                    />
                                                 )}
                                                 {item.status === '取下げ' && (
-                                                    <Button
-                                                        variant="default"
+                                                    <LoadingButton
+                                                        className="bg-green-500 hover:bg-green-600 text-white"
                                                         size="sm"
                                                         onClick={() => handleRelist(item.offer_id, item.sku)}
-                                                    >
-                                                        再出品
-                                                    </Button>
+                                                        loading={actionLoading === `relist-${item.offer_id}`}
+                                                        loadingText="再出品"
+                                                        defaultText="再出品"
+                                                        disabled={!!actionLoading}
+                                                    />
                                                 )}
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() => {/* 編集処理 */ }}
+                                                    disabled={!!actionLoading}
                                                 >
                                                     編集
                                                 </Button>
