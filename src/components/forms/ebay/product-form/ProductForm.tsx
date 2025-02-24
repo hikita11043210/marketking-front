@@ -39,8 +39,12 @@ interface Category {
 
 // フォームのバリデーションスキーマ
 const productFormSchema = z.object({
-    title: z.string().min(1, { message: 'タイトルを入力してください' }),
-    description: z.string().min(1, { message: '説明を入力してください' }),
+    title: z.string()
+        .min(1, { message: 'タイトルを入力してください' })
+        .max(80, { message: 'タイトルは80文字以内で入力してください' }),
+    description: z.string()
+        .min(1, { message: '説明を入力してください' })
+        .max(1152, { message: '説明は1152文字以内で入力してください' }),
     price: z.string().min(1, { message: '価格を入力してください' }),
     final_profit: z.string(),
     final_profit_dollar: z.string(),
@@ -481,15 +485,20 @@ export const ProductForm = ({
                         <FormItem>
                             <div className="flex items-center justify-between">
                                 <FormLabel className="text-muted-foreground">タイトル</FormLabel>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className="ml-2 bg-blue-100 hover:bg-blue-200 text-blue-700"
-                                    onClick={() => handleTranslateTitle(field.value)}
-                                >
-                                    翻訳
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-muted-foreground">
+                                        {field.value.length} / 80文字
+                                    </span>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="ml-2 bg-blue-100 hover:bg-blue-200 text-blue-700"
+                                        onClick={() => handleTranslateTitle(field.value)}
+                                    >
+                                        翻訳
+                                    </Button>
+                                </div>
                             </div>
                             <FormControl>
                                 <Input {...field} className="h-11" />
@@ -505,15 +514,20 @@ export const ProductForm = ({
                         <FormItem>
                             <div className="flex items-center justify-between">
                                 <FormLabel className="text-muted-foreground">説明</FormLabel>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className="ml-2 bg-blue-100 hover:bg-blue-200 text-blue-700"
-                                    onClick={() => handleTranslateDescription(field.value)}
-                                >
-                                    翻訳
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-muted-foreground">
+                                        {field.value.length} / 1152文字
+                                    </span>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="ml-2 bg-blue-100 hover:bg-blue-200 text-blue-700"
+                                        onClick={() => handleTranslateDescription(field.value)}
+                                    >
+                                        翻訳
+                                    </Button>
+                                </div>
                             </div>
                             <FormControl>
                                 <textarea
