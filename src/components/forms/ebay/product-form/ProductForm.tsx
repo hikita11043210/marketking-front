@@ -15,11 +15,56 @@ import type { SearchResult } from '@/types/search';
 import type { PriceCalculation } from '@/types/price';
 import { extractShippingCost } from '@/lib/utils/price';
 import { convertYahooDate } from '@/lib/utils/convert-date';
+import { replaceSpecialCharacters } from '@/lib/utils/replace-special-characters';
+
+interface LoadingButtonProps {
+    loading: boolean;
+    loadingText: string;
+    defaultText: string;
+    onClick?: () => void;
+    disabled?: boolean;
+    className?: string;
+    size?: 'sm' | 'default' | 'lg';
+    type?: 'button' | 'submit' | 'reset';
+}
+
+const LoadingButton = ({
+    loading,
+    loadingText,
+    defaultText,
+    onClick,
+    disabled,
+    className,
+    size = 'default',
+    type = 'button'
+}: LoadingButtonProps) => {
+    return (
+        <Button
+            className={`${className} relative min-w-[64px] px-2`}
+            size={size}
+            onClick={onClick}
+            disabled={disabled || loading}
+            type={type}
+        >
+            <span className={`${loading ? 'invisible' : ''}`}>
+                {defaultText}
+            </span>
+            {loading && (
+                <span className="absolute inset-0 flex items-center justify-center">
+                    <svg className="animate-spin h-4 w-4 absolute" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    <span className="invisible">{defaultText}</span>
+                </span>
+            )}
+        </Button>
+    );
+};
 
 interface ProductFormProps {
     initialData?: SearchDetailResult | null;
     selectedItem: SearchResult;
-    translateTitle: string;
     translateCondition: string;
     onCancel?: () => void;
     policies: {
@@ -43,7 +88,6 @@ const productFormSchema = z.object({
         .min(1, { message: 'タイトルを入力してください' })
         .max(80, { message: 'タイトルは80文字以内で入力してください' }),
     description: z.string()
-        .min(1, { message: '説明を入力してください' })
         .max(1152, { message: '説明は1152文字以内で入力してください' }),
     price: z.string().min(1, { message: '価格を入力してください' }),
     final_profit: z.string(),
@@ -74,7 +118,6 @@ type ProductFormValues = z.infer<typeof productFormSchema>;
 export const ProductForm = ({
     initialData,
     selectedItem,
-    translateTitle,
     translateCondition,
     onCancel,
     policies,
@@ -88,11 +131,11 @@ export const ProductForm = ({
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoadingItemSpecifics, setIsLoadingItemSpecifics] = useState(false);
     const [conditions, setConditions] = useState<{ conditionId: string; conditionDescription: string; }[]>([]);
-
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const form = useForm<ProductFormValues>({
         resolver: zodResolver(productFormSchema),
         defaultValues: {
-            title: translateTitle,
+            title: replaceSpecialCharacters(initialData?.title || ''),
             description: initialData?.description || '',
             price: price.calculated_price_dollar.toString(),
             final_profit: price.final_profit_yen.toString(),
@@ -332,6 +375,7 @@ export const ProductForm = ({
 
     const handleSubmit = async (values: ProductFormValues) => {
         try {
+            setIsSubmitting(true);
             const productData = {
                 product_data: {
                     images: values.images,
@@ -396,6 +440,8 @@ export const ProductForm = ({
                 description: error instanceof Error ? error.message : '商品の登録に失敗しました',
                 variant: 'destructive',
             });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -901,9 +947,14 @@ export const ProductForm = ({
                             キャンセル
                         </Button>
                     )}
-                    <Button type="submit" className="h-11 px-8 bg-blue-700 hover:bg-blue-800">
-                        登録
-                    </Button>
+                    <LoadingButton
+                        loading={isSubmitting}
+                        loadingText="登録中..."
+                        defaultText="登録"
+                        type="submit"
+                        className="h-11 px-8 bg-blue-700 hover:bg-blue-800 text-white"
+                        disabled={isSubmitting}
+                    />
                 </div>
             </form>
         </Form>

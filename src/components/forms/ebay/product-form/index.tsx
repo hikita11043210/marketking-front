@@ -134,11 +134,10 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
                 <div className="space-y-6">
                     <Card>
                         <CardContent className="pt-6">
-                            {selectedImages.length > 0 && translate_title && translate_condition && price ? (
+                            {selectedImages.length > 0 && translate_condition && price ? (
                                 <ProductForm
                                     initialData={detailData}
                                     selectedItem={selectedItem}
-                                    translateTitle={translate_title}
                                     translateCondition={translate_condition}
                                     onCancel={onClose}
                                     policies={policies}
