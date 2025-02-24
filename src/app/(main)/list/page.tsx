@@ -200,6 +200,28 @@ export default function ListPage() {
         }
     };
 
+    const handleYahooSynchronize = async () => {
+        try {
+            setActionLoading('yahoo-sync');
+            const response = await fetch('/api/synchronize/yahoo-auction', {
+                method: 'GET',
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Yahoo同期に失敗しました');
+            }
+
+            // 成功したら一覧を再取得
+            fetchItems();
+        } catch (error) {
+            console.error('Failed to synchronize Yahoo:', error);
+            setError(error instanceof Error ? error.message : 'Yahoo同期に失敗しました');
+        } finally {
+            setActionLoading('');
+        }
+    };
+
     const getStatusBadge = (status: string) => {
         const statusColors: { [key: string]: string } = {
             '出品中': 'bg-green-500 text-white',
@@ -263,6 +285,15 @@ export default function ListPage() {
                         loading={actionLoading === 'sync'}
                         loadingText="同期中..."
                         defaultText="eBay同期"
+                        disabled={!!actionLoading}
+                    />
+                    <LoadingButton
+                        className="bg-red-500 hover:bg-red-600 text-white"
+                        size="sm"
+                        onClick={handleYahooSynchronize}
+                        loading={actionLoading === 'yahoo-sync'}
+                        loadingText="同期中..."
+                        defaultText="Yahoo同期"
                         disabled={!!actionLoading}
                     />
                     <form onSubmit={handleSearch} className="flex gap-2">
