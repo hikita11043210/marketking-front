@@ -21,16 +21,15 @@ interface ListItem {
     status: string;
     sku: string;
     offer_id: string;
-    ebay_price: string;
-    ebay_shipping_price: string;
-    final_profit: string;
+    ebay_price: number;
+    ebay_shipping_price: number;
+    final_profit: number;
     yahoo_free_market_id: string;
     yahoo_free_market_url: string;
     yahoo_free_market_item_name: string;
     yahoo_free_market_item_price: string;
     yahoo_free_market_shipping: string;
-    yahoo_free_market_end_time: string;
-    purchase_price: string;
+    purchase_price: number;
     yahoo_free_market_status: string;
 }
 
@@ -38,6 +37,8 @@ interface PaginationInfo {
     currentPage: number;
     totalPages: number;
     totalItems: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
 }
 
 interface ApiResponse {
@@ -45,6 +46,8 @@ interface ApiResponse {
     currentPage: number;
     totalPages: number;
     totalItems: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
     error?: {
         message: string;
     };
@@ -99,19 +102,44 @@ export default function ListPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+    const [searchSku, setSearchSku] = useState(searchParams.get('sku') || '');
+    const [searchStatus, setSearchStatus] = useState(searchParams.get('status') || '');
+    const [searchYahooStatus, setSearchYahooStatus] = useState(searchParams.get('yahoo_status') || '');
     const [pagination, setPagination] = useState<PaginationInfo>({
         currentPage: Number(searchParams.get('page')) || 1,
         totalPages: 1,
         totalItems: 0,
+        hasNext: false,
+        hasPrevious: false,
     });
     const [actionLoading, setActionLoading] = useState<string>('');
 
+    const statusOptions = [
+        { label: 'すべて', value: '' },
+        { label: '出品中', value: '出品中' },
+        { label: '取下げ', value: '取下げ' },
+        { label: '売却', value: '売却' },
+        { label: '仕入済み', value: '仕入済み' },
+        { label: '完了', value: '完了' },
+        { label: '出品失敗', value: '出品失敗' },
+    ];
+
+    const yahooStatusOptions = [
+        { label: 'すべて', value: '' },
+        { label: '購入可', value: '購入可' },
+        { label: '購入済', value: '購入済' },
+        { label: '購入不可', value: '購入不可' },
+    ];
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        const params = new URLSearchParams(searchParams);
-        params.set('search', searchTerm);
+        const params = new URLSearchParams();
+        if (searchTerm) params.set('search', searchTerm);
+        if (searchSku) params.set('sku', searchSku);
+        if (searchStatus) params.set('status', searchStatus);
+        if (searchYahooStatus) params.set('yahoo_status', searchYahooStatus);
         params.set('page', '1');
-        router.push(`/list?${params.toString()}`);
+        router.push(`/yahoo-free-market/list?${params.toString()}`);
     };
 
     const handleWithdraw = async (offer_id: string, sku: string) => {
@@ -242,11 +270,14 @@ export default function ListPage() {
         setLoading(true);
         setError(null);
         try {
-            const params = new URLSearchParams({
-                search: searchTerm,
-                page: pagination.currentPage.toString(),
-                limit: '10',
-            });
+            const params = new URLSearchParams();
+            if (searchTerm) params.set('search', searchTerm);
+            if (searchSku) params.set('sku', searchSku);
+            if (searchStatus) params.set('status', searchStatus);
+            if (searchYahooStatus) params.set('yahoo_status', searchYahooStatus);
+            params.set('page', pagination.currentPage.toString());
+            params.set('limit', '10');
+
             const response = await fetch(`/api/yahoo-free-market/list?${params.toString()}`);
             const data: ApiResponse = await response.json();
 
@@ -258,6 +289,8 @@ export default function ListPage() {
                 currentPage: data.currentPage,
                 totalPages: data.totalPages,
                 totalItems: data.totalItems,
+                hasNext: data.hasNext,
+                hasPrevious: data.hasPrevious,
             });
         } catch (error) {
             console.error('Failed to fetch items:', error);
@@ -270,7 +303,7 @@ export default function ListPage() {
 
     useEffect(() => {
         fetchItems();
-    }, [searchTerm, pagination.currentPage]);
+    }, [searchTerm, searchSku, searchStatus, searchYahooStatus, pagination.currentPage]);
 
     return (
         <div>
@@ -295,18 +328,76 @@ export default function ListPage() {
                         defaultText="Yahoo同期"
                         disabled={!!actionLoading}
                     />
-                    <form onSubmit={handleSearch} className="flex gap-2">
-                        <Input
-                            type="text"
-                            placeholder="検索..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-64"
-                        />
-                        <Button type="submit">検索</Button>
-                    </form>
                 </div>
             </div>
+
+            <Card className="mb-6">
+                <form onSubmit={handleSearch} className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">
+                                キーワード
+                            </label>
+                            <Input
+                                type="text"
+                                placeholder="商品名で検索..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">
+                                SKU
+                            </label>
+                            <Input
+                                type="text"
+                                placeholder="SKUで検索..."
+                                value={searchSku}
+                                onChange={(e) => setSearchSku(e.target.value)}
+                                className="w-full"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">
+                                状態
+                            </label>
+                            <select
+                                value={searchStatus}
+                                onChange={(e) => setSearchStatus(e.target.value)}
+                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                            >
+                                {statusOptions.map(option => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">
+                                仕入状態
+                            </label>
+                            <select
+                                value={searchYahooStatus}
+                                onChange={(e) => setSearchYahooStatus(e.target.value)}
+                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                            >
+                                {yahooStatusOptions.map(option => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                    <div className="mt-4 flex justify-end">
+                        <Button type="submit" disabled={loading}>
+                            検索
+                        </Button>
+                    </div>
+                </form>
+            </Card>
 
             {error && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -381,7 +472,7 @@ export default function ListPage() {
                                                         disabled={!!actionLoading}
                                                     />
                                                 )}
-                                                {item.status === '取下げ' && (
+                                                {item.status === '取下げ' && item.yahoo_free_market_status === '購入可' && (
                                                     <LoadingButton
                                                         className="bg-green-500 hover:bg-green-600 text-white"
                                                         size="sm"
