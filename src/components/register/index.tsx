@@ -70,7 +70,6 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
                     setPrice(undefined);
                     const response = await fetch(`/api/yahoo-free-market/detail?item_id=${encodeURIComponent(selectedItem.item_id)}`);
                     const data = await response.json();
-                    console.log(data);
                     if (data.success) {
                         setDetailData(data.data.data);
                         setSelectedImages(data.data.data.images);

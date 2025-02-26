@@ -210,7 +210,6 @@ export default function ListPage() {
             if (!response.ok) {
                 throw new Error(data.message || 'Yahoo同期に失敗しました');
             }
-            console.log(data);
             // 成功したら一覧を再取得
             fetchItems();
         } catch (error) {
