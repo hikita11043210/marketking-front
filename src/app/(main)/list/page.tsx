@@ -32,6 +32,7 @@ interface ListItem {
     yahoo_auction_end_time: string;
     purchase_price: string;
     remaining_time: string;
+    yahoo_auction_status: string;
 }
 
 interface PaginationInfo {
@@ -178,14 +179,12 @@ export default function ListPage() {
 
     const handleSynchronize = async () => {
         try {
-            console.log('synchronize');
             setActionLoading('sync');
             const response = await fetch('/api/synchronize/status', {
                 method: 'GET',
             });
 
             const data = await response.json();
-            console.log(data);
             if (!response.ok) {
                 throw new Error(data.message || '同期に失敗しました');
             }
@@ -211,7 +210,7 @@ export default function ListPage() {
             if (!response.ok) {
                 throw new Error(data.message || 'Yahoo同期に失敗しました');
             }
-
+            console.log(data);
             // 成功したら一覧を再取得
             fetchItems();
         } catch (error) {
@@ -230,6 +229,9 @@ export default function ListPage() {
             '仕入済み': 'bg-yellow-500 text-white',
             '完了': 'bg-purple-500 text-white',
             '出品失敗': 'bg-red-500 text-white',
+            '購入可': 'bg-green-500 text-white',
+            '購入済': 'bg-gray-500 text-white',
+            '購入不可': 'bg-red-500 text-white',
         };
         return (
             <Badge className={`${statusColors[status] || 'bg-gray-500 text-white'} whitespace-nowrap min-w-[80px] justify-center`}>
@@ -253,7 +255,6 @@ export default function ListPage() {
             if (!response.ok) {
                 throw new Error(data.error?.message || 'データの取得に失敗しました');
             }
-
             setItems(data.items || []);
             setPagination({
                 currentPage: data.currentPage,
@@ -325,6 +326,7 @@ export default function ListPage() {
                                 <TableHead className="w-28 whitespace-nowrap">販売価格</TableHead>
                                 <TableHead className="w-24 whitespace-nowrap">送料</TableHead>
                                 <TableHead className="w-28 whitespace-nowrap">最終利益</TableHead>
+                                <TableHead className="w-24 whitespace-nowrap text-center">仕入状態</TableHead>
                                 <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
                                 <TableHead className="w-40 whitespace-nowrap">仕入価格</TableHead>
                                 <TableHead className="w-36 whitespace-nowrap">残り</TableHead>
@@ -356,6 +358,7 @@ export default function ListPage() {
                                         <TableCell>¥{Number(item.ebay_price).toLocaleString()}</TableCell>
                                         <TableCell>¥{Number(item.ebay_shipping_price).toLocaleString()}</TableCell>
                                         <TableCell>¥{Number(item.final_profit).toLocaleString()}</TableCell>
+                                        <TableCell className="text-center">{getStatusBadge(item.yahoo_auction_status)}</TableCell>
                                         <TableCell className="max-w-md">
                                             <a
                                                 href={item.yahoo_auction_url}

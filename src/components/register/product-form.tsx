@@ -8,14 +8,11 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
-import type { SearchDetailResult } from '@/types/search';
 import type { ShippingPolicy, PaymentPolicy, ReturnPolicy } from '@/types/ebay/policy';
 import type { ItemSpecificsResponse } from '@/types/ebay/itemSpecifics';
-import type { SearchResult } from '@/types/search';
 import type { PriceCalculation } from '@/types/price';
-import { extractShippingCost } from '@/lib/utils/price';
-import { convertYahooDate } from '@/lib/utils/convert-date';
 import { replaceSpecialCharacters } from '@/lib/utils/replace-special-characters';
+import type { PayPayFreeMarketSearchResult, SearchDetailResult } from '@/types/yahoo-free-market';
 
 interface LoadingButtonProps {
     loading: boolean;
@@ -63,8 +60,8 @@ const LoadingButton = ({
 };
 
 interface ProductFormProps {
-    initialData?: SearchDetailResult | null;
-    selectedItem: SearchResult;
+    initialData: SearchDetailResult | undefined;
+    selectedItem: PayPayFreeMarketSearchResult;
     translateCondition: string;
     onCancel?: () => void;
     policies: {
@@ -125,7 +122,7 @@ export const ProductForm = ({
     price
 }: ProductFormProps) => {
     const { toast } = useToast();
-    const [allImages, setAllImages] = useState<string[]>(initialData?.images.url || []);
+    const [allImages, setAllImages] = useState<string[]>(initialData?.images || []);
     const [isLoadingCategories, setIsLoadingCategories] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -146,7 +143,7 @@ export const ProductForm = ({
             categoryId: '',
             ebayItemId: '',
             itemSpecifics: [],
-            images: initialData?.images.url || [],
+            images: initialData?.images || [],
         },
     });
 
@@ -304,8 +301,7 @@ export const ProductForm = ({
         }
 
         const priceArray = [
-            selectedItem.buy_now_price || selectedItem.price || '0',
-            extractShippingCost(selectedItem.shipping || '0'),
+            selectedItem.price || '0',
         ];
 
         try {
@@ -396,13 +392,11 @@ export const ProductForm = ({
                         nameValueList: values.itemSpecifics,
                     },
                 },
-                yahoo_auction_data: {
-                    yahoo_auction_id: initialData?.auction_id,
-                    yahoo_auction_url: selectedItem.url,
-                    yahoo_auction_item_name: selectedItem.title,
-                    yahoo_auction_item_price: selectedItem.buy_now_price || selectedItem.price,
-                    yahoo_auction_shipping: extractShippingCost(selectedItem.shipping || '0'),
-                    yahoo_auction_end_time: convertYahooDate(initialData?.end_time),
+                yahoo_free_market_data: {
+                    yahoo_free_market_id: initialData?.item_id,
+                    yahoo_free_market_item_name: initialData?.title,
+                    yahoo_free_market_item_price: initialData?.price,
+                    yahoo_free_market_shipping: '0',
                 },
                 other_data: {
                     ebay_shipping_price: '',
@@ -410,7 +404,7 @@ export const ProductForm = ({
                 }
             };
 
-            const response = await fetch('/api/ebay/register', {
+            const response = await fetch('/api/yahoo-free-market/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

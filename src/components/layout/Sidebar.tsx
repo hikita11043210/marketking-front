@@ -28,6 +28,11 @@ const navigation: NavItem[] = [
         icon: <BiSearch />,
     },
     {
+        title: "Yahooフリーマーケット検索",
+        href: "/yahoo-free-market/search",
+        icon: <BiSearch />,
+    },
+    {
         title: "出品一覧",
         href: "/list",
         icon: (

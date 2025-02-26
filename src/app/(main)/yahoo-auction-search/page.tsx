@@ -12,13 +12,13 @@ import type { SearchResults, SearchResult } from "@/types/search";
 export default function SearchPage() {
     const [p, setP] = useState('カメラ');
     const [min, setMin] = useState('');
-    const [max, setMax] = useState('');
+    const [max, setMax] = useState('30000');
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState<SearchResults['items']>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [auccat, setAuccat] = useState('');
     const [va, setVa] = useState('');
-    const [priceType, setPriceType] = useState('currentprice');
+    const [priceType, setPriceType] = useState('bidorbuyprice');
     const [istatus, setStatus] = useState('all');
     const [fixed, setFixed] = useState('3');
     const [new_item, setNewItem] = useState(false);

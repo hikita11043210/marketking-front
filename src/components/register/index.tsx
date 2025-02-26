@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { BaseRegisterModal } from '@/components/shared/modals/BaseRegisterModal';
-import { ProductInfo } from './ProductInfo';
-import { ProductForm } from './ProductForm';
+import { ProductInfo } from './product-info';
+import { ProductForm } from './product-form';
 import { useToast } from '@/hooks/use-toast';
 import { extractShippingCost } from '@/lib/utils/price';
-import type { SearchDetailResult, SearchResult } from '@/types/search';
 import type { ShippingPolicy, PaymentPolicy, ReturnPolicy, EbayPoliciesResponse } from '@/types/ebay/policy';
 import type { PriceCalculation } from '@/types/price';
+import type { PayPayFreeMarketSearchResult, SearchDetailResult } from '@/types/yahoo-free-market';
 
 interface RegisterModalProps {
     isOpen: boolean;
     onClose: () => void;
-    selectedItem: SearchResult | null;
+    selectedItem: PayPayFreeMarketSearchResult | undefined;
 }
 
 export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalProps) => {
@@ -62,17 +62,18 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
 
     useEffect(() => {
         const fetchDetail = async () => {
-            if (selectedItem?.url) {
+            if (selectedItem?.item_id) {
                 try {
                     setDetailData(undefined);
                     setSelectedImages([]);
                     setTranslateCondition('');
                     setPrice(undefined);
-                    const response = await fetch(`/api/yahoo-auction/detail?url=${encodeURIComponent(selectedItem.url)}`);
+                    const response = await fetch(`/api/yahoo-free-market/detail?item_id=${encodeURIComponent(selectedItem.item_id)}`);
                     const data = await response.json();
+                    console.log(data);
                     if (data.success) {
                         setDetailData(data.data.data);
-                        setSelectedImages(data.data.data.images.url);
+                        setSelectedImages(data.data.data.images);
 
                         // 商品状態翻訳
                         if (data.data.data.condition) {
@@ -87,8 +88,7 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
 
                         // 価格計算用の配列を作成
                         const priceArray = [
-                            selectedItem.buy_now_price || selectedItem.price || '0',
-                            extractShippingCost(selectedItem.shipping || '0'),
+                            selectedItem.price || '0',
                         ];
 
                         // 価格取得
