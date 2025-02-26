@@ -24,15 +24,14 @@ interface ListItem {
     ebay_price: string;
     ebay_shipping_price: string;
     final_profit: string;
-    yahoo_auction_id: string;
-    yahoo_auction_url: string;
-    yahoo_auction_item_name: string;
-    yahoo_auction_item_price: string;
-    yahoo_auction_shipping: string;
-    yahoo_auction_end_time: string;
+    yahoo_free_market_id: string;
+    yahoo_free_market_url: string;
+    yahoo_free_market_item_name: string;
+    yahoo_free_market_item_price: string;
+    yahoo_free_market_shipping: string;
+    yahoo_free_market_end_time: string;
     purchase_price: string;
-    remaining_time: string;
-    yahoo_auction_status: string;
+    yahoo_free_market_status: string;
 }
 
 interface PaginationInfo {
@@ -202,20 +201,20 @@ export default function ListPage() {
     const handleYahooSynchronize = async () => {
         try {
             setActionLoading('yahoo-sync');
-            const response = await fetch('/api/synchronize/yahoo-auction', {
+            const response = await fetch('/api/synchronize/yahoo-free-market', {
                 method: 'GET',
             });
 
             const data = await response.json();
             if (!response.ok) {
-                throw new Error(data.message || 'Yahoo同期に失敗しました');
+                throw new Error(data.message || 'Yahooフリーマーケットの同期に失敗しました');
             }
             console.log(data);
             // 成功したら一覧を再取得
             fetchItems();
         } catch (error) {
             console.error('Failed to synchronize Yahoo:', error);
-            setError(error instanceof Error ? error.message : 'Yahoo同期に失敗しました');
+            setError(error instanceof Error ? error.message : 'Yahooフリーマーケットの同期に失敗しました');
         } finally {
             setActionLoading('');
         }
@@ -249,7 +248,7 @@ export default function ListPage() {
                 page: pagination.currentPage.toString(),
                 limit: '10',
             });
-            const response = await fetch(`/api/ebay/list?${params.toString()}`);
+            const response = await fetch(`/api/yahoo-free-market/list?${params.toString()}`);
             const data: ApiResponse = await response.json();
 
             if (!response.ok) {
@@ -277,7 +276,7 @@ export default function ListPage() {
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">出品一覧（Yahooオークション）</h1>
+                <h1 className="text-2xl font-bold text-gray-900">出品一覧（Yahooフリーマーケット）</h1>
                 <div className="flex gap-4">
                     <LoadingButton
                         className="bg-blue-500 hover:bg-blue-600 text-white"
@@ -329,7 +328,6 @@ export default function ListPage() {
                                 <TableHead className="w-24 whitespace-nowrap text-center">仕入状態</TableHead>
                                 <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
                                 <TableHead className="w-40 whitespace-nowrap">仕入価格</TableHead>
-                                <TableHead className="w-36 whitespace-nowrap">残り</TableHead>
                                 <TableHead className="w-20 whitespace-nowrap text-center">操作</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -358,22 +356,19 @@ export default function ListPage() {
                                         <TableCell>¥{Number(item.ebay_price).toLocaleString()}</TableCell>
                                         <TableCell>¥{Number(item.ebay_shipping_price).toLocaleString()}</TableCell>
                                         <TableCell>¥{Number(item.final_profit).toLocaleString()}</TableCell>
-                                        <TableCell className="text-center">{getStatusBadge(item.yahoo_auction_status)}</TableCell>
+                                        <TableCell className="text-center">{getStatusBadge(item.yahoo_free_market_status)}</TableCell>
                                         <TableCell className="max-w-md">
                                             <a
-                                                href={item.yahoo_auction_url}
+                                                href={item.yahoo_free_market_url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-blue-600 hover:text-blue-800 hover:underline truncate block"
-                                                title={item.yahoo_auction_item_name}
+                                                title={item.yahoo_free_market_item_name}
                                             >
-                                                {item.yahoo_auction_item_name}
+                                                {item.yahoo_free_market_item_name}
                                             </a>
                                         </TableCell>
                                         <TableCell>¥{Number(item.purchase_price).toLocaleString()}</TableCell>
-                                        <TableCell className="whitespace-nowrap">
-                                            <RemainingTime endDate={new Date(item.yahoo_auction_end_time)} />
-                                        </TableCell>
                                         <TableCell>
                                             <div className="flex gap-2">
                                                 {item.status === '出品中' && (

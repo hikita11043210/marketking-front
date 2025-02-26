@@ -14,7 +14,7 @@ export const ProductInfo = ({ selectedItem, detailData }: ProductInfoProps) => {
                 <div className="w-full aspect-square relative">
                     {selectedItem?.thumbnail_url && (
                         <a
-                            href={selectedItem.item_id}
+                            href={detailData?.url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="w-full h-full block hover:opacity-90 transition-opacity"
@@ -30,7 +30,7 @@ export const ProductInfo = ({ selectedItem, detailData }: ProductInfoProps) => {
                 {/* 商品情報 */}
                 <div className="space-y-4">
                     <div>
-                        <div className="text-sm font-medium text-muted-foreground">商品名（Yahoo!オークション）</div>
+                        <div className="text-sm font-medium text-muted-foreground">商品名</div>
                         <div className="text-base mt-1">{detailData?.title}</div>
                     </div>
                     <div>

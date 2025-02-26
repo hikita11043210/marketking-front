@@ -3,7 +3,7 @@ import { serverFetch } from '@/app/api/server';
 
 export async function GET(request: Request) {
     try {
-        const response = await serverFetch(`/api/v1/synchronize/status/`, {
+        const response = await serverFetch(`/api/v1/synchronize/yahoo-free-market/`, {
             cache: 'no-store',
         });
 
@@ -11,8 +11,8 @@ export async function GET(request: Request) {
 
         if (!response.ok) {
             return NextResponse.json({
-                error: 'synchronize_status_fetch_failed',
-                message: data.message || 'ステータスの同期に失敗しました'
+                error: 'synchronize_yahoo_free_market_fetch_failed',
+                message: data.message || 'Yahooフリーマーケットの同期に失敗しました'
             }, { status: response.status });
         }
 

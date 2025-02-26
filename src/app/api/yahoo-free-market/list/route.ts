@@ -1,0 +1,42 @@
+import { NextResponse } from 'next/server';
+import { serverFetch } from '@/app/api/server';
+
+export async function GET(request: Request) {
+    try {
+        const url = new URL(request.url);
+        const search = url.searchParams.get('search') || '';
+        const page = url.searchParams.get('page') || '1';
+        const limit = url.searchParams.get('limit') || '';
+
+        const response = await serverFetch(`/api/v1/yahoo-free-market/list?search=${search}&page=${page}&limit=${limit}`, {
+            cache: 'no-store',
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            return NextResponse.json({
+                error: 'yahoo_free_market_list_fetch_failed',
+                message: data.message || '一覧の取得に失敗しました'
+            }, { status: response.status });
+        }
+
+        // データが存在しない場合のデフォルト値を設定
+        const items = Array.isArray(data.data) ? data.data : [];
+        const total = items.length; // 現状はtotalが返却されていないため、配列の長さを使用
+
+        // バックエンドからのレスポンスをフロントエンド用に整形
+        return NextResponse.json({
+            items: items,
+            currentPage: parseInt(page),
+            totalPages: Math.ceil(total / parseInt(limit)),
+            totalItems: total,
+        });
+    } catch (error) {
+        console.error('API Error:', error);
+        return NextResponse.json({
+            error: 'yahoo_free_market_list_fetch_failed',
+            message: '一覧の取得に失敗しました'
+        }, { status: 500 });
+    }
+} 

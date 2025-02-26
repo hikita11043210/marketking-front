@@ -15,6 +15,7 @@ export type SearchDetailResult = {
     images: string[];
     price: number;
     item_id: string;
+    url: string;
     condition: string;
     category: string[];
     delivery_schedule: string;

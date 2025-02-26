@@ -2,9 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, LogOut } from 'lucide-react';
-import { BiHome, BiSearch } from 'react-icons/bi';
+import { LogOut, Gavel, Store } from 'lucide-react';
+import { BiHome } from 'react-icons/bi';
 import { useToast } from "@/hooks/use-toast";
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
 
 type NavItem = {
     title: string;
@@ -20,37 +26,35 @@ const navigation: NavItem[] = [
     {
         title: "HOME",
         href: "/dashboard",
-        icon: <BiHome />,
+        icon: <BiHome className="h-5 w-5" />,
     },
     {
-        title: "Yahooオークション検索",
-        href: "/yahoo-auction-search",
-        icon: <BiSearch />,
+        title: "Yahooオークション",
+        icon: <Gavel className="h-5 w-5" />,
+        subItems: [
+            {
+                title: "- 検索",
+                href: "/yahoo-auction-search",
+            },
+            {
+                title: "- 出品一覧",
+                href: "/list",
+            },
+        ],
     },
     {
-        title: "Yahooフリーマーケット検索",
-        href: "/yahoo-free-market/search",
-        icon: <BiSearch />,
-    },
-    {
-        title: "出品一覧",
-        href: "/list",
-        icon: (
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-            >
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-                <line x1="10" y1="9" x2="8" y2="9" />
-            </svg>
-        ),
+        title: "Yahooフリーマーケット",
+        icon: <Store className="h-5 w-5" />,
+        subItems: [
+            {
+                title: "- 検索",
+                href: "/yahoo-free-market/search",
+            },
+            {
+                title: "- 出品一覧",
+                href: "/yahoo-free-market/list",
+            },
+        ],
     },
     {
         title: "各種設定",
@@ -105,60 +109,61 @@ export function Sidebar() {
     };
 
     return (
-        <div className="flex h-screen w-64 flex-col bg-white border-r">
-            <div className="flex-1 overflow-y-auto py-4">
-                <nav className="space-y-1 px-2">
+        <div className="flex h-screen w-64 flex-col bg-background border-r">
+            <div className="flex-1 overflow-y-auto py-4 px-3">
+                <nav className="space-y-2">
                     {navigation.map((item) => (
                         <div key={item.title}>
                             {item.subItems ? (
-                                <>
-                                    <button
-                                        onClick={() => toggleItem(item.title)}
-                                        className="flex w-full items-center px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
-                                    >
-                                        {item.icon}
-                                        <span className="ml-3 flex-1">{item.title}</span>
-                                        {openItems.includes(item.title) ? (
-                                            <ChevronDown className="h-5 w-5" />
-                                        ) : (
-                                            <ChevronRight className="h-5 w-5" />
-                                        )}
-                                    </button>
-                                    {openItems.includes(item.title) && (
-                                        <div className="ml-8 space-y-1">
-                                            {item.subItems.map((subItem) => (
-                                                <button
-                                                    key={subItem.title}
-                                                    onClick={() => router.push(subItem.href)}
-                                                    className="flex w-full items-center px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
-                                                >
-                                                    {subItem.title}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </>
+                                <Collapsible
+                                    open={openItems.includes(item.title)}
+                                    onOpenChange={() => toggleItem(item.title)}
+                                >
+                                    <CollapsibleTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            className="w-full justify-start"
+                                        >
+                                            {item.icon}
+                                            <span className="ml-3 flex-1 text-left">{item.title}</span>
+                                        </Button>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent className="pl-9 space-y-1">
+                                        {item.subItems.map((subItem) => (
+                                            <Button
+                                                key={subItem.title}
+                                                variant="ghost"
+                                                className="w-full justify-start h-9 px-2"
+                                                onClick={() => router.push(subItem.href)}
+                                            >
+                                                {subItem.title}
+                                            </Button>
+                                        ))}
+                                    </CollapsibleContent>
+                                </Collapsible>
                             ) : (
-                                <button
+                                <Button
+                                    variant="ghost"
+                                    className="w-full justify-start"
                                     onClick={() => item.href && router.push(item.href)}
-                                    className="flex w-full items-center px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
                                 >
                                     {item.icon}
                                     <span className="ml-3">{item.title}</span>
-                                </button>
+                                </Button>
                             )}
                         </div>
                     ))}
                 </nav>
             </div>
             <div className="border-t p-4">
-                <button
+                <Button
+                    variant="ghost"
+                    className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
                     onClick={handleLogout}
-                    className="flex w-full items-center px-2 py-2 text-sm font-medium text-red-600 rounded-md hover:bg-red-50"
                 >
                     <LogOut className="h-5 w-5 mr-3" />
                     ログアウト
-                </button>
+                </Button>
             </div>
         </div>
     );
