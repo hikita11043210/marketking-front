@@ -276,7 +276,7 @@ export default function ListPage() {
             if (searchStatus) params.set('status', searchStatus);
             if (searchYahooStatus) params.set('yahoo_status', searchYahooStatus);
             params.set('page', pagination.currentPage.toString());
-            params.set('limit', '10');
+            params.set('limit', '100');
 
             const response = await fetch(`/api/yahoo-free-market/list?${params.toString()}`);
             const data: ApiResponse = await response.json();
@@ -510,11 +510,11 @@ export default function ListPage() {
                             <Button
                                 variant="outline"
                                 size="sm"
-                                disabled={pagination.currentPage === 1}
+                                disabled={!pagination.hasPrevious}
                                 onClick={() => {
                                     const params = new URLSearchParams(searchParams);
                                     params.set('page', (pagination.currentPage - 1).toString());
-                                    router.push(`/list?${params.toString()}`);
+                                    router.push(`/yahoo-free-market/list?${params.toString()}`);
                                 }}
                             >
                                 前へ
@@ -522,11 +522,11 @@ export default function ListPage() {
                             <Button
                                 variant="outline"
                                 size="sm"
-                                disabled={pagination.currentPage === pagination.totalPages}
+                                disabled={!pagination.hasNext}
                                 onClick={() => {
                                     const params = new URLSearchParams(searchParams);
                                     params.set('page', (pagination.currentPage + 1).toString());
-                                    router.push(`/list?${params.toString()}`);
+                                    router.push(`/yahoo-free-market/list?${params.toString()}`);
                                 }}
                             >
                                 次へ

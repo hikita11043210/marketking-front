@@ -246,7 +246,7 @@ export default function ListPage() {
             const params = new URLSearchParams({
                 search: searchTerm,
                 page: pagination.currentPage.toString(),
-                limit: '10',
+                limit: '100',
             });
             const response = await fetch(`/api/ebay/list?${params.toString()}`);
             const data: ApiResponse = await response.json();
