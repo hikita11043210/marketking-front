@@ -316,7 +316,7 @@ export const ProductForm = ({
         }
     };
 
-    const handleCategorySelect = async (categoryId: string) => {
+    const handleCategorySelect = async (title: string, description: string, categoryId: string) => {
         try {
             setIsLoadingItemSpecifics(true);
             // 既存のCondition取得処理
@@ -331,13 +331,15 @@ export const ProductForm = ({
             }
 
             // Item Specifics取得処理を追加
-            const itemSpecificsResponse = await fetch(`/api/ebay/categoryItemSpecifics?categoryId=${categoryId}`);
+            const itemSpecificsResponse = await fetch(`/api/ebay/categoryItemSpecifics?categoryId=${categoryId}&title=${title}&description=${description}`);
             const itemSpecificsData = await itemSpecificsResponse.json();
-
-            if (itemSpecificsData.success && Array.isArray(itemSpecificsData.data)) {
+            console.log(itemSpecificsData)
+            if (itemSpecificsData.success && itemSpecificsData.data) {
+                // 既存のItem Specificsをクリア
+                form.setValue('itemSpecifics', []);
                 const currentItemSpecifics = form.getValues('itemSpecifics');
 
-                itemSpecificsData.data.forEach((name: string) => {
+                Object.entries(itemSpecificsData.data).forEach(([name, value]) => {
                     // 既存の項目名を検索
                     const existingIndex = currentItemSpecifics.findIndex(
                         item => item.name.toLowerCase() === name.toLowerCase()
@@ -347,7 +349,7 @@ export const ProductForm = ({
                         // 新規項目の場合は追加
                         appendItemSpecific({
                             name: name,
-                            value: ['']
+                            value: [value as string]
                         }, { focusIndex: -1 });
                     }
                 });
@@ -556,7 +558,7 @@ export const ProductForm = ({
                                 <FormLabel className="text-muted-foreground">説明</FormLabel>
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm text-muted-foreground">
-                                        {field.value.length} / 1152文字
+                                        {field.value.length === 0 ? 0 : field.value.length + (field.value.split('\n').length) * 7} / 1152文字
                                     </span>
                                     <Button
                                         type="button"
@@ -686,7 +688,7 @@ export const ProductForm = ({
                                             const selectedCategory = categories.find(cat => cat.categoryId === value);
                                             if (selectedCategory) {
                                                 form.setValue('categoryName', selectedCategory.categoryName);
-                                                handleCategorySelect(value);
+                                                handleCategorySelect(initialData?.title ?? '', initialData?.description ?? '', value);
                                             }
                                         }}
                                     >

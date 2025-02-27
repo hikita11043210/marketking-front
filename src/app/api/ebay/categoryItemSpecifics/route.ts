@@ -5,8 +5,10 @@ export async function GET(request: Request) {
     try {
         const url = new URL(request.url);
         const categoryId = url.searchParams.get('categoryId');
+        const title = url.searchParams.get('title');
+        const description = url.searchParams.get('description');
 
-        const response = await serverFetch(`/api/v1/ebay/categoryItemSpecifics?categoryId=${categoryId}`, {
+        const response = await serverFetch(`/api/v1/ebay/categoryItemSpecifics?categoryId=${categoryId}&title=${title}&description=${description}`, {
             cache: 'no-store',
         });
 

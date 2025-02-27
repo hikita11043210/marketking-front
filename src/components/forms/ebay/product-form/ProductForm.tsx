@@ -16,6 +16,13 @@ import type { PriceCalculation } from '@/types/price';
 import { extractShippingCost } from '@/lib/utils/price';
 import { convertYahooDate } from '@/lib/utils/convert-date';
 import { replaceSpecialCharacters } from '@/lib/utils/replace-special-characters';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { HelpCircle } from "lucide-react";
 
 interface LoadingButtonProps {
     loading: boolean;
@@ -320,7 +327,7 @@ export const ProductForm = ({
         }
     };
 
-    const handleCategorySelect = async (categoryId: string) => {
+    const handleCategorySelect = async (title: string, description: string, categoryId: string) => {
         try {
             setIsLoadingItemSpecifics(true);
             // 既存のCondition取得処理
@@ -335,13 +342,15 @@ export const ProductForm = ({
             }
 
             // Item Specifics取得処理を追加
-            const itemSpecificsResponse = await fetch(`/api/ebay/categoryItemSpecifics?categoryId=${categoryId}`);
+            const itemSpecificsResponse = await fetch(`/api/ebay/categoryItemSpecifics?categoryId=${categoryId}&title=${title}&description=${description}`);
             const itemSpecificsData = await itemSpecificsResponse.json();
-
-            if (itemSpecificsData.success && Array.isArray(itemSpecificsData.data)) {
+            console.log(itemSpecificsData)
+            if (itemSpecificsData.success && itemSpecificsData.data) {
+                // 既存のItem Specificsをクリア
+                form.setValue('itemSpecifics', []);
                 const currentItemSpecifics = form.getValues('itemSpecifics');
 
-                itemSpecificsData.data.forEach((name: string) => {
+                Object.entries(itemSpecificsData.data).forEach(([name, value]) => {
                     // 既存の項目名を検索
                     const existingIndex = currentItemSpecifics.findIndex(
                         item => item.name.toLowerCase() === name.toLowerCase()
@@ -351,7 +360,7 @@ export const ProductForm = ({
                         // 新規項目の場合は追加
                         appendItemSpecific({
                             name: name,
-                            value: ['']
+                            value: [value as string]
                         }, { focusIndex: -1 });
                     }
                 });
@@ -530,7 +539,27 @@ export const ProductForm = ({
                     render={({ field }) => (
                         <FormItem>
                             <div className="flex items-center justify-between">
-                                <FormLabel className="text-muted-foreground">タイトル</FormLabel>
+                                <div className="flex items-center gap-2">
+                                    <FormLabel className="text-muted-foreground">タイトル</FormLabel>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                                            </TooltipTrigger>
+                                            <TooltipContent className="w-80">
+                                                <div className="space-y-2 text-sm">
+                                                    <p><span className="font-bold">Almost Unused:</span> ほぼ未使用品</p>
+                                                    <p><span className="font-bold">MINT:</span> 使用感ほぼ無し　新品に近い備品</p>
+                                                    <p><span className="font-bold">Near MINT:</span> 使用感少しあり  傷ほぼ無い備品</p>
+                                                    <p><span className="font-bold">EXC+++++:</span> 小さい傷あり    状態は備品レベル</p>
+                                                    <p><span className="font-bold">EXC+～++++:</span> 傷が目立つ</p>
+                                                    <p><span className="font-bold">AS-IS:</span> 難あり（カビくもりあり、一部動作不良等）</p>
+                                                    <p><span className="font-bold">For Parts:</span> ジャンク・故障品・不良品</p>
+                                                </div>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm text-muted-foreground">
                                         {field.value.length} / 80文字
@@ -562,7 +591,7 @@ export const ProductForm = ({
                                 <FormLabel className="text-muted-foreground">説明</FormLabel>
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm text-muted-foreground">
-                                        {field.value.length} / 1152文字
+                                        {field.value.length === 0 ? 0 : field.value.length + (field.value.split('\n').length) * 7} / 1152文字
                                     </span>
                                     <Button
                                         type="button"
@@ -692,7 +721,7 @@ export const ProductForm = ({
                                             const selectedCategory = categories.find(cat => cat.categoryId === value);
                                             if (selectedCategory) {
                                                 form.setValue('categoryName', selectedCategory.categoryName);
-                                                handleCategorySelect(value);
+                                                handleCategorySelect(initialData?.title ?? '', initialData?.description ?? '', value);
                                             }
                                         }}
                                     >

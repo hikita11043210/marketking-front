@@ -17,7 +17,7 @@ export const authCookies = {
     
     cookieStore.set(ACCESS_TOKEN_NAME, tokens.accessToken, {
       ...cookieOptions,
-      maxAge: 60 * 60 // 1時間
+      maxAge: 60 * 60 * 10 // 10時間
     });
 
     cookieStore.set(REFRESH_TOKEN_NAME, tokens.refreshToken, {
