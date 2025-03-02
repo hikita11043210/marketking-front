@@ -7,7 +7,7 @@ interface LoginResponse {
     user: User;
 }
 
-const API_BASE = process.env.API_BASE_URL?.replace('localhost', '127.0.0.1');
+const API_BASE = process.env.BACKEND_URL?.replace('localhost', '127.0.0.1');
 
 export async function POST(request: Request) {
     try {
