@@ -1,9 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
-import type { PayPayFreeMarketSearchResult, SearchDetailResult } from '@/types/yahoo-free-market';
+import type { PayPayFreeMarketSearchResult, ItemDetailResponse } from '@/types/yahoo-free-market';
 
 interface ProductInfoProps {
     selectedItem: PayPayFreeMarketSearchResult;
-    detailData: SearchDetailResult | undefined;
+    detailData: ItemDetailResponse | undefined;
 }
 
 export const ProductInfo = ({ selectedItem, detailData }: ProductInfoProps) => {
@@ -14,7 +14,7 @@ export const ProductInfo = ({ selectedItem, detailData }: ProductInfoProps) => {
                 <div className="w-full aspect-square relative">
                     {selectedItem?.thumbnail_url && (
                         <a
-                            href={detailData?.url}
+                            href={`https://paypayfleamarket.yahoo.co.jp/item/${selectedItem.item_id}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="w-full h-full block hover:opacity-90 transition-opacity"
@@ -29,32 +29,36 @@ export const ProductInfo = ({ selectedItem, detailData }: ProductInfoProps) => {
 
                 {/* 商品情報 */}
                 <div className="space-y-4">
-                    <div>
-                        <div className="text-sm font-medium text-muted-foreground">商品名</div>
-                        <div className="text-base mt-1">{detailData?.title}</div>
-                    </div>
-                    <div>
-                        <div className="text-sm font-medium text-muted-foreground">価格</div>
-                        <div className="text-base mt-1">¥{Number(detailData?.price).toLocaleString()}</div>
-                    </div>
-                    {detailData?.condition && (
+                    {detailData?.item_details.title && (
                         <div>
-                            <div className="text-sm font-medium text-muted-foreground">商品の状態</div>
-                            <div className="text-base mt-1">{detailData.condition}</div>
+                            <div className="text-sm font-medium text-muted-foreground">商品名</div>
+                            <div className="text-base mt-1">{detailData?.item_details.title}</div>
                         </div>
                     )}
-                    {detailData?.category && (
+                    {detailData?.item_details.price && (
+                        <div>
+                            <div className="text-sm font-medium text-muted-foreground">価格</div>
+                            <div className="text-base mt-1">¥{Number(detailData?.price.calculated_price_yen).toLocaleString()}</div>
+                        </div>
+                    )}
+                    {detailData?.item_details.condition && (
+                        <div>
+                            <div className="text-sm font-medium text-muted-foreground">商品の状態</div>
+                            <div className="text-base mt-1">{detailData?.item_details.condition}</div>
+                        </div>
+                    )}
+                    {detailData?.item_details.category && (
                         <div>
                             <div className="text-sm font-medium text-muted-foreground">カテゴリ</div>
                             <div className="text-base mt-1 whitespace-pre-line">
-                                {detailData.category.join('\n')}
+                                {detailData?.item_details.category.join('\n')}
                             </div>
                         </div>
                     )}
-                    {detailData?.item_id && (
+                    {detailData?.item_details.item_id && (
                         <div>
                             <div className="text-sm font-medium text-muted-foreground">ユニークID</div>
-                            <div className="text-base mt-1">{detailData.item_id}</div>
+                            <div className="text-base mt-1">{detailData.item_details.item_id}</div>
                         </div>
                     )}
                 </div>

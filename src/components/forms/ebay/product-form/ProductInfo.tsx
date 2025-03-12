@@ -1,9 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
-import type { SearchDetailResult, SearchResult } from '@/types/search';
+import type { SearchResult, ItemDetailResponse } from '@/types/yahoo-auction';
 
 interface ProductInfoProps {
     selectedItem: SearchResult;
-    detailData?: SearchDetailResult;
+    detailData: ItemDetailResponse | undefined;
 }
 
 export const ProductInfo = ({ selectedItem, detailData }: ProductInfoProps) => {
@@ -29,48 +29,54 @@ export const ProductInfo = ({ selectedItem, detailData }: ProductInfoProps) => {
 
                 {/* 商品情報 */}
                 <div className="space-y-4">
-                    <div>
-                        <div className="text-sm font-medium text-muted-foreground">商品名（Yahoo!オークション）</div>
-                        <div className="text-base mt-1">{selectedItem?.title}</div>
-                    </div>
-                    <div>
-                        <div className="text-sm font-medium text-muted-foreground">現在価格</div>
-                        <div className="text-base mt-1">¥{Number(selectedItem?.price).toLocaleString()}</div>
-                    </div>
-                    {selectedItem?.buy_now_price && (
+                    {detailData?.item_details.title && (
                         <div>
-                            <div className="text-sm font-medium text-muted-foreground">即決価格</div>
-                            <div className="text-base mt-1">¥{Number(selectedItem.buy_now_price).toLocaleString()}</div>
+                            <div className="text-sm font-medium text-muted-foreground">商品名（Yahoo!オークション）</div>
+                            <div className="text-base mt-1">{detailData?.item_details.title}</div>
                         </div>
                     )}
-                    <div>
-                        <div className="text-sm font-medium text-muted-foreground">送料</div>
-                        <div className="text-base mt-1">{selectedItem?.shipping || '送料情報なし'}</div>
-                    </div>
-                    {selectedItem?.end_time && (
+                    {detailData?.item_details.current_price && (
+                        <div>
+                            <div className="text-sm font-medium text-muted-foreground">現在価格</div>
+                            <div className="text-base mt-1">¥{Number(detailData?.item_details.current_price).toLocaleString()}</div>
+                        </div>
+                    )}
+                    {detailData?.item_details.buy_now_price && (
+                        <div>
+                            <div className="text-sm font-medium text-muted-foreground">即決価格</div>
+                            <div className="text-base mt-1">¥{Number(detailData?.item_details.buy_now_price).toLocaleString()}</div>
+                        </div>
+                    )}
+                    {selectedItem?.shipping && (
+                        <div>
+                            <div className="text-sm font-medium text-muted-foreground">送料</div>
+                            <div className="text-base mt-1">{selectedItem?.shipping || '送料情報なし'}</div>
+                        </div>
+                    )}
+                    {detailData?.item_details.title && selectedItem?.end_time && (
                         <div>
                             <div className="text-sm font-medium text-muted-foreground">終了時間</div>
                             <div className="text-base mt-1">残り：{selectedItem.end_time}</div>
                         </div>
                     )}
-                    {detailData?.condition && (
+                    {detailData?.item_details.condition && (
                         <div>
                             <div className="text-sm font-medium text-muted-foreground">商品の状態</div>
-                            <div className="text-base mt-1">{detailData.condition}</div>
+                            <div className="text-base mt-1">{detailData?.item_details.condition}</div>
                         </div>
                     )}
-                    {detailData?.categories && detailData.categories.length > 0 && (
+                    {detailData?.item_details.categories && detailData.item_details.categories.length > 0 && (
                         <div>
                             <div className="text-sm font-medium text-muted-foreground">カテゴリ</div>
                             <div className="text-base mt-1 whitespace-pre-line">
-                                {detailData.categories.join(' > \n')}
+                                {detailData?.item_details.categories.join('\n')}
                             </div>
                         </div>
                     )}
-                    {detailData?.auction_id && (
+                    {detailData?.item_details.auction_id && (
                         <div>
                             <div className="text-sm font-medium text-muted-foreground">オークションID</div>
-                            <div className="text-base mt-1">{detailData.auction_id}</div>
+                            <div className="text-base mt-1">{detailData?.item_details.auction_id}</div>
                         </div>
                     )}
                 </div>

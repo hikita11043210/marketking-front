@@ -1,31 +1,54 @@
-export type PayPayFreeMarketSearchResult = {
-    thumbnail_url: string;
-    item_id: string;
-    price: number;
+// 商品検索用のパラメータ
+export type SearchParams = {
+    p: string;
+    max?: number;
+    min?: number;
+    auccat?: string;
+    va?: string;
+    price_type?: string;
+    istatus?: string;
+    new?: string;
+    is_postage_mode?: string;
+    dest_pref_code?: string;
+    fixed?: number;
+    abatch?: string;
+    exflg?: string;
+    b?: string;
+    n?: string;
+};
+
+export type SearchResults = {
+    items: SearchResult[];
+    total: number;
 }
 
-export type PayPayFreeMarketSearchResults = {
-    items: PayPayFreeMarketSearchResult[];
-    total: number;
+export type SearchResult = {
+    title: string;
+    price: number;
+    buy_now_price: number | null;
+    image_url: string;
+    url: string;
+    seller: string;
+    end_time: string;
+    bid_count: number;
+    shipping?: string;
 }
 
 export type SearchDetailResult = {
     title: string;
-    description: string;
-    images: string[];
-    price: number;
-    item_id: string;
-    url: string;
+    current_price: string;
+    current_price_in_tax: string;
+    buy_now_price: string;
+    buy_now_price_in_tax: string;
+    categories: string[];
     condition: string;
-    category: string[];
-    delivery_schedule: string;
-    delivery_method: string;
-    create_date: string;
-    update_date: string;
-    status: string;
-    pv_count: number;
-    like_count: number;
-    sold_out?: boolean;
+    start_time: string;
+    end_time: string;
+    auction_id: string;
+    images: {
+        url: string[];
+    };
+    description: string;
 }
 
 // 型定義を修正

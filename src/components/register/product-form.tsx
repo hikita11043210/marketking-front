@@ -6,13 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import type { ShippingPolicy, PaymentPolicy, ReturnPolicy } from '@/types/ebay/policy';
 import type { ItemSpecificsResponse } from '@/types/ebay/itemSpecifics';
-import type { PriceCalculation } from '@/types/price';
+import type { ItemDetailResponse, PayPayFreeMarketSearchResult, CategoryInfo, ConditionOption } from '@/types/yahoo-free-market';
 import { replaceSpecialCharacters } from '@/lib/utils/replace-special-characters';
-import type { PayPayFreeMarketSearchResult, SearchDetailResult } from '@/types/yahoo-free-market';
 
 interface LoadingButtonProps {
     loading: boolean;
@@ -60,9 +59,8 @@ const LoadingButton = ({
 };
 
 interface ProductFormProps {
-    initialData: SearchDetailResult | undefined;
+    detailData: ItemDetailResponse | undefined;
     selectedItem: PayPayFreeMarketSearchResult;
-    translateCondition: string;
     onCancel?: () => void;
     policies: {
         shipping: ShippingPolicy[];
@@ -70,13 +68,6 @@ interface ProductFormProps {
         return: ReturnPolicy[];
     };
     isLoadingPolicies: boolean;
-    price: PriceCalculation;
-}
-
-interface Category {
-    categoryId: string;
-    categoryName: string;
-    path: string;
 }
 
 // フォームのバリデーションスキーマ
@@ -93,7 +84,6 @@ const productFormSchema = z.object({
     condition: z.string().min(1, { message: '商品の状態を選択してください' }),
     conditionDescription: z.string().min(1, { message: '商品の詳細を入力してください' }),
     categoryId: z.string().min(1, { message: 'カテゴリーを選択してください' }),
-    categoryName: z.string().optional(),
     currency: z.string().default('USD'),
     shippingPolicyId: z.string().min(1, { message: '配送ポリシーを選択してください' }),
     paymentPolicyId: z.string().min(1, { message: '支払いポリシーを選択してください' }),
@@ -113,39 +103,66 @@ const productFormSchema = z.object({
 type ProductFormValues = z.infer<typeof productFormSchema>;
 
 export const ProductForm = ({
-    initialData,
+    detailData,
     selectedItem,
-    translateCondition,
     onCancel,
     policies,
     isLoadingPolicies,
-    price
 }: ProductFormProps) => {
     const { toast } = useToast();
-    const [allImages, setAllImages] = useState<string[]>(initialData?.images || []);
+    const [allImages, setAllImages] = useState<string[]>(detailData?.item_details.images || []);
     const [isLoadingCategories, setIsLoadingCategories] = useState(false);
-    const [categories, setCategories] = useState<Category[]>([]);
+    const [categories, setCategories] = useState<CategoryInfo[]>(
+        detailData?.category.map(cat => ({
+            categoryId: cat.categoryId,
+            categoryName: cat.categoryName,
+            path: cat.path
+        })) || []
+    );
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoadingItemSpecifics, setIsLoadingItemSpecifics] = useState(false);
-    const [conditions, setConditions] = useState<{ conditionId: string; conditionDescription: string; }[]>([]);
+    const [conditions, setConditions] = useState<ConditionOption[]>(
+        detailData?.conditions.map(condition => ({
+            conditionId: condition.conditionId,
+            conditionDescription: condition.conditionDescription
+        })) || []
+    );
     const [isSubmitting, setIsSubmitting] = useState(false);
     const form = useForm<ProductFormValues>({
         resolver: zodResolver(productFormSchema),
         defaultValues: {
-            title: replaceSpecialCharacters(initialData?.title || ''),
-            description: initialData?.description || '',
-            price: price.calculated_price_dollar.toString(),
-            final_profit: price.final_profit_yen.toString(),
-            final_profit_dollar: price.final_profit_dollar.toString(),
+            title: replaceSpecialCharacters(detailData?.item_details.title || ''),
+            description: detailData?.item_details.description || '',
+            price: detailData?.price.calculated_price_dollar.toString(),
+            final_profit: detailData?.price.final_profit_yen.toString(),
+            final_profit_dollar: detailData?.price.final_profit_dollar.toString(),
             quantity: "1",
-            condition: '',
-            conditionDescription: translateCondition,
-            categoryId: '',
+            condition: detailData?.selected_condition.toString() || '',
+            conditionDescription: detailData?.condition_description_en.translated_text,
+            categoryId: detailData?.category_id,
             ebayItemId: '',
-            itemSpecifics: [],
-            images: initialData?.images || [],
+            shippingPolicyId: "263632634014",
+            paymentPolicyId: "263467812014",
+            returnPolicyId: "264716224014",
+            itemSpecifics: detailData?.item_specifics
+                ? Object.entries(detailData.item_specifics).map(([key, value]) => ({
+                    name: key,
+                    value: [typeof value === 'string' ? value : '']
+                }))
+                : [{ name: '', value: [''] }],
+
+            images: detailData?.item_details.images || [],
         },
     });
+
+    useEffect(() => {
+        if (detailData?.category_id) {
+            const selectedCategory = categories.find(cat => cat.categoryId === detailData.category_id);
+            if (selectedCategory) {
+                form.setValue('categoryId', selectedCategory.categoryId);
+            }
+        }
+    }, [categories, detailData?.category_id, form]);
 
     const { fields: itemSpecificsFields, append: appendItemSpecific, remove: removeItemSpecific } = useFieldArray({
         control: form.control,
@@ -160,9 +177,8 @@ export const ProductForm = ({
         try {
             const response = await fetch(`/api/ebay/category?q=${encodeURIComponent(searchQuery)}`);
             const data = await response.json();
-
-            if (data.success && Array.isArray(data.categories)) {
-                setCategories(data.categories.map((category: { categoryId: string; categoryName: string }) => ({
+            if (data.success && Array.isArray(data.data)) {
+                setCategories(data.data.map((category: { categoryId: string; categoryName: string }) => ({
                     ...category,
                     path: `${category.categoryName}`
                 })));
@@ -322,18 +338,17 @@ export const ProductForm = ({
             // 既存のCondition取得処理
             const conditionResponse = await fetch(`/api/ebay/condition?categoryId=${categoryId}`);
             const conditionData = await conditionResponse.json();
-            if (conditionData.success && conditionData.data[0]) {
-                setConditions(conditionData.data[0]);
+            if (conditionData.success && conditionData.data) {
+                setConditions(conditionData.data);
                 // 初期値として最初のコンディションをセット
-                if (conditionData.data[0].length > 0) {
-                    form.setValue('condition', conditionData.data[0][0].conditionId);
+                if (conditionData.data.length > 0) {
+                    form.setValue('condition', conditionData.data[0].conditionId);
                 }
             }
 
             // Item Specifics取得処理を追加
             const itemSpecificsResponse = await fetch(`/api/ebay/categoryItemSpecifics?categoryId=${categoryId}&title=${title}&description=${description}`);
             const itemSpecificsData = await itemSpecificsResponse.json();
-            console.log(itemSpecificsData)
             if (itemSpecificsData.success && itemSpecificsData.data) {
                 // 既存のItem Specificsをクリア
                 form.setValue('itemSpecifics', []);
@@ -395,9 +410,9 @@ export const ProductForm = ({
                     },
                 },
                 yahoo_free_market_data: {
-                    yahoo_free_market_id: initialData?.item_id,
-                    yahoo_free_market_item_name: initialData?.title,
-                    yahoo_free_market_item_price: initialData?.price,
+                    yahoo_free_market_id: detailData?.item_details.item_id,
+                    yahoo_free_market_item_name: detailData?.item_details.title,
+                    yahoo_free_market_item_price: detailData?.item_details.price,
                     yahoo_free_market_shipping: '0',
                 },
                 other_data: {
@@ -427,7 +442,7 @@ export const ProductForm = ({
 
             // 成功時のコールバック
             if (onCancel) {
-                // onCancel();
+                onCancel();
             }
 
         } catch (error) {
@@ -687,8 +702,7 @@ export const ProductForm = ({
                                             field.onChange(value);
                                             const selectedCategory = categories.find(cat => cat.categoryId === value);
                                             if (selectedCategory) {
-                                                form.setValue('categoryName', selectedCategory.categoryName);
-                                                handleCategorySelect(initialData?.title ?? '', initialData?.description ?? '', value);
+                                                handleCategorySelect(detailData?.item_details.title ?? '', detailData?.item_details.description ?? '', value);
                                             }
                                         }}
                                     >
@@ -765,9 +779,9 @@ export const ProductForm = ({
                 />
 
                 {/* ポリシー選択 */}
-                <div className="grid grid-cols-[200px,1fr] items-start">
-                    <FormLabel className="text-muted-foreground">ポリシー選択</FormLabel>
-                    <div className="space-y-4">
+                <div className="space-y-4">
+                    <div className="grid grid-cols-[200px,1fr] items-center">
+                        <FormLabel className="text-muted-foreground">ShippingPolicy</FormLabel>
                         <FormField
                             control={form.control}
                             name="shippingPolicyId"
@@ -791,7 +805,10 @@ export const ProductForm = ({
                                 </FormItem>
                             )}
                         />
+                    </div>
 
+                    <div className="grid grid-cols-[200px,1fr] items-center">
+                        <FormLabel className="text-muted-foreground">PaymentPolicy</FormLabel>
                         <FormField
                             control={form.control}
                             name="paymentPolicyId"
@@ -815,7 +832,10 @@ export const ProductForm = ({
                                 </FormItem>
                             )}
                         />
+                    </div>
 
+                    <div className="grid grid-cols-[200px,1fr] items-center">
+                        <FormLabel className="text-muted-foreground">ReturnPolicy</FormLabel>
                         <FormField
                             control={form.control}
                             name="returnPolicyId"

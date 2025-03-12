@@ -8,10 +8,9 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
-import type { SearchDetailResult } from '@/types/search';
+import type { SearchResult, ItemDetailResponse, CategoryInfo, ConditionOption } from '@/types/yahoo-auction';
 import type { ShippingPolicy, PaymentPolicy, ReturnPolicy } from '@/types/ebay/policy';
 import type { ItemSpecificsResponse } from '@/types/ebay/itemSpecifics';
-import type { SearchResult } from '@/types/search';
 import type { PriceCalculation } from '@/types/price';
 import { extractShippingCost } from '@/lib/utils/price';
 import { convertYahooDate } from '@/lib/utils/convert-date';
@@ -70,7 +69,7 @@ const LoadingButton = ({
 };
 
 interface ProductFormProps {
-    initialData?: SearchDetailResult | null;
+    detailData?: ItemDetailResponse | null;
     selectedItem: SearchResult;
     translateCondition: string;
     onCancel?: () => void;
@@ -82,13 +81,6 @@ interface ProductFormProps {
     isLoadingPolicies: boolean;
     price: PriceCalculation;
 }
-
-interface Category {
-    categoryId: string;
-    categoryName: string;
-    path: string;
-}
-
 // フォームのバリデーションスキーマ
 const productFormSchema = z.object({
     title: z.string()
@@ -123,7 +115,7 @@ const productFormSchema = z.object({
 type ProductFormValues = z.infer<typeof productFormSchema>;
 
 export const ProductForm = ({
-    initialData,
+    detailData,
     selectedItem,
     translateCondition,
     onCancel,
@@ -132,28 +124,48 @@ export const ProductForm = ({
     price
 }: ProductFormProps) => {
     const { toast } = useToast();
-    const [allImages, setAllImages] = useState<string[]>(initialData?.images.url || []);
+    const [allImages, setAllImages] = useState<string[]>(detailData?.item_details.images.url || []);
     const [isLoadingCategories, setIsLoadingCategories] = useState(false);
-    const [categories, setCategories] = useState<Category[]>([]);
+    const [categories, setCategories] = useState<CategoryInfo[]>(
+        detailData?.category.map(cat => ({
+            categoryId: cat.categoryId,
+            categoryName: cat.categoryName,
+            path: cat.path
+        })) || []
+    );
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoadingItemSpecifics, setIsLoadingItemSpecifics] = useState(false);
-    const [conditions, setConditions] = useState<{ conditionId: string; conditionDescription: string; }[]>([]);
+    const [conditions, setConditions] = useState<ConditionOption[]>(
+        detailData?.conditions.map(condition => ({
+            conditionId: condition.conditionId,
+            conditionDescription: condition.conditionDescription
+        })) || []
+    );
     const [isSubmitting, setIsSubmitting] = useState(false);
     const form = useForm<ProductFormValues>({
         resolver: zodResolver(productFormSchema),
         defaultValues: {
-            title: replaceSpecialCharacters(initialData?.title || ''),
-            description: initialData?.description || '',
-            price: price.calculated_price_dollar.toString(),
-            final_profit: price.final_profit_yen.toString(),
-            final_profit_dollar: price.final_profit_dollar.toString(),
+            title: replaceSpecialCharacters(detailData?.item_details.title || ''),
+            description: detailData?.item_details.description || '',
+            price: detailData?.price.calculated_price_dollar.toString(),
+            final_profit: detailData?.price.final_profit_yen.toString(),
+            final_profit_dollar: detailData?.price.final_profit_dollar.toString(),
             quantity: "1",
-            condition: '',
-            conditionDescription: translateCondition,
-            categoryId: '',
+            condition: detailData?.selected_condition.toString() || '',
+            conditionDescription: detailData?.condition_description_en.translated_text,
+            categoryId: detailData?.category_id,
             ebayItemId: '',
-            itemSpecifics: [],
-            images: initialData?.images.url || [],
+            shippingPolicyId: "263632634014",
+            paymentPolicyId: "263467812014",
+            returnPolicyId: "264716224014",
+            itemSpecifics: detailData?.item_specifics
+                ? Object.entries(detailData.item_specifics).map(([key, value]) => ({
+                    name: key,
+                    value: [typeof value === 'string' ? value : '']
+                }))
+                : [{ name: '', value: [''] }],
+
+            images: detailData?.item_details.images.url || [],
         },
     });
 
@@ -171,8 +183,8 @@ export const ProductForm = ({
             const response = await fetch(`/api/ebay/category?q=${encodeURIComponent(searchQuery)}`);
             const data = await response.json();
 
-            if (data.success && Array.isArray(data.categories)) {
-                setCategories(data.categories.map((category: { categoryId: string; categoryName: string }) => ({
+            if (data.success && Array.isArray(data.data)) {
+                setCategories(data.data.map((category: { categoryId: string; categoryName: string }) => ({
                     ...category,
                     path: `${category.categoryName}`
                 })));
@@ -333,18 +345,17 @@ export const ProductForm = ({
             // 既存のCondition取得処理
             const conditionResponse = await fetch(`/api/ebay/condition?categoryId=${categoryId}`);
             const conditionData = await conditionResponse.json();
-            if (conditionData.success && conditionData.data[0]) {
-                setConditions(conditionData.data[0]);
+            if (conditionData.success && conditionData.data) {
+                setConditions(conditionData.data);
                 // 初期値として最初のコンディションをセット
-                if (conditionData.data[0].length > 0) {
-                    form.setValue('condition', conditionData.data[0][0].conditionId);
+                if (conditionData.data.length > 0) {
+                    form.setValue('condition', conditionData.data[0].conditionId);
                 }
             }
 
             // Item Specifics取得処理を追加
             const itemSpecificsResponse = await fetch(`/api/ebay/categoryItemSpecifics?categoryId=${categoryId}&title=${title}&description=${description}`);
             const itemSpecificsData = await itemSpecificsResponse.json();
-            console.log(itemSpecificsData)
             if (itemSpecificsData.success && itemSpecificsData.data) {
                 // 既存のItem Specificsをクリア
                 form.setValue('itemSpecifics', []);
@@ -406,12 +417,12 @@ export const ProductForm = ({
                     },
                 },
                 yahoo_auction_data: {
-                    yahoo_auction_id: initialData?.auction_id,
+                    yahoo_auction_id: detailData?.item_details.auction_id,
                     yahoo_auction_url: selectedItem.url,
                     yahoo_auction_item_name: selectedItem.title,
                     yahoo_auction_item_price: selectedItem.buy_now_price || selectedItem.price,
                     yahoo_auction_shipping: extractShippingCost(selectedItem.shipping || '0'),
-                    yahoo_auction_end_time: convertYahooDate(initialData?.end_time),
+                    yahoo_auction_end_time: convertYahooDate(detailData?.item_details.end_time),
                 },
                 other_data: {
                     ebay_shipping_price: '',
@@ -440,7 +451,7 @@ export const ProductForm = ({
 
             // 成功時のコールバック
             if (onCancel) {
-                // onCancel();
+                onCancel();
             }
 
         } catch (error) {
@@ -721,7 +732,7 @@ export const ProductForm = ({
                                             const selectedCategory = categories.find(cat => cat.categoryId === value);
                                             if (selectedCategory) {
                                                 form.setValue('categoryName', selectedCategory.categoryName);
-                                                handleCategorySelect(initialData?.title ?? '', initialData?.description ?? '', value);
+                                                handleCategorySelect(detailData?.item_details.title ?? '', detailData?.item_details.description ?? '', value);
                                             }
                                         }}
                                     >

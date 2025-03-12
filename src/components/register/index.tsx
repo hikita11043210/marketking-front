@@ -4,10 +4,8 @@ import { BaseRegisterModal } from '@/components/shared/modals/BaseRegisterModal'
 import { ProductInfo } from './product-info';
 import { ProductForm } from './product-form';
 import { useToast } from '@/hooks/use-toast';
-import { extractShippingCost } from '@/lib/utils/price';
 import type { ShippingPolicy, PaymentPolicy, ReturnPolicy, EbayPoliciesResponse } from '@/types/ebay/policy';
-import type { PriceCalculation } from '@/types/price';
-import type { PayPayFreeMarketSearchResult, SearchDetailResult } from '@/types/yahoo-free-market';
+import type { PayPayFreeMarketSearchResult, ItemDetailResponse } from '@/types/yahoo-free-market';
 
 interface RegisterModalProps {
     isOpen: boolean;
@@ -17,11 +15,8 @@ interface RegisterModalProps {
 
 export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalProps) => {
     const { toast } = useToast();
-    const [detailData, setDetailData] = useState<SearchDetailResult>();
-    const [selectedImages, setSelectedImages] = useState<string[]>([]);
-    const [translate_condition, setTranslateCondition] = useState<string>('');
+    const [detailData, setDetailData] = useState<ItemDetailResponse>();
     const [isLoadingPolicies, setIsLoadingPolicies] = useState(true);
-    const [price, setPrice] = useState<PriceCalculation>();
     const [policies, setPolicies] = useState<{
         shipping: ShippingPolicy[];
         payment: PaymentPolicy[];
@@ -65,39 +60,10 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
             if (selectedItem?.item_id) {
                 try {
                     setDetailData(undefined);
-                    setSelectedImages([]);
-                    setTranslateCondition('');
-                    setPrice(undefined);
                     const response = await fetch(`/api/yahoo-free-market/detail?item_id=${encodeURIComponent(selectedItem.item_id)}`);
                     const data = await response.json();
                     if (data.success) {
-                        setDetailData(data.data.data);
-                        setSelectedImages(data.data.data.images);
-
-                        // 商品状態翻訳
-                        if (data.data.data.condition) {
-                            const response_condition_translate = await fetch(`/api/translate?text=${encodeURIComponent(data.data.data.condition)}`);
-                            const data_condition_translate = await response_condition_translate.json();
-                            if (data_condition_translate.success) {
-                                setTranslateCondition(data_condition_translate.data.translated_text);
-                            } else {
-                                setTranslateCondition(data.data.data.condition || '');
-                            }
-                        }
-
-                        // 価格計算用の配列を作成
-                        const priceArray = [
-                            selectedItem.price || '0',
-                        ];
-
-                        // 価格取得
-                        if (priceArray.length > 0) {
-                            const response_price = await fetch(`/api/calculator/price-init?${priceArray.map(price => `money[]=${encodeURIComponent(price)}`).join('&')}`);
-                            const data_price = await response_price.json();
-                            if (data_price.success) {
-                                setPrice(data_price.data);
-                            }
-                        }
+                        setDetailData(data.data);
                     }
                 } catch (error) {
                     console.error('API呼び出しエラー:', error);
@@ -122,15 +88,13 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
                 <div className="space-y-6">
                     <Card>
                         <CardContent className="pt-6">
-                            {selectedImages.length > 0 && translate_condition && price ? (
+                            {detailData ? (
                                 <ProductForm
-                                    initialData={detailData}
+                                    detailData={detailData}
                                     selectedItem={selectedItem}
-                                    translateCondition={translate_condition}
                                     onCancel={onClose}
                                     policies={policies}
                                     isLoadingPolicies={isLoadingPolicies}
-                                    price={price}
                                 />
                             ) : (
                                 <div className="flex justify-center items-center h-32 text-muted-foreground">

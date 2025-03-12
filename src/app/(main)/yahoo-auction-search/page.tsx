@@ -12,7 +12,7 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import type { SearchResults, SearchResult } from "@/types/search";
+import type { SearchResults, SearchResult } from "@/types/yahoo-auction";
 
 type ItemCondition = '1' | '3' | '4';
 type Brand = {
@@ -75,7 +75,6 @@ export default function SearchPage() {
                 ...(isFreeShipping && { is_free_shipping: '1' }),
                 ...(sortOrder && { sort_order: sortOrder }),
             };
-            console.log(optionalParams);
             const searchParams = new URLSearchParams({
                 ...baseParams,
                 ...optionalParams,

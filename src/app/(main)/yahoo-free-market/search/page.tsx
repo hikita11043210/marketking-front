@@ -2,13 +2,12 @@
 
 import { useState, useRef } from 'react';
 import { KeyboardEvent, ChangeEvent } from 'react';
-import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
+import { Card, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { RegisterModal } from "@/components/register";
-import type { SearchResult } from '@/types/search';
-import type { PayPayFreeMarketSearchResult, PayPayFreeMarketSearchResults } from '@/types/yahoo-free-market';
+import type { PayPayFreeMarketSearchResult } from '@/types/yahoo-free-market';
 
 export default function SearchPage() {
     const containerRef = useRef<HTMLDivElement>(null);

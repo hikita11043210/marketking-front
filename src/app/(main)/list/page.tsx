@@ -250,7 +250,6 @@ export default function ListPage() {
             });
             const response = await fetch(`/api/ebay/list?${params.toString()}`);
             const data: ApiResponse = await response.json();
-
             if (!response.ok) {
                 throw new Error(data.error?.message || 'データの取得に失敗しました');
             }
