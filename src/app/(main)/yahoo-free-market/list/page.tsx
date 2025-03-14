@@ -31,6 +31,7 @@ interface ListItem {
     yahoo_free_market_shipping: string;
     purchase_price: number;
     yahoo_free_market_status: string;
+    update_datetime: string;
 }
 
 interface PaginationInfo {
@@ -418,19 +419,20 @@ export default function ListPage() {
                                 <TableHead className="w-24 whitespace-nowrap text-center">仕入状態</TableHead>
                                 <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
                                 <TableHead className="w-40 whitespace-nowrap">仕入価格</TableHead>
+                                <TableHead className="w-40 whitespace-nowrap">更新日時</TableHead>
                                 <TableHead className="w-20 whitespace-nowrap text-center">操作</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={9} className="text-center">
+                                    <TableCell colSpan={10} className="text-center">
                                         読み込み中...
                                     </TableCell>
                                 </TableRow>
                             ) : items.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={9} className="text-center">
+                                    <TableCell colSpan={10} className="text-center">
                                         データがありません
                                     </TableCell>
                                 </TableRow>
@@ -459,6 +461,9 @@ export default function ListPage() {
                                             </a>
                                         </TableCell>
                                         <TableCell>¥{Number(item.purchase_price).toLocaleString()}</TableCell>
+                                        <TableCell className="whitespace-nowrap">
+                                            {item.update_datetime ? new Date(item.update_datetime).toLocaleString('ja-JP') : '-'}
+                                        </TableCell>
                                         <TableCell>
                                             <div className="flex gap-2">
                                                 {item.status === '出品中' && (

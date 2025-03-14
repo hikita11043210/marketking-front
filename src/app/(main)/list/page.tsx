@@ -33,6 +33,7 @@ interface ListItem {
     purchase_price: string;
     remaining_time: string;
     yahoo_auction_status: string;
+    update_datetime: string;
 }
 
 interface PaginationInfo {
@@ -328,6 +329,7 @@ export default function ListPage() {
                                 <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
                                 <TableHead className="w-40 whitespace-nowrap">仕入価格</TableHead>
                                 <TableHead className="w-36 whitespace-nowrap">残り</TableHead>
+                                <TableHead className="w-40 whitespace-nowrap">更新日時</TableHead>
                                 <TableHead className="w-20 whitespace-nowrap text-center">操作</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -371,6 +373,9 @@ export default function ListPage() {
                                         <TableCell>¥{Number(item.purchase_price).toLocaleString()}</TableCell>
                                         <TableCell className="whitespace-nowrap">
                                             <RemainingTime endDate={new Date(item.yahoo_auction_end_time)} />
+                                        </TableCell>
+                                        <TableCell className="whitespace-nowrap">
+                                            {item.update_datetime ? new Date(item.update_datetime).toLocaleString('ja-JP') : '-'}
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex gap-2">
