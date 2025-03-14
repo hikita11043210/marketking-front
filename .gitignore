@@ -10,7 +10,6 @@ next-env.d.ts
 
 # IDE
 .idea/
-.vscode/
 *.swp
 *.swo
 
@@ -20,3 +19,4 @@ Thumbs.db
 
 # Environment variables
 .env*
+certificates

@@ -1,51 +1,57 @@
 import { NextResponse } from 'next/server';
-import { settingApi } from '@/lib/api/endpoints/setting';
-import { validateSettingParams } from '@/lib/validations/setting';
-import type { Setting } from '@/lib/types/setting';
-import type { ErrorResponse } from '@/lib/types/api';
+import type { Setting } from '@/types/settings';
+import { serverFetch } from '@/app/api/server';
 
 export async function GET() {
     try {
-        const response = await settingApi.get();
-        return NextResponse.json(response);
+        const response = await serverFetch('/api/v1/settings/', {
+            cache: 'no-store',
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            return NextResponse.json({
+                error: 'settings_fetch_failed',
+                message: data.message || '設定の取得に失敗しました'
+            }, { status: response.status });
+        }
+        return NextResponse.json(data);
     } catch (error) {
-        console.error('Error:', error);
-        return NextResponse.json<ErrorResponse>(
-            {
-                success: false,
-                message: error instanceof Error ? error.message : '設定の取得に失敗しました'
-            },
-            { status: 500 }
-        );
+        return NextResponse.json({
+            error: 'internal_server_error',
+            message: 'サーバーエラーが発生しました'
+        }, { status: 500 });
     }
 }
 
 export async function PUT(request: Request) {
     try {
-        const body = await request.json() as Setting;
+        const settings: Setting = await request.json();
+        
+        const response = await serverFetch('/api/v1/settings/', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(settings),
+        });
 
-        // バリデーション
-        const validation = validateSettingParams(body);
-        if (!validation.isValid) {
-            return NextResponse.json<ErrorResponse>(
-                {
-                    success: false,
-                    message: validation.errors.join(', ')
-                },
-                { status: 400 }
-            );
+        const data = await response.json();
+
+        if (!response.ok) {
+            return NextResponse.json({
+                error: 'settings_update_failed',
+                message: data.message || '設定の更新に失敗しました'
+            }, { status: response.status });
         }
 
-        const response = await settingApi.update(body);
-        return NextResponse.json(response);
+        return NextResponse.json(data);
     } catch (error) {
-        console.error('Error:', error);
-        return NextResponse.json<ErrorResponse>(
-            {
-                success: false,
-                message: error instanceof Error ? error.message : '設定の更新に失敗しました'
-            },
-            { status: 500 }
-        );
+        console.error('Settings update error:', error);
+        return NextResponse.json({
+            error: 'internal_server_error',
+            message: 'サーバーエラーが発生しました'
+        }, { status: 500 });
     }
-} 
+}
