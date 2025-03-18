@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { RemainingTime } from "@/components/layout/RemainingTime";
 import { showToast } from "@/lib/toast";
 
 interface ListItem {
@@ -416,12 +415,12 @@ function YahooFreeMarketListContent() {
                             <TableRow>
                                 <TableHead className="w-24 whitespace-nowrap text-center">状態</TableHead>
                                 <TableHead className="w-40 whitespace-nowrap">SKU</TableHead>
-                                <TableHead className="w-28 whitespace-nowrap">販売価格</TableHead>
-                                <TableHead className="w-24 whitespace-nowrap">送料</TableHead>
-                                <TableHead className="w-28 whitespace-nowrap">最終利益</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">販売価格</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">仕入価格</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">送料</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">最終利益</TableHead>
                                 <TableHead className="w-24 whitespace-nowrap text-center">仕入状態</TableHead>
                                 <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
-                                <TableHead className="w-40 whitespace-nowrap">仕入価格</TableHead>
                                 <TableHead className="w-40 whitespace-nowrap">更新日時</TableHead>
                                 <TableHead className="w-20 whitespace-nowrap text-center">操作</TableHead>
                             </TableRow>
@@ -449,6 +448,7 @@ function YahooFreeMarketListContent() {
                                             </div>
                                         </TableCell>
                                         <TableCell>¥{Number(item.ebay_price).toLocaleString()}</TableCell>
+                                        <TableCell>¥{Number(item.purchase_price).toLocaleString()}</TableCell>
                                         <TableCell>¥{Number(item.ebay_shipping_price).toLocaleString()}</TableCell>
                                         <TableCell>¥{Number(item.final_profit).toLocaleString()}</TableCell>
                                         <TableCell className="text-center">{getStatusBadge(item.yahoo_free_market_status)}</TableCell>
@@ -463,7 +463,6 @@ function YahooFreeMarketListContent() {
                                                 {item.yahoo_free_market_item_name}
                                             </a>
                                         </TableCell>
-                                        <TableCell>¥{Number(item.purchase_price).toLocaleString()}</TableCell>
                                         <TableCell className="whitespace-nowrap">
                                             {item.update_datetime ? new Date(item.update_datetime).toLocaleString('ja-JP') : '-'}
                                         </TableCell>
