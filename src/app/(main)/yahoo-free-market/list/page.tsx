@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
     Table,
@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { RemainingTime } from "@/components/layout/RemainingTime";
+import { showToast } from "@/lib/toast";
 
 interface ListItem {
     id: number;
@@ -96,7 +96,15 @@ const LoadingButton = ({
     );
 };
 
-export default function ListPage() {
+export default function YahooFreeMarketListPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <YahooFreeMarketListContent />
+        </Suspense>
+    );
+}
+
+function YahooFreeMarketListContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [items, setItems] = useState<ListItem[]>([]);
@@ -267,44 +275,38 @@ export default function ListPage() {
         );
     };
 
-    const fetchItems = async () => {
+    const fetchItems = useCallback(async () => {
         setLoading(true);
-        setError(null);
         try {
-            const params = new URLSearchParams();
-            if (searchTerm) params.set('search', searchTerm);
-            if (searchSku) params.set('sku', searchSku);
-            if (searchStatus) params.set('status', searchStatus);
-            if (searchYahooStatus) params.set('yahoo_status', searchYahooStatus);
-            params.set('page', pagination.currentPage.toString());
-            params.set('limit', '100');
-
+            const params = new URLSearchParams(searchParams.toString());
             const response = await fetch(`/api/yahoo-free-market/list?${params.toString()}`);
-            const data: ApiResponse = await response.json();
+            const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error?.message || 'データの取得に失敗しました');
+                throw new Error(data.message || 'Failed to fetch items');
             }
-            setItems(data.items || []);
+
+            setItems(data.items);
             setPagination({
                 currentPage: data.currentPage,
                 totalPages: data.totalPages,
                 totalItems: data.totalItems,
-                hasNext: data.hasNext,
-                hasPrevious: data.hasPrevious,
+                hasPrevious: data.currentPage > 1,
+                hasNext: data.currentPage < data.totalPages
             });
         } catch (error) {
-            console.error('Failed to fetch items:', error);
-            setError(error instanceof Error ? error.message : 'データの取得に失敗しました');
-            setItems([]);
+            console.error('Error fetching items:', error);
+            showToast.error({
+                description: error instanceof Error ? error.message : '商品の取得に失敗しました'
+            });
         } finally {
             setLoading(false);
         }
-    };
+    }, [searchParams]);
 
     useEffect(() => {
         fetchItems();
-    }, [searchTerm, searchSku, searchStatus, searchYahooStatus, pagination.currentPage]);
+    }, [fetchItems]);
 
     return (
         <div>
@@ -413,12 +415,12 @@ export default function ListPage() {
                             <TableRow>
                                 <TableHead className="w-24 whitespace-nowrap text-center">状態</TableHead>
                                 <TableHead className="w-40 whitespace-nowrap">SKU</TableHead>
-                                <TableHead className="w-28 whitespace-nowrap">販売価格</TableHead>
-                                <TableHead className="w-24 whitespace-nowrap">送料</TableHead>
-                                <TableHead className="w-28 whitespace-nowrap">最終利益</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">販売価格</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">仕入価格</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">送料</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">最終利益</TableHead>
                                 <TableHead className="w-24 whitespace-nowrap text-center">仕入状態</TableHead>
                                 <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
-                                <TableHead className="w-40 whitespace-nowrap">仕入価格</TableHead>
                                 <TableHead className="w-40 whitespace-nowrap">更新日時</TableHead>
                                 <TableHead className="w-20 whitespace-nowrap text-center">操作</TableHead>
                             </TableRow>
@@ -446,6 +448,7 @@ export default function ListPage() {
                                             </div>
                                         </TableCell>
                                         <TableCell>¥{Number(item.ebay_price).toLocaleString()}</TableCell>
+                                        <TableCell>¥{Number(item.purchase_price).toLocaleString()}</TableCell>
                                         <TableCell>¥{Number(item.ebay_shipping_price).toLocaleString()}</TableCell>
                                         <TableCell>¥{Number(item.final_profit).toLocaleString()}</TableCell>
                                         <TableCell className="text-center">{getStatusBadge(item.yahoo_free_market_status)}</TableCell>
@@ -460,7 +463,6 @@ export default function ListPage() {
                                                 {item.yahoo_free_market_item_name}
                                             </a>
                                         </TableCell>
-                                        <TableCell>¥{Number(item.purchase_price).toLocaleString()}</TableCell>
                                         <TableCell className="whitespace-nowrap">
                                             {item.update_datetime ? new Date(item.update_datetime).toLocaleString('ja-JP') : '-'}
                                         </TableCell>
@@ -517,7 +519,7 @@ export default function ListPage() {
                                 size="sm"
                                 disabled={!pagination.hasPrevious}
                                 onClick={() => {
-                                    const params = new URLSearchParams(searchParams);
+                                    const params = new URLSearchParams(searchParams.toString());
                                     params.set('page', (pagination.currentPage - 1).toString());
                                     router.push(`/yahoo-free-market/list?${params.toString()}`);
                                 }}
@@ -529,7 +531,7 @@ export default function ListPage() {
                                 size="sm"
                                 disabled={!pagination.hasNext}
                                 onClick={() => {
-                                    const params = new URLSearchParams(searchParams);
+                                    const params = new URLSearchParams(searchParams.toString());
                                     params.set('page', (pagination.currentPage + 1).toString());
                                     router.push(`/yahoo-free-market/list?${params.toString()}`);
                                 }}

@@ -1,12 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { serverFetch } from '@/app/api/server';
 
-export async function GET(request: Request) {
+export const dynamic = 'force-dynamic';
+
+export async function GET(request: NextRequest) {
     try {
-        const url = new URL(request.url);
-        const search = url.searchParams.get('search') || '';
-        const page = url.searchParams.get('page') || '1';
-        const limit = url.searchParams.get('limit') || '10';
+        const searchParams = request.nextUrl.searchParams;
+        const search = searchParams.get('search') || '';
+        const page = searchParams.get('page') || '1';
+        const limit = searchParams.get('limit') || '10';
 
         const response = await serverFetch(`/api/v1/list?search=${search}&page=${page}&limit=${limit}`, {
             cache: 'no-store',

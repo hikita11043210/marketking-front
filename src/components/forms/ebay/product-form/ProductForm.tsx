@@ -71,7 +71,6 @@ const LoadingButton = ({
 interface ProductFormProps {
     detailData?: ItemDetailResponse | null;
     selectedItem: SearchResult;
-    translateCondition: string;
     onCancel?: () => void;
     policies: {
         shipping: ShippingPolicy[];
@@ -79,7 +78,6 @@ interface ProductFormProps {
         return: ReturnPolicy[];
     };
     isLoadingPolicies: boolean;
-    price: PriceCalculation;
 }
 // フォームのバリデーションスキーマ
 const productFormSchema = z.object({
@@ -117,11 +115,9 @@ type ProductFormValues = z.infer<typeof productFormSchema>;
 export const ProductForm = ({
     detailData,
     selectedItem,
-    translateCondition,
     onCancel,
     policies,
     isLoadingPolicies,
-    price
 }: ProductFormProps) => {
     const { toast } = useToast();
     const [allImages, setAllImages] = useState<string[]>(detailData?.item_details.images.url || []);

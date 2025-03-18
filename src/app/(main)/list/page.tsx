@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
     Table,
@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { RemainingTime } from "@/components/layout/RemainingTime";
+import { showToast } from "@/lib/toast";
 
 interface ListItem {
     id: number;
@@ -40,6 +41,8 @@ interface PaginationInfo {
     currentPage: number;
     totalPages: number;
     totalItems: number;
+    hasPrevious: boolean;
+    hasNext: boolean;
 }
 
 interface ApiResponse {
@@ -95,6 +98,14 @@ const LoadingButton = ({
 };
 
 export default function ListPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ListPageContent />
+        </Suspense>
+    );
+}
+
+function ListPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [items, setItems] = useState<ListItem[]>([]);
@@ -105,12 +116,14 @@ export default function ListPage() {
         currentPage: Number(searchParams.get('page')) || 1,
         totalPages: 1,
         totalItems: 0,
+        hasPrevious: false,
+        hasNext: false,
     });
     const [actionLoading, setActionLoading] = useState<string>('');
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        const params = new URLSearchParams(searchParams);
+        const params = new URLSearchParams(searchParams.toString());
         params.set('search', searchTerm);
         params.set('page', '1');
         router.push(`/list?${params.toString()}`);
@@ -240,38 +253,38 @@ export default function ListPage() {
         );
     };
 
-    const fetchItems = async () => {
+    const fetchItems = useCallback(async () => {
         setLoading(true);
-        setError(null);
         try {
-            const params = new URLSearchParams({
-                search: searchTerm,
-                page: pagination.currentPage.toString(),
-                limit: '100',
-            });
+            const params = new URLSearchParams(searchParams.toString());
             const response = await fetch(`/api/ebay/list?${params.toString()}`);
-            const data: ApiResponse = await response.json();
+            const data = await response.json();
+
             if (!response.ok) {
-                throw new Error(data.error?.message || 'データの取得に失敗しました');
+                throw new Error(data.message || 'Failed to fetch items');
             }
-            setItems(data.items || []);
+
+            setItems(data.items);
             setPagination({
                 currentPage: data.currentPage,
                 totalPages: data.totalPages,
                 totalItems: data.totalItems,
+                hasPrevious: data.currentPage > 1,
+                hasNext: data.currentPage < data.totalPages
             });
         } catch (error) {
-            console.error('Failed to fetch items:', error);
-            setError(error instanceof Error ? error.message : 'データの取得に失敗しました');
-            setItems([]);
+            console.error('Error fetching items:', error);
+            showToast.error({
+                description: error instanceof Error ? error.message : '商品の取得に失敗しました'
+            });
         } finally {
             setLoading(false);
         }
-    };
+    }, [searchParams]);
 
     useEffect(() => {
         fetchItems();
-    }, [searchTerm, pagination.currentPage]);
+    }, [fetchItems]);
 
     return (
         <div>
@@ -322,12 +335,12 @@ export default function ListPage() {
                             <TableRow>
                                 <TableHead className="w-24 whitespace-nowrap text-center">状態</TableHead>
                                 <TableHead className="w-40 whitespace-nowrap">SKU</TableHead>
-                                <TableHead className="w-28 whitespace-nowrap">販売価格</TableHead>
-                                <TableHead className="w-24 whitespace-nowrap">送料</TableHead>
-                                <TableHead className="w-28 whitespace-nowrap">最終利益</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">販売価格</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">仕入価格</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">送料</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">最終利益</TableHead>
                                 <TableHead className="w-24 whitespace-nowrap text-center">仕入状態</TableHead>
                                 <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
-                                <TableHead className="w-40 whitespace-nowrap">仕入価格</TableHead>
                                 <TableHead className="w-36 whitespace-nowrap">残り</TableHead>
                                 <TableHead className="w-40 whitespace-nowrap">更新日時</TableHead>
                                 <TableHead className="w-20 whitespace-nowrap text-center">操作</TableHead>
@@ -356,6 +369,7 @@ export default function ListPage() {
                                             </div>
                                         </TableCell>
                                         <TableCell>¥{Number(item.ebay_price).toLocaleString()}</TableCell>
+                                        <TableCell>¥{Number(item.purchase_price).toLocaleString()}</TableCell>
                                         <TableCell>¥{Number(item.ebay_shipping_price).toLocaleString()}</TableCell>
                                         <TableCell>¥{Number(item.final_profit).toLocaleString()}</TableCell>
                                         <TableCell className="text-center">{getStatusBadge(item.yahoo_auction_status)}</TableCell>
@@ -370,7 +384,6 @@ export default function ListPage() {
                                                 {item.yahoo_auction_item_name}
                                             </a>
                                         </TableCell>
-                                        <TableCell>¥{Number(item.purchase_price).toLocaleString()}</TableCell>
                                         <TableCell className="whitespace-nowrap">
                                             <RemainingTime endDate={new Date(item.yahoo_auction_end_time)} />
                                         </TableCell>
@@ -430,7 +443,7 @@ export default function ListPage() {
                                 size="sm"
                                 disabled={pagination.currentPage === 1}
                                 onClick={() => {
-                                    const params = new URLSearchParams(searchParams);
+                                    const params = new URLSearchParams(searchParams.toString());
                                     params.set('page', (pagination.currentPage - 1).toString());
                                     router.push(`/list?${params.toString()}`);
                                 }}
@@ -442,7 +455,7 @@ export default function ListPage() {
                                 size="sm"
                                 disabled={pagination.currentPage === pagination.totalPages}
                                 onClick={() => {
-                                    const params = new URLSearchParams(searchParams);
+                                    const params = new URLSearchParams(searchParams.toString());
                                     params.set('page', (pagination.currentPage + 1).toString());
                                     router.push(`/list?${params.toString()}`);
                                 }}

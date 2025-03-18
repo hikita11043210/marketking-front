@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { getShippingCalculatorData, calculateShipping } from '@/lib/api/endpoint/shipping-calculator';
 import type { ShippingResult, Service, Country } from '@/types/shipping-calculator';
 import { validateShippingCalculatorParams } from '@/validations/shipping-calculator';
 import { showToast } from '@/lib/toast';
@@ -44,12 +43,13 @@ export function ShippingCalculatorForm({ onCalculate }: ShippingCalculatorFormPr
 
     const fetchInitialData = async () => {
         try {
-            const response = await getShippingCalculatorData();
-            if (response.success && response.data) {
-                setServices(response.data.services);
-                setCountries(response.data.countries);
+            const response = await fetch('/api/shipping-calculator/calculate');
+            const data = await response.json();
+            if (data.success && data.data) {
+                setServices(data.data.services);
+                setCountries(data.data.countries);
             } else {
-                setError(response.message || '初期データの取得に失敗しました');
+                setError(data.message || '初期データの取得に失敗しました');
             }
         } catch (err) {
             setError('初期データの取得に失敗しました');
@@ -80,7 +80,7 @@ export function ShippingCalculatorForm({ onCalculate }: ShippingCalculatorFormPr
             weight: parseFloat(dimensions.weight) || 0
         };
 
-        const validation = validateShippingCalculator(params);
+        const validation = validateShippingCalculatorParams(params);
         if (!validation.isValid) {
             setLoading(false);
             validation.errors.forEach((error: string) => {
@@ -90,13 +90,20 @@ export function ShippingCalculatorForm({ onCalculate }: ShippingCalculatorFormPr
         }
 
         try {
-            const response = await calculateShipping(params);
-            if (response.success && response.data) {
-                onCalculate(response.data);
+            const response = await fetch('/api/shipping-calculator/calculate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(params),
+            });
+            const data = await response.json();
+            if (data.success && data.data) {
+                onCalculate(data.data);
                 showToast.success({ description: "送料の計算が完了しました" });
             } else {
-                setError(response.message || '送料の計算に失敗しました');
-                showToast.error({ description: response.message || '送料の計算に失敗しました' });
+                setError(data.message || '送料の計算に失敗しました');
+                showToast.error({ description: data.message || '送料の計算に失敗しました' });
             }
         } catch (err) {
             setError('送料の計算中にエラーが発生しました');

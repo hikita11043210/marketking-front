@@ -12,7 +12,8 @@ import type { ShippingPolicy, PaymentPolicy, ReturnPolicy } from '@/types/ebay/p
 import type { ItemSpecificsResponse } from '@/types/ebay/itemSpecifics';
 import type { ItemDetailResponse, PayPayFreeMarketSearchResult, CategoryInfo, ConditionOption } from '@/types/yahoo-free-market';
 import { replaceSpecialCharacters } from '@/lib/utils/replace-special-characters';
-
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 interface LoadingButtonProps {
     loading: boolean;
     loadingText: string;
@@ -542,6 +543,24 @@ export const ProductForm = ({
                         <FormItem>
                             <div className="flex items-center justify-between">
                                 <FormLabel className="text-muted-foreground">タイトル</FormLabel>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                                        </TooltipTrigger>
+                                        <TooltipContent className="w-80">
+                                            <div className="space-y-2 text-sm">
+                                                <p><span className="font-bold">Almost Unused:</span> ほぼ未使用品</p>
+                                                <p><span className="font-bold">MINT:</span> 使用感ほぼ無し　新品に近い備品</p>
+                                                <p><span className="font-bold">Near MINT:</span> 使用感少しあり  傷ほぼ無い備品</p>
+                                                <p><span className="font-bold">EXC+++++:</span> 小さい傷あり    状態は備品レベル</p>
+                                                <p><span className="font-bold">EXC+～++++:</span> 傷が目立つ</p>
+                                                <p><span className="font-bold">AS-IS:</span> 難あり（カビくもりあり、一部動作不良等）</p>
+                                                <p><span className="font-bold">For Parts:</span> ジャンク・故障品・不良品</p>
+                                            </div>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm text-muted-foreground">
                                         {field.value.length} / 80文字
