@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
     Table,
@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { RemainingTime } from "@/components/layout/RemainingTime";
+import { showToast } from "@/lib/toast";
 
 interface ListItem {
     id: number;
@@ -96,7 +97,15 @@ const LoadingButton = ({
     );
 };
 
-export default function ListPage() {
+export default function YahooFreeMarketListPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <YahooFreeMarketListContent />
+        </Suspense>
+    );
+}
+
+function YahooFreeMarketListContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [items, setItems] = useState<ListItem[]>([]);
@@ -267,44 +276,38 @@ export default function ListPage() {
         );
     };
 
-    const fetchItems = async () => {
+    const fetchItems = useCallback(async () => {
         setLoading(true);
-        setError(null);
         try {
-            const params = new URLSearchParams();
-            if (searchTerm) params.set('search', searchTerm);
-            if (searchSku) params.set('sku', searchSku);
-            if (searchStatus) params.set('status', searchStatus);
-            if (searchYahooStatus) params.set('yahoo_status', searchYahooStatus);
-            params.set('page', pagination.currentPage.toString());
-            params.set('limit', '100');
-
+            const params = new URLSearchParams(searchParams.toString());
             const response = await fetch(`/api/yahoo-free-market/list?${params.toString()}`);
-            const data: ApiResponse = await response.json();
+            const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error?.message || 'データの取得に失敗しました');
+                throw new Error(data.message || 'Failed to fetch items');
             }
-            setItems(data.items || []);
+
+            setItems(data.items);
             setPagination({
                 currentPage: data.currentPage,
                 totalPages: data.totalPages,
                 totalItems: data.totalItems,
-                hasNext: data.hasNext,
-                hasPrevious: data.hasPrevious,
+                hasPrevious: data.currentPage > 1,
+                hasNext: data.currentPage < data.totalPages
             });
         } catch (error) {
-            console.error('Failed to fetch items:', error);
-            setError(error instanceof Error ? error.message : 'データの取得に失敗しました');
-            setItems([]);
+            console.error('Error fetching items:', error);
+            showToast.error({
+                description: error instanceof Error ? error.message : '商品の取得に失敗しました'
+            });
         } finally {
             setLoading(false);
         }
-    };
+    }, [searchParams]);
 
     useEffect(() => {
         fetchItems();
-    }, [searchTerm, searchSku, searchStatus, searchYahooStatus, pagination.currentPage]);
+    }, [fetchItems]);
 
     return (
         <div>
@@ -517,7 +520,7 @@ export default function ListPage() {
                                 size="sm"
                                 disabled={!pagination.hasPrevious}
                                 onClick={() => {
-                                    const params = new URLSearchParams(searchParams);
+                                    const params = new URLSearchParams(searchParams.toString());
                                     params.set('page', (pagination.currentPage - 1).toString());
                                     router.push(`/yahoo-free-market/list?${params.toString()}`);
                                 }}
@@ -529,7 +532,7 @@ export default function ListPage() {
                                 size="sm"
                                 disabled={!pagination.hasNext}
                                 onClick={() => {
-                                    const params = new URLSearchParams(searchParams);
+                                    const params = new URLSearchParams(searchParams.toString());
                                     params.set('page', (pagination.currentPage + 1).toString());
                                     router.push(`/yahoo-free-market/list?${params.toString()}`);
                                 }}
