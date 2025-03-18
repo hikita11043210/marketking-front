@@ -1,13 +1,5 @@
 import { NextResponse } from 'next/server';
 import { serverFetch } from '@/app/api/server';
-import { cookies } from 'next/headers';
-
-export async function getAuthHeader() {
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get('accessToken')?.value;
-    const refreshToken = cookieStore.get('refreshToken')?.value;
-    return accessToken ? `Bearer ${accessToken}` : refreshToken ? `Bearer ${refreshToken}` : '';
-}
 
 export async function POST(request: Request) {
     try {
@@ -16,7 +8,6 @@ export async function POST(request: Request) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': await getAuthHeader(),
             },
         });
 
