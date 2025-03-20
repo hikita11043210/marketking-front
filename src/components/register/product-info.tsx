@@ -38,7 +38,7 @@ export const ProductInfo = ({ selectedItem, detailData }: ProductInfoProps) => {
                     {detailData?.item_details.price && (
                         <div>
                             <div className="text-sm font-medium text-muted-foreground">価格</div>
-                            <div className="text-base mt-1">¥{Number(detailData?.price.calculated_price_yen).toLocaleString()}</div>
+                            <div className="text-base mt-1">¥{Number(detailData?.price.original_price).toLocaleString()}</div>
                         </div>
                     )}
                     {detailData?.item_details.condition && (
