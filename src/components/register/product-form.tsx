@@ -76,6 +76,7 @@ const productFormSchema = z.object({
     title: z.string()
         .min(1, { message: 'タイトルを入力してください' })
         .max(80, { message: 'タイトルは80文字以内で入力してください' }),
+    titleCondition: z.string().optional(),
     description: z.string()
         .max(1152, { message: '説明は1152文字以内で入力してください' }),
     price: z.string().min(1, { message: '価格を入力してください' }),
@@ -133,6 +134,7 @@ export const ProductForm = ({
         resolver: zodResolver(productFormSchema),
         defaultValues: {
             title: replaceSpecialCharacters(detailData?.item_details.title || ''),
+            titleCondition: 'MINT',
             description: detailData?.item_details.description || '',
             price: detailData?.price.calculated_price_dollar.toString(),
             final_profit: detailData?.price.final_profit_yen.toString(),
@@ -390,10 +392,15 @@ export const ProductForm = ({
     const handleSubmit = async (values: ProductFormValues) => {
         try {
             setIsSubmitting(true);
+            // タイトルの先頭にコンディションを追加
+            const finalTitle = values.titleCondition && values.titleCondition !== "none"
+                ? `"${values.titleCondition}" ${values.title}`
+                : values.title;
+
             const productData = {
                 product_data: {
                     images: values.images,
-                    title: values.title,
+                    title: finalTitle,
                     description: values.description,
                     price: values.price,
                     quantity: parseInt(values.quantity),
@@ -536,6 +543,24 @@ export const ProductForm = ({
                 )}
 
                 {/* 基本情報 */}
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent className="w-80">
+                            <div className="space-y-2 text-sm">
+                                <p><span className="font-bold">Almost Unused:</span> ほぼ未使用品</p>
+                                <p><span className="font-bold">MINT:</span> 使用感ほぼ無し　新品に近い備品</p>
+                                <p><span className="font-bold">Near MINT:</span> 使用感少しあり  傷ほぼ無い備品</p>
+                                <p><span className="font-bold">EXC+++++:</span> 小さい傷あり    状態は備品レベル</p>
+                                <p><span className="font-bold">EXC+～++++:</span> 傷が目立つ</p>
+                                <p><span className="font-bold">AS-IS:</span> 難あり（カビくもりあり、一部動作不良等）</p>
+                                <p><span className="font-bold">For Parts:</span> ジャンク・故障品・不良品</p>
+                            </div>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
                 <FormField
                     control={form.control}
                     name="title"
@@ -543,27 +568,9 @@ export const ProductForm = ({
                         <FormItem>
                             <div className="flex items-center justify-between">
                                 <FormLabel className="text-muted-foreground">タイトル</FormLabel>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                                        </TooltipTrigger>
-                                        <TooltipContent className="w-80">
-                                            <div className="space-y-2 text-sm">
-                                                <p><span className="font-bold">Almost Unused:</span> ほぼ未使用品</p>
-                                                <p><span className="font-bold">MINT:</span> 使用感ほぼ無し　新品に近い備品</p>
-                                                <p><span className="font-bold">Near MINT:</span> 使用感少しあり  傷ほぼ無い備品</p>
-                                                <p><span className="font-bold">EXC+++++:</span> 小さい傷あり    状態は備品レベル</p>
-                                                <p><span className="font-bold">EXC+～++++:</span> 傷が目立つ</p>
-                                                <p><span className="font-bold">AS-IS:</span> 難あり（カビくもりあり、一部動作不良等）</p>
-                                                <p><span className="font-bold">For Parts:</span> ジャンク・故障品・不良品</p>
-                                            </div>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm text-muted-foreground">
-                                        {field.value.length} / 80文字
+                                        {((field.value?.length || 0) + (form.getValues('titleCondition')?.length || 0) + 2)} / 80文字
                                     </span>
                                     <Button
                                         type="button"
@@ -576,9 +583,42 @@ export const ProductForm = ({
                                     </Button>
                                 </div>
                             </div>
-                            <FormControl>
-                                <Input {...field} className="h-11" />
-                            </FormControl>
+                            <div className="flex gap-1">
+                                <FormField
+                                    control={form.control}
+                                    name="titleCondition"
+                                    render={({ field }) => (
+                                        <FormItem className="grid grid-cols-[200px,1fr] items-center">
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger className="h-11">
+                                                        <SelectValue placeholder="コンディション" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="Almost Unused">Almost Unused</SelectItem>
+                                                    <SelectItem value="MINT">MINT</SelectItem>
+                                                    <SelectItem value="Near MINT">Near MINT</SelectItem>
+                                                    <SelectItem value="EXC+++++">EXC+++++</SelectItem>
+                                                    <SelectItem value="EXC++++">EXC++++</SelectItem>
+                                                    <SelectItem value="EXC+++">EXC+++</SelectItem>
+                                                    <SelectItem value="EXC++">EXC++</SelectItem>
+                                                    <SelectItem value="EXC+">EXC+</SelectItem>
+                                                    <SelectItem value="AS-IS">AS-IS</SelectItem>
+                                                    <SelectItem value="For Parts">For Parts</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormControl>
+                                    <Input {...field} className="h-11 flex-1" />
+                                </FormControl>
+                            </div>
                             <FormMessage />
                         </FormItem>
                     )}
