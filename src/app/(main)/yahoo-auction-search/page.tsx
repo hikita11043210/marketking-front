@@ -51,6 +51,8 @@ export default function SearchPage() {
     const [isOpen, setIsOpen] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 20;
+    const [s1, setS1] = useState('end');
+    const [o1, setO1] = useState('d');
 
     const handleSearch = async (page: number = 1) => {
         if (!p) return;
@@ -73,7 +75,8 @@ export default function SearchPage() {
                 ...(selectedBrands.length > 0 && { brands: selectedBrands.join(',') }),
                 ...(fixed && { fixed }),
                 ...(isFreeShipping && { is_free_shipping: '1' }),
-                ...(sortOrder && { sort_order: sortOrder }),
+                ...(s1 && { s1 }),
+                ...(o1 && { o1 }),
             };
             const searchParams = new URLSearchParams({
                 ...baseParams,
@@ -380,14 +383,25 @@ export default function SearchPage() {
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium mb-1">並び順</label>
-                                                    <select
-                                                        className="w-full rounded-md border border-input bg-background px-3 py-2"
-                                                        value={sortOrder}
-                                                        onChange={(e) => setSortOrder(e.target.value)}
-                                                    >
-                                                        <option value="end_time_desc">残り時間の長い順</option>
-                                                        <option value="end_time_asc">残り時間の短い順</option>
-                                                    </select>
+                                                    <div className="flex gap-2">
+                                                        <select
+                                                            className="w-full rounded-md border border-input bg-background px-3 py-2"
+                                                            value={s1}
+                                                            onChange={(e) => setS1(e.target.value)}
+                                                        >
+                                                            <option value="end">終了時間</option>
+                                                            <option value="price">価格</option>
+                                                            <option value="bids">入札数</option>
+                                                        </select>
+                                                        <select
+                                                            className="w-full rounded-md border border-input bg-background px-3 py-2"
+                                                            value={o1}
+                                                            onChange={(e) => setO1(e.target.value)}
+                                                        >
+                                                            <option value="d">降順</option>
+                                                            <option value="a">昇順</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
