@@ -389,8 +389,10 @@ export default function SearchPage() {
                                                             value={s1}
                                                             onChange={(e) => setS1(e.target.value)}
                                                         >
+                                                            <option value="new">新着順</option>
                                                             <option value="end">終了時間</option>
-                                                            <option value="price">価格</option>
+                                                            <option value="tbids">現在価格</option>
+                                                            <option value="tbidorbuy">即決価格</option>
                                                             <option value="bids">入札数</option>
                                                         </select>
                                                         <select
