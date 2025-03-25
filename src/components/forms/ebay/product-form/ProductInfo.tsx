@@ -35,16 +35,16 @@ export const ProductInfo = ({ selectedItem, detailData }: ProductInfoProps) => {
                             <div className="text-base mt-1">{detailData?.item_details.title}</div>
                         </div>
                     )}
-                    {detailData?.item_details.current_price && (
+                    {detailData?.item_details.current_price_in_tax && (
                         <div>
                             <div className="text-sm font-medium text-muted-foreground">現在価格</div>
-                            <div className="text-base mt-1">¥{Number(detailData?.item_details.current_price).toLocaleString()}</div>
+                            <div className="text-base mt-1">¥{Number(detailData?.item_details.current_price_in_tax).toLocaleString()}</div>
                         </div>
                     )}
-                    {detailData?.item_details.buy_now_price && (
+                    {detailData?.item_details.buy_now_price_in_tax && (
                         <div>
                             <div className="text-sm font-medium text-muted-foreground">即決価格</div>
-                            <div className="text-base mt-1">¥{Number(detailData?.item_details.buy_now_price).toLocaleString()}</div>
+                            <div className="text-base mt-1">¥{Number(detailData?.item_details.buy_now_price_in_tax).toLocaleString()}</div>
                         </div>
                     )}
                     {selectedItem?.shipping && (

@@ -14,6 +14,12 @@ interface RegisterModalProps {
     selectedItem: SearchResult | null;
 }
 
+const extractShippingCost = (shippingText: string): number => {
+    const match = shippingText.match(/(\d+,?\d*)/);
+    if (!match) return 1200;
+    return parseInt(match[1].replace(',', ''), 10);
+};
+
 export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalProps) => {
     const { toast } = useToast();
     const [detailData, setDetailData] = useState<ItemDetailResponse>();
@@ -61,7 +67,9 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
             if (selectedItem?.url) {
                 try {
                     setDetailData(undefined);
-                    const response = await fetch(`/api/yahoo-auction/detail?url=${encodeURIComponent(selectedItem.url)}`);
+                    const shipping = selectedItem.shipping || '';
+                    const shippingCost = extractShippingCost(shipping);
+                    const response = await fetch(`/api/yahoo-auction/detail?url=${encodeURIComponent(selectedItem.url)}&shipping=${encodeURIComponent(shippingCost)}`);
                     const data = await response.json();
                     if (data.success) {
                         setDetailData(data.data);

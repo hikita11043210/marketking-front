@@ -373,7 +373,7 @@ function ListPageContent() {
                                         <TableCell>¥{Number(item.ebay_shipping_price).toLocaleString()}</TableCell>
                                         <TableCell>¥{Number(item.final_profit).toLocaleString()}</TableCell>
                                         <TableCell className="text-center">{getStatusBadge(item.yahoo_auction_status)}</TableCell>
-                                        <TableCell className="max-w-md">
+                                        <TableCell className="max-w-[200px]">
                                             <a
                                                 href={item.yahoo_auction_url}
                                                 target="_blank"
