@@ -63,7 +63,6 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
                     setDetailData(undefined);
                     const response = await fetch(`/api/yahoo-auction/detail?url=${encodeURIComponent(selectedItem.url)}`);
                     const data = await response.json();
-                    console.log(data);
                     if (data.success) {
                         setDetailData(data.data);
                     }
