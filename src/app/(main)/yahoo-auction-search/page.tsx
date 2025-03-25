@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { KeyboardEvent, ChangeEvent } from 'react';
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,8 +32,9 @@ const BRANDS: Brand[] = [
 
 export default function SearchPage() {
     const containerRef = useRef<HTMLDivElement>(null);
+    const observerRef = useRef<HTMLDivElement>(null);
     const [p, setP] = useState('カメラ');
-    const [min, setMin] = useState('');
+    const [min, setMin] = useState('10000');
     const [max, setMax] = useState('30000');
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState<SearchResults['items']>([]);
@@ -49,21 +50,50 @@ export default function SearchPage() {
     const [selectedItem, setSelectedItem] = useState<SearchResult | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isOpen, setIsOpen] = useState(true);
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 20;
     const [s1, setS1] = useState('end');
     const [o1, setO1] = useState('d');
+    const [offset, setOffset] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-    const handleSearch = async (page: number = 1) => {
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const first = entries[0];
+                if (first.isIntersecting && hasMore && !isLoadingMore && !loading) {
+                    handleSearch(true);
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        if (observerRef.current) {
+            observer.observe(observerRef.current);
+        }
+
+        return () => {
+            if (observerRef.current) {
+                observer.unobserve(observerRef.current);
+            }
+        };
+    }, [hasMore, isLoadingMore, loading]);
+
+    const handleSearch = async (isLoadMore: boolean = false) => {
         if (!p) return;
 
-        setLoading(true);
+        if (isLoadMore) {
+            setIsLoadingMore(true);
+        } else {
+            setLoading(true);
+            setOffset(1);
+            setResults([]);
+        }
+
         try {
             const baseParams = {
                 p,
-                page: page.toString(),
-                limit: itemsPerPage.toString(),
                 n,
+                b: offset.toString(),
             };
 
             const optionalParams = {
@@ -78,6 +108,7 @@ export default function SearchPage() {
                 ...(s1 && { s1 }),
                 ...(o1 && { o1 }),
             };
+
             const searchParams = new URLSearchParams({
                 ...baseParams,
                 ...optionalParams,
@@ -87,10 +118,14 @@ export default function SearchPage() {
             const data = await response.json();
 
             if (data.success) {
-                setResults(data.data?.items || []);
+                const newItems = data.data?.items || [];
+                setResults(prev => isLoadMore ? [...prev, ...newItems] : newItems);
                 setTotalCount(data.data?.total || 0);
-                setCurrentPage(page);
-                containerRef.current?.scrollIntoView({ behavior: 'smooth' });
+                setHasMore(newItems.length === Number(n));
+                setOffset(prev => prev + Number(n));
+                if (!isLoadMore) {
+                    containerRef.current?.scrollIntoView({ behavior: 'smooth' });
+                }
             } else {
                 console.error('検索エラー:', data.message);
             }
@@ -98,6 +133,7 @@ export default function SearchPage() {
             console.error('API呼び出しエラー:', error);
         } finally {
             setLoading(false);
+            setIsLoadingMore(false);
         }
     };
 
@@ -111,37 +147,6 @@ export default function SearchPage() {
         e.stopPropagation();
         setSelectedItem(item);
         setIsModalOpen(true);
-    };
-
-    const totalPages = Math.ceil(totalCount / itemsPerPage);
-
-    const handlePageChange = (page: number) => {
-        if (page < 1 || page > totalPages) return;
-        handleSearch(page);
-    };
-
-    const renderPagination = () => {
-        return (
-            <div className="flex items-center justify-center gap-2 mt-8">
-                <Button
-                    variant="outline"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                >
-                    前のページ
-                </Button>
-                <span className="px-4 py-2">
-                    {currentPage} ページ目
-                </span>
-                <Button
-                    variant="outline"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage >= totalPages}
-                >
-                    次のページ
-                </Button>
-            </div>
-        );
     };
 
     return (
@@ -414,12 +419,6 @@ export default function SearchPage() {
                     </Card>
                 </div>
 
-                {totalCount > 0 && (
-                    <p className="text-sm text-muted-foreground mb-4">
-                        検索結果: {totalCount}件
-                    </p>
-                )}
-
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {results.map((item, index) => (
                         <Card key={index} className="flex flex-col h-[400px]">
@@ -481,7 +480,26 @@ export default function SearchPage() {
                     ))}
                 </div>
 
-                {totalCount > 0 && renderPagination()}
+                {totalCount > 0 && (
+                    <div className="mt-8">
+                        <p className="text-sm text-muted-foreground mb-4">
+                            検索結果: {totalCount}件
+                        </p>
+                        <div ref={observerRef} className="h-20 flex items-center justify-center">
+                            {isLoadingMore && (
+                                <div className="flex items-center space-x-2">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    <span className="text-sm text-muted-foreground">読み込み中...</span>
+                                </div>
+                            )}
+                            {!hasMore && results.length > 0 && (
+                                <p className="text-sm text-muted-foreground">
+                                    すべての検索結果を表示しました
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 <RegisterModal
                     isOpen={isModalOpen}
