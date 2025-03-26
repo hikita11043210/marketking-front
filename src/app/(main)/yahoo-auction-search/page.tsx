@@ -459,11 +459,11 @@ export default function SearchPage() {
                                                 {item.shipping || '送料情報なし'}
                                             </p>
                                         </div>
-                                        <div className="flex justify-end">
+                                        {/* <div className="flex justify-end">
                                             <p className="text-sm text-muted-foreground">
                                                 入札数: {item.bid_count}
                                             </p>
-                                        </div>
+                                        </div> */}
                                     </div>
                                 </CardContent>
                             </div>
