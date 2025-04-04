@@ -338,7 +338,7 @@ function ListPageContent() {
             </div>
 
             <div className="overflow-auto">
-                <Card className="w-[360px] md:min-w-[900px]">
+                <Card className="w-[360px] md:w-full min-w-[900px]">
                     <Table>
                         <TableHeader>
                             <TableRow>
