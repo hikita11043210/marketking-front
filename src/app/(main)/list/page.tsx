@@ -317,7 +317,7 @@ function ListPageContent() {
                             disabled={!!actionLoading}
                         />
                     </div>
-                    <form onSubmit={handleSearch} className="flex gap-2 w-full md:w-auto">
+                    {/* <form onSubmit={handleSearch} className="flex gap-2 w-full md:w-auto">
                         <Input
                             type="text"
                             placeholder="検索..."
@@ -326,7 +326,7 @@ function ListPageContent() {
                             className="flex-1"
                         />
                         <Button type="submit">検索</Button>
-                    </form>
+                    </form> */}
                 </div>
             </div>
 
@@ -449,7 +449,7 @@ function ListPageContent() {
                         </TableBody>
                     </Table>
                 </div>
-
+                {/* 
                 {!loading && items.length > 0 && (
                     <div className="flex flex-col md:flex-row justify-between items-center p-4 gap-4">
                         <div className="text-sm text-gray-600 text-center md:text-left">
@@ -483,7 +483,7 @@ function ListPageContent() {
                             </Button>
                         </div>
                     </div>
-                )}
+                )} */}
             </Card>
         </div>
     );

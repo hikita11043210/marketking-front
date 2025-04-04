@@ -341,7 +341,7 @@ function YahooFreeMarketListContent() {
                     </div>
                 </div>
             </div>
-
+            {/* 
             <Card className="mb-6">
                 <form onSubmit={handleSearch} className="p-4 md:p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -408,7 +408,7 @@ function YahooFreeMarketListContent() {
                         </Button>
                     </div>
                 </form>
-            </Card>
+            </Card> */}
 
             <div className="grid grid-cols-2 gap-4 mb-6">
                 <Card className="p-4">
@@ -525,7 +525,7 @@ function YahooFreeMarketListContent() {
                         </TableBody>
                     </Table>
                 </div>
-
+                {/* 
                 {!loading && items.length > 0 && (
                     <div className="flex flex-col md:flex-row justify-between items-center p-4 gap-4">
                         <div className="text-sm text-gray-600 text-center md:text-left">
@@ -559,7 +559,7 @@ function YahooFreeMarketListContent() {
                             </Button>
                         </div>
                     </div>
-                )}
+                )} */}
             </Card>
         </div>
     );
