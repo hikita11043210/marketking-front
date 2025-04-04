@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         }
 
         // データが存在しない場合のデフォルト値を設定
-        const items = Array.isArray(data.data) ? data.data : [];
+        const items = Array.isArray(data.data.items) ? data.data.items : [];
         const total = items.length; // 現状はtotalが返却されていないため、配列の長さを使用
 
         // バックエンドからのレスポンスをフロントエンド用に整形
@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
             currentPage: parseInt(page),
             totalPages: Math.ceil(total / parseInt(limit)),
             totalItems: total,
+            counts: data.data.counts
         });
     } catch (error) {
         console.error('API Error:', error);

@@ -50,6 +50,10 @@ interface ApiResponse {
     currentPage: number;
     totalPages: number;
     totalItems: number;
+    counts: {
+        active: number;
+        sold_out: number;
+    };
     error?: {
         message: string;
     };
@@ -112,6 +116,7 @@ function ListPageContent() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+    const [counts, setCounts] = useState<{ active: number; sold_out: number }>({ active: 0, sold_out: 0 });
     const [pagination, setPagination] = useState<PaginationInfo>({
         currentPage: Number(searchParams.get('page')) || 1,
         totalPages: 1,
@@ -265,6 +270,7 @@ function ListPageContent() {
             }
 
             setItems(data.items);
+            setCounts(data.counts);
             setPagination({
                 currentPage: data.currentPage,
                 totalPages: data.totalPages,
@@ -327,6 +333,17 @@ function ListPageContent() {
                     {error}
                 </div>
             )}
+
+            <div className="flex gap-4 mb-6">
+                <Card className="p-4 flex-1">
+                    <div className="text-sm text-gray-600">出品中</div>
+                    <div className="text-2xl font-bold">{counts.active.toLocaleString()}件</div>
+                </Card>
+                <Card className="p-4 flex-1">
+                    <div className="text-sm text-gray-600">取下げ</div>
+                    <div className="text-2xl font-bold">{counts.sold_out.toLocaleString()}件</div>
+                </Card>
+            </div>
 
             <Card>
                 <div className="overflow-x-auto">

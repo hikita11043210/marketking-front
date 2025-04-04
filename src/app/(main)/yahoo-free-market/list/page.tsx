@@ -49,6 +49,10 @@ interface ApiResponse {
     totalItems: number;
     hasNext: boolean;
     hasPrevious: boolean;
+    counts: {
+        active: number;
+        sold_out: number;
+    };
     error?: {
         message: string;
     };
@@ -122,6 +126,7 @@ function YahooFreeMarketListContent() {
         hasPrevious: false,
     });
     const [actionLoading, setActionLoading] = useState<string>('');
+    const [counts, setCounts] = useState<{ active: number; sold_out: number }>({ active: 0, sold_out: 0 });
 
     const statusOptions = [
         { label: 'すべて', value: '' },
@@ -287,6 +292,7 @@ function YahooFreeMarketListContent() {
             }
 
             setItems(data.items);
+            setCounts(data.counts);
             setPagination({
                 currentPage: data.currentPage,
                 totalPages: data.totalPages,
@@ -401,6 +407,17 @@ function YahooFreeMarketListContent() {
                     </div>
                 </form>
             </Card>
+
+            <div className="flex gap-4 mb-6">
+                <Card className="p-4 flex-1">
+                    <div className="text-sm text-gray-600">出品中</div>
+                    <div className="text-2xl font-bold">{counts.active.toLocaleString()}件</div>
+                </Card>
+                <Card className="p-4 flex-1">
+                    <div className="text-sm text-gray-600">取下げ</div>
+                    <div className="text-2xl font-bold">{counts.sold_out.toLocaleString()}件</div>
+                </Card>
+            </div>
 
             {error && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">

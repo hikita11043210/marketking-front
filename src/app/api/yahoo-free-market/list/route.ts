@@ -42,6 +42,7 @@ export async function GET(request: Request) {
             currentPage: parseInt(page),
             totalPages: Math.ceil(total / parseInt(limit)),
             totalItems: total,
+            counts: data.data.counts
         });
     } catch (error) {
         console.error('API Error:', error);
