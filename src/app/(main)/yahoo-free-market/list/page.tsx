@@ -315,7 +315,7 @@ function YahooFreeMarketListContent() {
     }, [fetchItems]);
 
     return (
-        <div className="p-4">
+        <div>
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">出品一覧（Yahooフリーマーケット）</h1>
                 <div className="flex flex-col md:flex-row gap-4">
@@ -427,105 +427,103 @@ function YahooFreeMarketListContent() {
                 </div>
             )}
 
-            <Card>
-                <div className="overflow-x-auto -mx-4 md:mx-0">
-                    <div className="min-w-[900px]">
-                        <Table>
-                            <TableHeader>
+            <Card className="min-w-[900px]">
+                <div className="overflow-x-auto">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="w-24 whitespace-nowrap text-center">状態</TableHead>
+                                <TableHead className="w-40 whitespace-nowrap">SKU</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">販売価格</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">仕入価格</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">送料</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">最終利益</TableHead>
+                                <TableHead className="w-24 whitespace-nowrap text-center">仕入状態</TableHead>
+                                <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
+                                <TableHead className="w-40 whitespace-nowrap">更新日時</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap text-center">操作</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {loading ? (
                                 <TableRow>
-                                    <TableHead className="w-24 whitespace-nowrap text-center">状態</TableHead>
-                                    <TableHead className="w-40 whitespace-nowrap">SKU</TableHead>
-                                    <TableHead className="w-20 whitespace-nowrap">販売価格</TableHead>
-                                    <TableHead className="w-20 whitespace-nowrap">仕入価格</TableHead>
-                                    <TableHead className="w-20 whitespace-nowrap">送料</TableHead>
-                                    <TableHead className="w-20 whitespace-nowrap">最終利益</TableHead>
-                                    <TableHead className="w-24 whitespace-nowrap text-center">仕入状態</TableHead>
-                                    <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
-                                    <TableHead className="w-40 whitespace-nowrap">更新日時</TableHead>
-                                    <TableHead className="w-20 whitespace-nowrap text-center">操作</TableHead>
+                                    <TableCell colSpan={10} className="text-center">
+                                        読み込み中...
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {loading ? (
-                                    <TableRow>
-                                        <TableCell colSpan={10} className="text-center">
-                                            読み込み中...
+                            ) : items.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={10} className="text-center">
+                                        データがありません
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                items.map((item) => (
+                                    <TableRow key={item.id}>
+                                        <TableCell>{getStatusBadge(item.status)}</TableCell>
+                                        <TableCell>
+                                            <div className="truncate max-w-[160px]" title={item.sku}>
+                                                {item.sku}
+                                            </div>
                                         </TableCell>
-                                    </TableRow>
-                                ) : items.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={10} className="text-center">
-                                            データがありません
+                                        <TableCell>¥{Number(item.ebay_price).toLocaleString()}</TableCell>
+                                        <TableCell>¥{Number(item.purchase_price).toLocaleString()}</TableCell>
+                                        <TableCell>¥{Number(item.ebay_shipping_price).toLocaleString()}</TableCell>
+                                        <TableCell>¥{Number(item.final_profit).toLocaleString()}</TableCell>
+                                        <TableCell className="text-center">{getStatusBadge(item.yahoo_free_market_status)}</TableCell>
+                                        <TableCell className="max-w-md">
+                                            <a
+                                                href={item.yahoo_free_market_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:text-blue-800 hover:underline truncate block"
+                                                title={item.yahoo_free_market_item_name}
+                                            >
+                                                {item.yahoo_free_market_item_name}
+                                            </a>
                                         </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    items.map((item) => (
-                                        <TableRow key={item.id}>
-                                            <TableCell>{getStatusBadge(item.status)}</TableCell>
-                                            <TableCell>
-                                                <div className="truncate max-w-[160px]" title={item.sku}>
-                                                    {item.sku}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>¥{Number(item.ebay_price).toLocaleString()}</TableCell>
-                                            <TableCell>¥{Number(item.purchase_price).toLocaleString()}</TableCell>
-                                            <TableCell>¥{Number(item.ebay_shipping_price).toLocaleString()}</TableCell>
-                                            <TableCell>¥{Number(item.final_profit).toLocaleString()}</TableCell>
-                                            <TableCell className="text-center">{getStatusBadge(item.yahoo_free_market_status)}</TableCell>
-                                            <TableCell className="max-w-md">
-                                                <a
-                                                    href={item.yahoo_free_market_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-600 hover:text-blue-800 hover:underline truncate block"
-                                                    title={item.yahoo_free_market_item_name}
-                                                >
-                                                    {item.yahoo_free_market_item_name}
-                                                </a>
-                                            </TableCell>
-                                            <TableCell className="whitespace-nowrap">
-                                                {item.update_datetime ? new Date(item.update_datetime).toLocaleString('ja-JP') : '-'}
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex gap-2">
-                                                    {item.status === '出品中' && (
-                                                        <LoadingButton
-                                                            className="bg-gray-500 hover:bg-gray-600 text-white"
-                                                            size="sm"
-                                                            onClick={() => handleWithdraw(item.offer_id, item.sku)}
-                                                            loading={actionLoading === `withdraw-${item.offer_id}`}
-                                                            loadingText="取下げ"
-                                                            defaultText="取下げ"
-                                                            disabled={!!actionLoading}
-                                                        />
-                                                    )}
-                                                    {item.status === '取下げ' && item.yahoo_free_market_status === '購入可' && (
-                                                        <LoadingButton
-                                                            className="bg-green-500 hover:bg-green-600 text-white"
-                                                            size="sm"
-                                                            onClick={() => handleRelist(item.offer_id, item.sku)}
-                                                            loading={actionLoading === `relist-${item.offer_id}`}
-                                                            loadingText="再出品"
-                                                            defaultText="再出品"
-                                                            disabled={!!actionLoading}
-                                                        />
-                                                    )}
-                                                    <Button
-                                                        variant="outline"
+                                        <TableCell className="whitespace-nowrap">
+                                            {item.update_datetime ? new Date(item.update_datetime).toLocaleString('ja-JP') : '-'}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex gap-2">
+                                                {item.status === '出品中' && (
+                                                    <LoadingButton
+                                                        className="bg-gray-500 hover:bg-gray-600 text-white"
                                                         size="sm"
-                                                        onClick={() => {/* 編集処理 */ }}
+                                                        onClick={() => handleWithdraw(item.offer_id, item.sku)}
+                                                        loading={actionLoading === `withdraw-${item.offer_id}`}
+                                                        loadingText="取下げ"
+                                                        defaultText="取下げ"
                                                         disabled={!!actionLoading}
-                                                    >
-                                                        編集
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
+                                                    />
+                                                )}
+                                                {item.status === '取下げ' && item.yahoo_free_market_status === '購入可' && (
+                                                    <LoadingButton
+                                                        className="bg-green-500 hover:bg-green-600 text-white"
+                                                        size="sm"
+                                                        onClick={() => handleRelist(item.offer_id, item.sku)}
+                                                        loading={actionLoading === `relist-${item.offer_id}`}
+                                                        loadingText="再出品"
+                                                        defaultText="再出品"
+                                                        disabled={!!actionLoading}
+                                                    />
+                                                )}
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => {/* 編集処理 */ }}
+                                                    disabled={!!actionLoading}
+                                                >
+                                                    編集
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
                 </div>
 
                 {!loading && items.length > 0 && (

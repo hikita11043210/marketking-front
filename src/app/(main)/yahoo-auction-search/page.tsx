@@ -151,7 +151,7 @@ export default function SearchPage() {
 
     return (
         <div className="flex-1 overflow-auto">
-            <div ref={containerRef} className="container mx-auto py-8 px-4">
+            <div ref={containerRef} className="container mx-auto py-8">
                 <div className="mb-8">
                     <Card>
                         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
