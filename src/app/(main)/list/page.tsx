@@ -317,16 +317,6 @@ function ListPageContent() {
                             disabled={!!actionLoading}
                         />
                     </div>
-                    {/* <form onSubmit={handleSearch} className="flex gap-2 w-full md:w-auto">
-                        <Input
-                            type="text"
-                            placeholder="検索..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="flex-1"
-                        />
-                        <Button type="submit">検索</Button>
-                    </form> */}
                 </div>
             </div>
 
@@ -347,8 +337,8 @@ function ListPageContent() {
                 </Card>
             </div>
 
-            <Card className="min-w-[900px]">
-                <div className="overflow-x-auto">
+            <div className="overflow-auto">
+                <Card className="w-[360px] md:min-w-[900px]">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -448,43 +438,8 @@ function ListPageContent() {
                             )}
                         </TableBody>
                     </Table>
-                </div>
-                {/* 
-                {!loading && items.length > 0 && (
-                    <div className="flex flex-col md:flex-row justify-between items-center p-4 gap-4">
-                        <div className="text-sm text-gray-600 text-center md:text-left">
-                            全{pagination.totalItems}件中 {(pagination.currentPage - 1) * 10 + 1}-
-                            {Math.min(pagination.currentPage * 10, pagination.totalItems)}件を表示
-                        </div>
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={pagination.currentPage === 1}
-                                onClick={() => {
-                                    const params = new URLSearchParams(searchParams.toString());
-                                    params.set('page', (pagination.currentPage - 1).toString());
-                                    router.push(`/list?${params.toString()}`);
-                                }}
-                            >
-                                前へ
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={pagination.currentPage === pagination.totalPages}
-                                onClick={() => {
-                                    const params = new URLSearchParams(searchParams.toString());
-                                    params.set('page', (pagination.currentPage + 1).toString());
-                                    router.push(`/list?${params.toString()}`);
-                                }}
-                            >
-                                次へ
-                            </Button>
-                        </div>
-                    </div>
-                )} */}
-            </Card>
+                </Card>
+            </div>
         </div>
     );
 } 
