@@ -293,35 +293,37 @@ function ListPageContent() {
     }, [fetchItems]);
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-6">
+        <div className="p-4">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">出品一覧（Yahooオークション）</h1>
-                <div className="flex gap-4">
-                    <LoadingButton
-                        className="bg-blue-500 hover:bg-blue-600 text-white"
-                        size="sm"
-                        onClick={handleSynchronize}
-                        loading={actionLoading === 'sync'}
-                        loadingText="同期中..."
-                        defaultText="eBay同期"
-                        disabled={!!actionLoading}
-                    />
-                    <LoadingButton
-                        className="bg-red-500 hover:bg-red-600 text-white"
-                        size="sm"
-                        onClick={handleYahooSynchronize}
-                        loading={actionLoading === 'yahoo-sync'}
-                        loadingText="同期中..."
-                        defaultText="Yahoo同期"
-                        disabled={!!actionLoading}
-                    />
-                    <form onSubmit={handleSearch} className="flex gap-2">
+                <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex gap-2">
+                        <LoadingButton
+                            className="bg-blue-500 hover:bg-blue-600 text-white flex-1 md:flex-none"
+                            size="sm"
+                            onClick={handleSynchronize}
+                            loading={actionLoading === 'sync'}
+                            loadingText="同期中..."
+                            defaultText="eBay同期"
+                            disabled={!!actionLoading}
+                        />
+                        <LoadingButton
+                            className="bg-red-500 hover:bg-red-600 text-white flex-1 md:flex-none"
+                            size="sm"
+                            onClick={handleYahooSynchronize}
+                            loading={actionLoading === 'yahoo-sync'}
+                            loadingText="同期中..."
+                            defaultText="Yahoo同期"
+                            disabled={!!actionLoading}
+                        />
+                    </div>
+                    <form onSubmit={handleSearch} className="flex gap-2 w-full md:w-auto">
                         <Input
                             type="text"
                             placeholder="検索..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-64"
+                            className="flex-1"
                         />
                         <Button type="submit">検索</Button>
                     </form>
@@ -334,123 +336,125 @@ function ListPageContent() {
                 </div>
             )}
 
-            <div className="flex gap-4 mb-6">
-                <Card className="p-4 flex-1">
+            <div className="grid grid-cols-2 gap-4 mb-6">
+                <Card className="p-4">
                     <div className="text-sm text-gray-600">出品中</div>
                     <div className="text-2xl font-bold">{counts.active.toLocaleString()}件</div>
                 </Card>
-                <Card className="p-4 flex-1">
+                <Card className="p-4">
                     <div className="text-sm text-gray-600">取下げ</div>
                     <div className="text-2xl font-bold">{counts.sold_out.toLocaleString()}件</div>
                 </Card>
             </div>
 
             <Card>
-                <div className="overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="w-24 whitespace-nowrap text-center">状態</TableHead>
-                                <TableHead className="w-40 whitespace-nowrap">SKU</TableHead>
-                                <TableHead className="w-20 whitespace-nowrap">販売価格</TableHead>
-                                <TableHead className="w-20 whitespace-nowrap">仕入価格</TableHead>
-                                <TableHead className="w-20 whitespace-nowrap">送料</TableHead>
-                                <TableHead className="w-20 whitespace-nowrap">最終利益</TableHead>
-                                <TableHead className="w-24 whitespace-nowrap text-center">仕入状態</TableHead>
-                                <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
-                                <TableHead className="w-36 whitespace-nowrap">残り</TableHead>
-                                <TableHead className="w-40 whitespace-nowrap">更新日時</TableHead>
-                                <TableHead className="w-20 whitespace-nowrap text-center">操作</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {loading ? (
+                <div className="overflow-x-auto -mx-4 md:mx-0">
+                    <div className="min-w-[900px]">
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell colSpan={9} className="text-center">
-                                        読み込み中...
-                                    </TableCell>
+                                    <TableHead className="w-24 whitespace-nowrap text-center">状態</TableHead>
+                                    <TableHead className="w-40 whitespace-nowrap">SKU</TableHead>
+                                    <TableHead className="w-20 whitespace-nowrap">販売価格</TableHead>
+                                    <TableHead className="w-20 whitespace-nowrap">仕入価格</TableHead>
+                                    <TableHead className="w-20 whitespace-nowrap">送料</TableHead>
+                                    <TableHead className="w-20 whitespace-nowrap">最終利益</TableHead>
+                                    <TableHead className="w-24 whitespace-nowrap text-center">仕入状態</TableHead>
+                                    <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
+                                    <TableHead className="w-36 whitespace-nowrap">残り</TableHead>
+                                    <TableHead className="w-40 whitespace-nowrap">更新日時</TableHead>
+                                    <TableHead className="w-20 whitespace-nowrap text-center">操作</TableHead>
                                 </TableRow>
-                            ) : items.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={9} className="text-center">
-                                        データがありません
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                items.map((item) => (
-                                    <TableRow key={item.id}>
-                                        <TableCell>{getStatusBadge(item.status)}</TableCell>
-                                        <TableCell>
-                                            <div className="truncate max-w-[160px]" title={item.sku}>
-                                                {item.sku}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>¥{Number(item.ebay_price).toLocaleString()}</TableCell>
-                                        <TableCell>¥{Number(item.purchase_price).toLocaleString()}</TableCell>
-                                        <TableCell>¥{Number(item.ebay_shipping_price).toLocaleString()}</TableCell>
-                                        <TableCell>¥{Number(item.final_profit).toLocaleString()}</TableCell>
-                                        <TableCell className="text-center">{getStatusBadge(item.yahoo_auction_status)}</TableCell>
-                                        <TableCell className="max-w-[200px]">
-                                            <a
-                                                href={item.yahoo_auction_url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-600 hover:text-blue-800 hover:underline truncate block"
-                                                title={item.yahoo_auction_item_name}
-                                            >
-                                                {item.yahoo_auction_item_name}
-                                            </a>
-                                        </TableCell>
-                                        <TableCell className="whitespace-nowrap">
-                                            <RemainingTime endDate={new Date(item.yahoo_auction_end_time)} />
-                                        </TableCell>
-                                        <TableCell className="whitespace-nowrap">
-                                            {item.update_datetime ? new Date(item.update_datetime).toLocaleString('ja-JP') : '-'}
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex gap-2">
-                                                {item.status === '出品中' && (
-                                                    <LoadingButton
-                                                        className="bg-gray-500 hover:bg-gray-600 text-white"
-                                                        size="sm"
-                                                        onClick={() => handleWithdraw(item.offer_id, item.sku)}
-                                                        loading={actionLoading === `withdraw-${item.offer_id}`}
-                                                        loadingText="取下げ"
-                                                        defaultText="取下げ"
-                                                        disabled={!!actionLoading}
-                                                    />
-                                                )}
-                                                {item.status === '取下げ' && (
-                                                    <LoadingButton
-                                                        className="bg-green-500 hover:bg-green-600 text-white"
-                                                        size="sm"
-                                                        onClick={() => handleRelist(item.offer_id, item.sku)}
-                                                        loading={actionLoading === `relist-${item.offer_id}`}
-                                                        loadingText="再出品"
-                                                        defaultText="再出品"
-                                                        disabled={!!actionLoading}
-                                                    />
-                                                )}
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => {/* 編集処理 */ }}
-                                                    disabled={!!actionLoading}
-                                                >
-                                                    編集
-                                                </Button>
-                                            </div>
+                            </TableHeader>
+                            <TableBody>
+                                {loading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={9} className="text-center">
+                                            読み込み中...
                                         </TableCell>
                                     </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
+                                ) : items.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={9} className="text-center">
+                                            データがありません
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    items.map((item) => (
+                                        <TableRow key={item.id}>
+                                            <TableCell>{getStatusBadge(item.status)}</TableCell>
+                                            <TableCell>
+                                                <div className="truncate max-w-[160px]" title={item.sku}>
+                                                    {item.sku}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>¥{Number(item.ebay_price).toLocaleString()}</TableCell>
+                                            <TableCell>¥{Number(item.purchase_price).toLocaleString()}</TableCell>
+                                            <TableCell>¥{Number(item.ebay_shipping_price).toLocaleString()}</TableCell>
+                                            <TableCell>¥{Number(item.final_profit).toLocaleString()}</TableCell>
+                                            <TableCell className="text-center">{getStatusBadge(item.yahoo_auction_status)}</TableCell>
+                                            <TableCell className="max-w-[200px]">
+                                                <a
+                                                    href={item.yahoo_auction_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:text-blue-800 hover:underline truncate block"
+                                                    title={item.yahoo_auction_item_name}
+                                                >
+                                                    {item.yahoo_auction_item_name}
+                                                </a>
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap">
+                                                <RemainingTime endDate={new Date(item.yahoo_auction_end_time)} />
+                                            </TableCell>
+                                            <TableCell className="whitespace-nowrap">
+                                                {item.update_datetime ? new Date(item.update_datetime).toLocaleString('ja-JP') : '-'}
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex gap-2">
+                                                    {item.status === '出品中' && (
+                                                        <LoadingButton
+                                                            className="bg-gray-500 hover:bg-gray-600 text-white"
+                                                            size="sm"
+                                                            onClick={() => handleWithdraw(item.offer_id, item.sku)}
+                                                            loading={actionLoading === `withdraw-${item.offer_id}`}
+                                                            loadingText="取下げ"
+                                                            defaultText="取下げ"
+                                                            disabled={!!actionLoading}
+                                                        />
+                                                    )}
+                                                    {item.status === '取下げ' && (
+                                                        <LoadingButton
+                                                            className="bg-green-500 hover:bg-green-600 text-white"
+                                                            size="sm"
+                                                            onClick={() => handleRelist(item.offer_id, item.sku)}
+                                                            loading={actionLoading === `relist-${item.offer_id}`}
+                                                            loadingText="再出品"
+                                                            defaultText="再出品"
+                                                            disabled={!!actionLoading}
+                                                        />
+                                                    )}
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => {/* 編集処理 */ }}
+                                                        disabled={!!actionLoading}
+                                                    >
+                                                        編集
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </div>
 
                 {!loading && items.length > 0 && (
-                    <div className="flex justify-between items-center p-4">
-                        <div className="text-sm text-gray-600">
+                    <div className="flex flex-col md:flex-row justify-between items-center p-4 gap-4">
+                        <div className="text-sm text-gray-600 text-center md:text-left">
                             全{pagination.totalItems}件中 {(pagination.currentPage - 1) * 10 + 1}-
                             {Math.min(pagination.currentPage * 10, pagination.totalItems)}件を表示
                         </div>

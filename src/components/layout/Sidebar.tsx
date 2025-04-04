@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from 'react';
-import { LogOut, Gavel, Store } from 'lucide-react';
+import { LogOut, Gavel, Store, Menu, X } from 'lucide-react';
 import { BiHome } from 'react-icons/bi';
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -11,6 +11,13 @@ import {
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
+import {
+    Sheet,
+    SheetContent,
+    SheetTrigger,
+    SheetTitle
+} from "@/components/ui/sheet";
+import { VisuallyHidden } from '@/components/ui/visually-hidden';
 
 type NavItem = {
     title: string;
@@ -79,6 +86,7 @@ export function Sidebar() {
     const router = useRouter();
     const { toast } = useToast();
     const [openItems, setOpenItems] = useState<string[]>([]);
+    const [isOpen, setIsOpen] = useState(false);
 
     const toggleItem = (title: string) => {
         setOpenItems(prev =>
@@ -108,8 +116,9 @@ export function Sidebar() {
         }
     };
 
-    return (
-        <div className="flex h-screen w-64 flex-col bg-background border-r">
+    const SidebarContent = () => (
+        <div className="flex h-full flex-col bg-background">
+            <VisuallyHidden>メインメニュー</VisuallyHidden>
             <div className="flex-1 overflow-y-auto py-4 px-3">
                 <nav className="space-y-2">
                     {navigation.map((item) => (
@@ -134,7 +143,10 @@ export function Sidebar() {
                                                 key={subItem.title}
                                                 variant="ghost"
                                                 className="w-full justify-start h-9 px-2"
-                                                onClick={() => router.push(subItem.href)}
+                                                onClick={() => {
+                                                    router.push(subItem.href);
+                                                    setIsOpen(false);
+                                                }}
                                             >
                                                 {subItem.title}
                                             </Button>
@@ -145,7 +157,10 @@ export function Sidebar() {
                                 <Button
                                     variant="ghost"
                                     className="w-full justify-start"
-                                    onClick={() => item.href && router.push(item.href)}
+                                    onClick={() => {
+                                        item.href && router.push(item.href);
+                                        setIsOpen(false);
+                                    }}
                                 >
                                     {item.icon}
                                     <span className="ml-3">{item.title}</span>
@@ -166,5 +181,27 @@ export function Sidebar() {
                 </Button>
             </div>
         </div>
+    );
+
+    return (
+        <>
+            {/* デスクトップ表示 */}
+            <div className="hidden md:flex h-screen w-64 flex-col bg-background border-r">
+                <SidebarContent />
+            </div>
+
+            {/* モバイル表示 */}
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="md:hidden fixed top-4 left-4 z-50">
+                        <Menu className="h-6 w-6" />
+                        <VisuallyHidden>メニューを開く</VisuallyHidden>
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0 w-64">
+                    <SidebarContent />
+                </SheetContent>
+            </Sheet>
+        </>
     );
 } 
