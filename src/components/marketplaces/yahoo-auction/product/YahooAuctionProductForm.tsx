@@ -386,7 +386,7 @@ export const ProductForm = ({
                     yahoo_auction_item_name: selectedItem.title,
                     yahoo_auction_item_price: selectedItem.buy_now_price || selectedItem.price,
                     yahoo_auction_shipping: extractShippingCost(selectedItem.shipping || '0'),
-                    yahoo_auction_end_time: convertYahooDate(detailData?.item_details.end_time),
+                    yahoo_auction_end_time: detailData?.item_details.end_time,
                 },
                 other_data: {
                     ebay_shipping_price: '',
