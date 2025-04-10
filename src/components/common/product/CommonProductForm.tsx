@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { useForm, useFieldArray, FieldArrayWithId, Control, UseFormRegister, UseFormSetValue, UseFormGetValues } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { FieldArrayWithId, Control, UseFormRegister, UseFormSetValue, UseFormGetValues } from 'react-hook-form';
 import * as z from 'zod';
-import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Checkbox } from "@/components/ui/checkbox";
 
 // 共通のロードボタンコンポーネント
@@ -153,17 +151,12 @@ interface ItemSpecificsFieldsProps {
 }
 
 export const useCommonForm = () => {
-    const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // 一般的な翻訳機能
     const translateText = async (text: string, onSuccess: (translatedText: string) => void) => {
         if (!text) {
-            toast({
-                title: 'エラー',
-                description: '翻訳するテキストを入力してください',
-                variant: 'destructive'
-            });
+            toast.error('翻訳するテキストを入力してください');
             return;
         }
 
@@ -172,24 +165,16 @@ export const useCommonForm = () => {
             const data = await response.json();
             if (data.success) {
                 onSuccess(data.data.translated_text);
-                toast({
-                    title: '成功',
-                    description: '翻訳が完了しました',
-                });
+                toast.success('翻訳が完了しました');
             } else {
                 throw new Error(data.message || '翻訳に失敗しました');
             }
         } catch (error) {
-            toast({
-                title: 'エラー',
-                description: error instanceof Error ? error.message : '翻訳に失敗しました',
-                variant: 'destructive'
-            });
+            toast.error(error instanceof Error ? error.message : '翻訳に失敗しました');
         }
     };
 
     return {
-        toast,
         isSubmitting,
         setIsSubmitting,
         translateText

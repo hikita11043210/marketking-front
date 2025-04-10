@@ -14,12 +14,11 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import type { Setting } from "@/types/settings";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loading } from "@/components/ui/loading";
 import { EbayAuth } from '@/components/layout/EbayAuth';
-import { showToast } from "@/lib/toast";
 import {
     Select,
     SelectContent,
@@ -42,7 +41,6 @@ const settingSchema = z.object({
 });
 
 export default function SettingPage() {
-    const { toast } = useToast();
     const [loading, setLoading] = useState(true);
     const [setting, setSetting] = useState<Setting>();
 
@@ -77,25 +75,17 @@ export default function SettingPage() {
                     };
                     form.reset(formData);
                 } else {
-                    toast({
-                        variant: 'destructive',
-                        title: 'エラー',
-                        description: data.message || '設定の取得に失敗しました',
-                    });
+                    toast.error(data.message || '設定の取得に失敗しました');
                 }
             } catch (error) {
-                toast({
-                    variant: 'destructive',
-                    title: 'エラー',
-                    description: '設定の取得中にエラーが発生しました',
-                });
+                toast.error('設定の取得中にエラーが発生しました');
             } finally {
                 setLoading(false);
             }
         };
 
         fetchSetting();
-    }, [form, toast]);
+    }, [form]);
 
     const onSubmit = async (values: z.infer<typeof settingSchema>) => {
         try {
@@ -110,12 +100,12 @@ export default function SettingPage() {
             const data = await response.json();
 
             if (response.ok) {
-                showToast.success({ description: "設定を更新しました" });
+                toast.success("設定を更新しました");
             } else {
-                showToast.error({ description: '設定の更新に失敗しました' });
+                toast.error('設定の更新に失敗しました');
             }
         } catch (error) {
-            showToast.error({ description: '設定の更新中にエラーが発生しました' });
+            toast.error('設定の更新中にエラーが発生しました');
         }
     };
 

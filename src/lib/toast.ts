@@ -1,4 +1,4 @@
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 type ToastMessage = {
     title?: string;
@@ -6,28 +6,29 @@ type ToastMessage = {
 }
 
 export const showToast = {
-    success: ({ title = "成功", description }: ToastMessage) => {
-        toast({
-            title,
-            description,
-            variant: "default",
-            className: "bg-green-50 border-green-200 text-green-800",
-        });
+    success: ({ title, description }: ToastMessage) => {
+        toast.success(description, {
+            ...(title && { title }),
+        } as any);
     },
-    error: ({ title = "エラー", description }: ToastMessage) => {
-        toast({
-            title,
-            description,
-            variant: "destructive",
-            className: "bg-red-50 border-red-200 text-red-800",
-        });
+    error: ({ title, description }: ToastMessage) => {
+        toast.error(description, {
+            ...(title && { title }),
+        } as any);
     },
-    warning: ({ title = "警告", description }: ToastMessage) => {
-        toast({
-            title,
-            description,
-            variant: "default",
-            className: "bg-yellow-50 border-yellow-200 text-yellow-800",
-        });
+    warning: ({ title, description }: ToastMessage) => {
+        toast.warning(description, {
+            ...(title && { title }),
+        } as any);
+    },
+    info: ({ title, description }: ToastMessage) => {
+        toast.info(description, {
+            ...(title && { title }),
+        } as any);
+    },
+    default: ({ title, description }: ToastMessage) => {
+        toast(description, {
+            ...(title && { title }),
+        } as any);
     },
 }; 

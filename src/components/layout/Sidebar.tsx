@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from 'react';
 import { LogOut, Gavel, Store, Menu, X } from 'lucide-react';
 import { BiHome } from 'react-icons/bi';
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
     Collapsible,
     CollapsibleContent,
@@ -41,11 +41,11 @@ const navigation: NavItem[] = [
         subItems: [
             {
                 title: "- 検索",
-                href: "/yahoo-auction-search",
+                href: "/yahoo-auction/search",
             },
             {
                 title: "- 出品一覧",
-                href: "/list",
+                href: "/yahoo-auction/list",
             },
         ],
     },
@@ -55,11 +55,11 @@ const navigation: NavItem[] = [
         subItems: [
             {
                 title: "- 検索",
-                href: "/yahoo-free-market/search",
+                href: "/yahoo-freemarket/search",
             },
             {
                 title: "- 出品一覧",
-                href: "/yahoo-free-market/list",
+                href: "/yahoo-freemarket/list",
             },
         ],
     },
@@ -84,7 +84,6 @@ const navigation: NavItem[] = [
 
 export function Sidebar() {
     const router = useRouter();
-    const { toast } = useToast();
     const [openItems, setOpenItems] = useState<string[]>([]);
     const [isOpen, setIsOpen] = useState(false);
 
@@ -108,11 +107,7 @@ export function Sidebar() {
                 throw new Error('ログアウトに失敗しました');
             }
         } catch (error) {
-            toast({
-                variant: 'destructive',
-                title: 'エラー',
-                description: 'ログアウトに失敗しました',
-            });
+            toast.error('ログアウトに失敗しました');
         }
     };
 

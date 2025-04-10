@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ProductInfo } from './YahooAuctionProductInfo';
 import { ProductForm } from './YahooAuctionProductForm';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import type { ItemDetailResponse, SearchResult } from '@/types/yahoo-auction';
 import type { ShippingPolicy, PaymentPolicy, ReturnPolicy, EbayPoliciesResponse } from '@/types/ebay/policy';
 import { CommonRegisterModal } from '@/components/common/product/CommonRegisterModal';
@@ -19,7 +19,6 @@ const extractShippingCost = (shippingText: string): number => {
 };
 
 export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalProps) => {
-    const { toast } = useToast();
     const [detailData, setDetailData] = useState<ItemDetailResponse>();
     const [isLoadingPolicies, setIsLoadingPolicies] = useState(true);
     const [policies, setPolicies] = useState<{
@@ -47,18 +46,14 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
                     });
                 }
             } catch (error) {
-                toast({
-                    title: 'エラー',
-                    description: error instanceof Error ? error.message : 'ポリシー情報の取得に失敗しました',
-                    variant: 'destructive'
-                });
+                toast.error(error instanceof Error ? error.message : 'ポリシー情報の取得に失敗しました');
             } finally {
                 setIsLoadingPolicies(false);
             }
         };
 
         loadPolicies();
-    }, [toast]);
+    }, []);
 
     useEffect(() => {
         const fetchDetail = async () => {

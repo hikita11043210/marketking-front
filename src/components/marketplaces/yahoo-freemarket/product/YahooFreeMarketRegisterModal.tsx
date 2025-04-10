@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ProductInfo } from './YahooFreeMarketProductInfo';
 import { ProductForm } from './YahooFreeMarketProductForm';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import type { ShippingPolicy, PaymentPolicy, ReturnPolicy, EbayPoliciesResponse } from '@/types/ebay/policy';
 import type { PayPayFreeMarketSearchResult, ItemDetailResponse } from '@/types/yahoo-free-market';
 import { CommonRegisterModal } from '@/components/common/product/CommonRegisterModal';
@@ -13,7 +13,6 @@ interface RegisterModalProps {
 }
 
 export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalProps) => {
-    const { toast } = useToast();
     const [detailData, setDetailData] = useState<ItemDetailResponse>();
     const [isLoadingPolicies, setIsLoadingPolicies] = useState(true);
     const [policies, setPolicies] = useState<{
@@ -41,18 +40,14 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
                     });
                 }
             } catch (error) {
-                toast({
-                    title: 'エラー',
-                    description: error instanceof Error ? error.message : 'ポリシー情報の取得に失敗しました',
-                    variant: 'destructive'
-                });
+                toast.error(error instanceof Error ? error.message : 'ポリシー情報の取得に失敗しました');
             } finally {
                 setIsLoadingPolicies(false);
             }
         };
 
         loadPolicies();
-    }, [toast]);
+    }, []);
 
     useEffect(() => {
         const fetchDetail = async () => {
@@ -65,7 +60,7 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
                         setDetailData(data.data);
                     }
                 } catch (error) {
-                    console.error('API呼び出しエラー:', error);
+                    toast.error(error instanceof Error ? error.message : '商品の取得に失敗しました');
                 }
             }
         };

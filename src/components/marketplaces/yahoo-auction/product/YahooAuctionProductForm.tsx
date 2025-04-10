@@ -5,7 +5,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 import { useState } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import type { SearchResult, ItemDetailResponse, CategoryInfo, ConditionOption } from '@/types/yahoo-auction';
@@ -120,7 +120,6 @@ export const ProductForm = ({
     policies,
     isLoadingPolicies,
 }: ProductFormProps) => {
-    const { toast } = useToast();
     const [allImages, setAllImages] = useState<string[]>(detailData?.item_details.images.url || []);
     const [isLoadingCategories, setIsLoadingCategories] = useState(false);
     const [categories, setCategories] = useState<CategoryInfo[]>(
@@ -191,11 +190,7 @@ export const ProductForm = ({
             }
         } catch (error) {
             setCategories([]);
-            toast({
-                title: 'エラー',
-                description: error instanceof Error ? error.message : 'カテゴリーの検索に失敗しました',
-                variant: 'destructive'
-            });
+            toast.error(error instanceof Error ? error.message : 'カテゴリーの検索に失敗しました');
         } finally {
             setIsLoadingCategories(false);
         }
@@ -211,11 +206,7 @@ export const ProductForm = ({
     // 説明文の翻訳処理
     const handleTranslateDescription = async (value: string) => {
         if (!value) {
-            toast({
-                title: 'エラー',
-                description: '翻訳するテキストを入力してください',
-                variant: 'destructive'
-            });
+            toast.error('翻訳するテキストを入力してください');
             return;
         }
 
@@ -224,19 +215,12 @@ export const ProductForm = ({
             const data = await response.json();
             if (data.success) {
                 form.setValue('description', data.data.translated_text);
-                toast({
-                    title: '成功',
-                    description: '翻訳が完了しました',
-                });
+                toast.success('翻訳が完了しました');
             } else {
                 throw new Error(data.message || '翻訳に失敗しました');
             }
         } catch (error) {
-            toast({
-                title: 'エラー',
-                description: error instanceof Error ? error.message : '翻訳に失敗しました',
-                variant: 'destructive'
-            });
+            toast.error(error instanceof Error ? error.message : '翻訳に失敗しました');
         }
     };
 
@@ -244,11 +228,7 @@ export const ProductForm = ({
     const handleFetchItemSpecifics = async () => {
         const ebayItemId = form.getValues('ebayItemId');
         if (!ebayItemId) {
-            toast({
-                title: 'エラー',
-                description: 'eBay商品IDを入力してください',
-                variant: 'destructive'
-            });
+            toast.error('eBay商品IDを入力してください');
             return;
         }
 
@@ -278,17 +258,10 @@ export const ProductForm = ({
                     }
                 });
 
-                toast({
-                    title: '成功',
-                    description: 'Item Specificsを取得しました',
-                });
+                toast.success('Item Specificsを取得しました');
             }
         } catch (error) {
-            toast({
-                title: 'エラー',
-                description: error instanceof Error ? error.message : 'Item Specificsの取得に失敗しました',
-                variant: 'destructive'
-            });
+            toast.error(error instanceof Error ? error.message : 'Item Specificsの取得に失敗しました');
         }
     };
 
@@ -298,11 +271,7 @@ export const ProductForm = ({
 
     const handleRemoveItemSpecific = (index: number) => {
         if (itemSpecificsFields.length === 1) {
-            toast({
-                title: '警告',
-                description: '少なくとも1つのItem Specificsが必要です',
-                variant: 'destructive'
-            });
+            toast.error('少なくとも1つのItem Specificsが必要です');
             return;
         }
         removeItemSpecific(index);
@@ -373,18 +342,11 @@ export const ProductForm = ({
                     }
                 });
 
-                toast({
-                    title: '成功',
-                    description: '必須のItem Specificsを更新しました',
-                });
+                toast.success('必須のItem Specificsを更新しました');
             }
 
         } catch (error) {
-            toast({
-                title: 'エラー',
-                description: error instanceof Error ? error.message : 'Conditionの取得に失敗しました',
-                variant: 'destructive'
-            });
+            toast.error(error instanceof Error ? error.message : 'Conditionの取得に失敗しました');
         } finally {
             setIsLoadingItemSpecifics(false);
         }
@@ -446,10 +408,7 @@ export const ProductForm = ({
                 throw new Error(data.message || '商品の登録に失敗しました');
             }
 
-            toast({
-                title: '成功',
-                description: '商品を登録しました',
-            });
+            toast.success('商品を登録しました');
 
             // 成功時のコールバック
             if (onCancel) {
@@ -457,11 +416,7 @@ export const ProductForm = ({
             }
 
         } catch (error) {
-            toast({
-                title: 'エラー',
-                description: error instanceof Error ? error.message : '商品の登録に失敗しました',
-                variant: 'destructive',
-            });
+            toast.error(error instanceof Error ? error.message : '商品の登録に失敗しました');
         } finally {
             setIsSubmitting(false);
         }
@@ -469,11 +424,7 @@ export const ProductForm = ({
 
     const handleTranslateTitle = async (value: string) => {
         if (!value) {
-            toast({
-                title: 'エラー',
-                description: '翻訳するテキストを入力してください',
-                variant: 'destructive'
-            });
+            toast.error('翻訳するテキストを入力してください');
             return;
         }
 
@@ -482,19 +433,12 @@ export const ProductForm = ({
             const data = await response.json();
             if (data.success) {
                 form.setValue('title', data.data.translated_text);
-                toast({
-                    title: '成功',
-                    description: '翻訳が完了しました',
-                });
+                toast.success('翻訳が完了しました');
             } else {
                 throw new Error(data.message || '翻訳に失敗しました');
             }
         } catch (error) {
-            toast({
-                title: 'エラー',
-                description: error instanceof Error ? error.message : '翻訳に失敗しました',
-                variant: 'destructive'
-            });
+            toast.error(error instanceof Error ? error.message : '翻訳に失敗しました');
         }
     };
 
