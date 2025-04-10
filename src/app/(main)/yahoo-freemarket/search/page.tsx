@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { KeyboardEvent, ChangeEvent } from 'react';
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { CommonSearchResults, SearchResultItemProps } from '@/components/common/
 
 export default function SearchPage() {
     const containerRef = useRef<HTMLDivElement>(null);
+    const observerRef = useRef<HTMLDivElement>(null);
     const [searchText, setSearchText] = useState('カメラ');
     const [minPrice, setMinPrice] = useState('10000');
     const [maxPrice, setMaxPrice] = useState('30000');
@@ -22,7 +23,31 @@ export default function SearchPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [conditions, setConditions] = useState<string[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 20;
+    const [offset, setOffset] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const first = entries[0];
+                if (first.isIntersecting && hasMore && !isLoadingMore && !loading) {
+                    handleSearch(true);
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        if (observerRef.current) {
+            observer.observe(observerRef.current);
+        }
+
+        return () => {
+            if (observerRef.current) {
+                observer.unobserve(observerRef.current);
+            }
+        };
+    }, [hasMore, isLoadingMore, loading]);
 
     const conditionOptions = [
         { label: '未使用', value: 'NEW' },
@@ -40,27 +65,49 @@ export default function SearchPage() {
         );
     };
 
-    const handleSearch = async (page: number = 1) => {
+    const handleSearch = async (isLoadMore: boolean = false) => {
         if (!searchText) return;
 
-        setLoading(true);
+        if (isLoadMore) {
+            setIsLoadingMore(true);
+        } else {
+            setLoading(true);
+            setOffset(1);
+            setCurrentPage(1);
+            setResults([]);
+            setHasMore(true); // 新しい検索時にhasMoreをリセット
+        }
+
+        // 現在のページを取得し、そのページを使って検索
+        const currentRequestPage = isLoadMore ? currentPage : 1;
+
         try {
+            console.log('検索ページ:', currentRequestPage); // デバッグ用
+
             const searchParams = new URLSearchParams({
                 searchText,
                 ...(minPrice && { minPrice }),
                 ...(maxPrice && { maxPrice }),
                 ...(conditions.length > 0 && { conditions: conditions.join(',') }),
-                page: page.toString(),
-                limit: itemsPerPage.toString(),
+                page: currentRequestPage.toString(),
             });
 
             const response = await fetch(`/api/yahoo-free-market/search?${searchParams}`);
             const data = await response.json();
             if (data.success) {
-                setResults(data.data?.items || []);
+                const newItems = data.data?.items || [];
+                setResults(prev => isLoadMore ? [...prev, ...newItems] : newItems);
                 setTotalCount(data.data?.total || 0);
-                setCurrentPage(page);
-                containerRef.current?.scrollIntoView({ behavior: 'smooth' });
+
+                // アイテムがない場合、もう取得するものがない
+                setHasMore(newItems.length > 0);
+
+                if (isLoadMore) {
+                    // 無限スクロール時は次のページを設定（現在のページ+1）
+                    setCurrentPage(prev => prev + 1);
+                } else {
+                    containerRef.current?.scrollIntoView({ behavior: 'smooth' });
+                }
             } else {
                 console.error('検索エラー:', data.message);
             }
@@ -68,14 +115,8 @@ export default function SearchPage() {
             console.error('API呼び出しエラー:', error);
         } finally {
             setLoading(false);
+            setIsLoadingMore(false);
         }
-    };
-
-    const totalPages = Math.ceil(totalCount / itemsPerPage);
-
-    const handlePageChange = (page: number) => {
-        if (page < 1 || page > totalPages) return;
-        handleSearch(page);
     };
 
     const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -172,27 +213,21 @@ export default function SearchPage() {
     );
 
     // ページネーションコンポーネント
-    const paginationComponent = totalCount > 0 ? (
-        <div className="flex items-center justify-center gap-2 mt-8">
-            <Button
-                variant="outline"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-            >
-                前のページ
-            </Button>
-            <span className="px-4 py-2">
-                {currentPage} ページ目
-            </span>
-            <Button
-                variant="outline"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={!results.length}
-            >
-                次のページ
-            </Button>
+    const paginationComponent = (
+        <div ref={observerRef} className="h-20 flex items-center justify-center mt-4">
+            {isLoadingMore && (
+                <div className="flex items-center space-x-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm text-muted-foreground">読み込み中...</span>
+                </div>
+            )}
+            {!hasMore && results.length > 0 && (
+                <p className="text-sm text-muted-foreground">
+                    すべての検索結果を表示しました
+                </p>
+            )}
         </div>
-    ) : null;
+    );
 
     // 検索結果を共通フォーマットに変換
     const formattedResults: SearchResultItemProps[] = results.map(item => ({
