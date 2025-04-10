@@ -35,6 +35,7 @@ export default function SearchPage() {
     const containerRef = useRef<HTMLDivElement>(null);
     const observerRef = useRef<HTMLDivElement>(null);
     const [p, setP] = useState('カメラ');
+    const [url, setUrl] = useState('');
     const [min, setMin] = useState('10000');
     const [max, setMax] = useState('30000');
     const [loading, setLoading] = useState(false);
@@ -50,7 +51,7 @@ export default function SearchPage() {
     const [sortOrder, setSortOrder] = useState('end_time_desc');
     const [selectedItem, setSelectedItem] = useState<SearchResult | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isOpen, setIsOpen] = useState(true);
+    const [isOpen, setIsOpen] = useState(false);
     const [s1, setS1] = useState('end');
     const [o1, setO1] = useState('d');
     const [offset, setOffset] = useState(1);
@@ -61,7 +62,7 @@ export default function SearchPage() {
         const observer = new IntersectionObserver(
             (entries) => {
                 const first = entries[0];
-                if (first.isIntersecting && hasMore && !isLoadingMore && !loading) {
+                if (first.isIntersecting && hasMore && !isLoadingMore && !loading && results.length > 0) {
                     handleSearch(true);
                 }
             },
@@ -77,7 +78,7 @@ export default function SearchPage() {
                 observer.unobserve(observerRef.current);
             }
         };
-    }, [hasMore, isLoadingMore, loading]);
+    }, [hasMore, isLoadingMore, loading, results.length]);
 
     const handleSearch = async (isLoadMore: boolean = false) => {
         if (!p) return;
@@ -95,6 +96,7 @@ export default function SearchPage() {
                 p,
                 n,
                 b: offset.toString(),
+                url,
             };
 
             const optionalParams = {
@@ -122,16 +124,18 @@ export default function SearchPage() {
                 const newItems = data.data?.items || [];
                 setResults(prev => isLoadMore ? [...prev, ...newItems] : newItems);
                 setTotalCount(data.data?.total || 0);
-                setHasMore(newItems.length === Number(n));
+                setHasMore(newItems.length > 0 && newItems.length === Number(n));
                 setOffset(prev => prev + Number(n));
                 if (!isLoadMore) {
                     containerRef.current?.scrollIntoView({ behavior: 'smooth' });
                 }
             } else {
                 console.error('検索エラー:', data.message);
+                setHasMore(false);
             }
         } catch (error) {
             console.error('API呼び出しエラー:', error);
+            setHasMore(false);
         } finally {
             setLoading(false);
             setIsLoadingMore(false);
@@ -167,11 +171,19 @@ export default function SearchPage() {
                         </CollapsibleTrigger>
                     </div>
                     <div className="flex items-center space-x-2 mb-4">
-                        <Input
+                        {/* <Input
                             type="text"
                             placeholder="検索キーワード"
                             value={p}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setP(e.target.value)}
+                            onKeyPress={handleKeyPress}
+                            required
+                        /> */}
+                        <Input
+                            type="text"
+                            placeholder="URL"
+                            value={url}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setUrl(e.target.value)}
                             onKeyPress={handleKeyPress}
                             required
                         />
@@ -462,6 +474,11 @@ export default function SearchPage() {
             {!hasMore && results.length > 0 && (
                 <p className="text-sm text-muted-foreground">
                     すべての検索結果を表示しました
+                </p>
+            )}
+            {!hasMore && results.length === 0 && !loading && (
+                <p className="text-sm text-muted-foreground">
+                    検索結果がありません
                 </p>
             )}
         </div>

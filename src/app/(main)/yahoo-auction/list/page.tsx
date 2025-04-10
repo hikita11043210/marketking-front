@@ -24,6 +24,8 @@ interface ListItem {
     ebay_price: string;
     ebay_shipping_price: string;
     final_profit: string;
+    view_count: number;
+    watch_count: number;
     yahoo_auction_id: string;
     yahoo_auction_url: string;
     yahoo_auction_item_name: string;
@@ -34,6 +36,7 @@ interface ListItem {
     remaining_time: string;
     yahoo_auction_status: string;
     update_datetime: string;
+    insert_datetime: string;
 }
 
 interface PaginationInfo {
@@ -345,9 +348,12 @@ function ListPageContent() {
                                 <TableHead className="w-20 whitespace-nowrap">仕入価格</TableHead>
                                 <TableHead className="w-20 whitespace-nowrap">送料</TableHead>
                                 <TableHead className="w-20 whitespace-nowrap">最終利益</TableHead>
+                                <TableHead className="w-10 whitespace-nowrap">Views</TableHead>
+                                <TableHead className="w-10 whitespace-nowrap">Watchers</TableHead>
                                 <TableHead className="w-24 whitespace-nowrap text-center">仕入状態</TableHead>
                                 <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
                                 <TableHead className="w-36 whitespace-nowrap">残り</TableHead>
+                                <TableHead className="w-40 whitespace-nowrap">登録日時</TableHead>
                                 <TableHead className="w-40 whitespace-nowrap">更新日時</TableHead>
                                 <TableHead className="w-20 whitespace-nowrap text-center">操作</TableHead>
                             </TableRow>
@@ -378,6 +384,8 @@ function ListPageContent() {
                                         <TableCell>¥{Number(item.purchase_price).toLocaleString()}</TableCell>
                                         <TableCell>¥{Number(item.ebay_shipping_price).toLocaleString()}</TableCell>
                                         <TableCell>¥{Number(item.final_profit).toLocaleString()}</TableCell>
+                                        <TableCell className="text-center">{item.view_count}</TableCell>
+                                        <TableCell className="text-center">{item.watch_count}</TableCell>
                                         <TableCell className="text-center">{getStatusBadge(item.yahoo_auction_status)}</TableCell>
                                         <TableCell className="max-w-[200px]">
                                             <a
@@ -392,6 +400,9 @@ function ListPageContent() {
                                         </TableCell>
                                         <TableCell className="whitespace-nowrap">
                                             <RemainingTime endDate={new Date(item.yahoo_auction_end_time)} />
+                                        </TableCell>
+                                        <TableCell className="whitespace-nowrap">
+                                            {item.insert_datetime ? new Date(item.insert_datetime).toLocaleString('ja-JP') : '-'}
                                         </TableCell>
                                         <TableCell className="whitespace-nowrap">
                                             {item.update_datetime ? new Date(item.update_datetime).toLocaleString('ja-JP') : '-'}

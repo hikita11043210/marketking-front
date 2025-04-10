@@ -24,6 +24,8 @@ interface ListItem {
     ebay_price: number;
     ebay_shipping_price: number;
     final_profit: number;
+    view_count: number;
+    watch_count: number;
     yahoo_free_market_id: string;
     yahoo_free_market_url: string;
     yahoo_free_market_item_name: string;
@@ -32,6 +34,7 @@ interface ListItem {
     purchase_price: number;
     yahoo_free_market_status: string;
     update_datetime: string;
+    insert_datetime: string;
 }
 
 interface PaginationInfo {
@@ -436,8 +439,11 @@ function YahooFreeMarketListContent() {
                                 <TableHead className="w-20 whitespace-nowrap">仕入価格</TableHead>
                                 <TableHead className="w-20 whitespace-nowrap">送料</TableHead>
                                 <TableHead className="w-20 whitespace-nowrap">最終利益</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">Views</TableHead>
+                                <TableHead className="w-20 whitespace-nowrap">Watchers</TableHead>
                                 <TableHead className="w-24 whitespace-nowrap text-center">仕入状態</TableHead>
                                 <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
+                                <TableHead className="w-40 whitespace-nowrap">登録日時</TableHead>
                                 <TableHead className="w-40 whitespace-nowrap">更新日時</TableHead>
                                 <TableHead className="w-20 whitespace-nowrap text-center">操作</TableHead>
                             </TableRow>
@@ -468,6 +474,8 @@ function YahooFreeMarketListContent() {
                                         <TableCell className="text-right">¥{Number(item.purchase_price).toLocaleString()}</TableCell>
                                         <TableCell className="text-right">¥{Number(item.ebay_shipping_price).toLocaleString()}</TableCell>
                                         <TableCell className="text-right">¥{Number(item.final_profit).toLocaleString()}</TableCell>
+                                        <TableCell className="text-center">{item.view_count}</TableCell>
+                                        <TableCell className="text-center">{item.watch_count}</TableCell>
                                         <TableCell className="text-center">{getStatusBadge(item.yahoo_free_market_status)}</TableCell>
                                         <TableCell>
                                             <a
@@ -479,6 +487,9 @@ function YahooFreeMarketListContent() {
                                             >
                                                 {item.yahoo_free_market_item_name}
                                             </a>
+                                        </TableCell>
+                                        <TableCell className="whitespace-nowrap">
+                                            {item.insert_datetime ? new Date(item.insert_datetime).toLocaleString('ja-JP') : '-'}
                                         </TableCell>
                                         <TableCell className="whitespace-nowrap">
                                             {item.update_datetime ? new Date(item.update_datetime).toLocaleString('ja-JP') : '-'}
