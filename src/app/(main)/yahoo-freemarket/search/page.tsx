@@ -230,6 +230,7 @@ export default function SearchPage() {
     // 検索結果を共通フォーマットに変換
     const formattedResults: SearchResultItemProps[] = results.map(item => ({
         id: item.item_id,
+        title: item.item_name,
         imageUrl: item.thumbnail_url,
         price: item.price,
         detailUrl: `https://paypayfleamarket.yahoo.co.jp/item/${item.item_id}`,

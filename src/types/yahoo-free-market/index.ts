@@ -2,6 +2,7 @@ export type PayPayFreeMarketSearchResult = {
     thumbnail_url: string;
     item_id: string;
     price: number;
+    item_name: string;
 }
 
 export type PayPayFreeMarketSearchResults = {
