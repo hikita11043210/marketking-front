@@ -439,8 +439,8 @@ function YahooFreeMarketListContent() {
                                 <TableHead className="w-20 whitespace-nowrap">仕入価格</TableHead>
                                 <TableHead className="w-20 whitespace-nowrap">送料</TableHead>
                                 <TableHead className="w-20 whitespace-nowrap">最終利益</TableHead>
-                                <TableHead className="w-20 whitespace-nowrap">Views</TableHead>
-                                <TableHead className="w-20 whitespace-nowrap">Watchers</TableHead>
+                                <TableHead className="w-10 whitespace-nowrap">Views</TableHead>
+                                <TableHead className="w-10 whitespace-nowrap">Watchers</TableHead>
                                 <TableHead className="w-24 whitespace-nowrap text-center">仕入状態</TableHead>
                                 <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
                                 <TableHead className="w-40 whitespace-nowrap">登録日時</TableHead>
