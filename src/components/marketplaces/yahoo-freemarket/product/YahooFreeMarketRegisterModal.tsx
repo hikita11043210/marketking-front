@@ -1,24 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { BaseRegisterModal } from '@/components/shared/modals/BaseRegisterModal';
-import { ProductInfo } from './ProductInfo';
-import { ProductForm } from './ProductForm';
+import { ProductInfo } from './YahooFreeMarketProductInfo';
+import { ProductForm } from './YahooFreeMarketProductForm';
 import { useToast } from '@/hooks/use-toast';
-import type { ItemDetailResponse, SearchResult } from '@/types/yahoo-auction';
 import type { ShippingPolicy, PaymentPolicy, ReturnPolicy, EbayPoliciesResponse } from '@/types/ebay/policy';
-import type { PriceCalculation } from '@/types/price';
+import type { PayPayFreeMarketSearchResult, ItemDetailResponse } from '@/types/yahoo-free-market';
+import { CommonRegisterModal } from '@/components/common/product/CommonRegisterModal';
 
 interface RegisterModalProps {
     isOpen: boolean;
     onClose: () => void;
-    selectedItem: SearchResult | null;
+    selectedItem: PayPayFreeMarketSearchResult | undefined;
 }
-
-const extractShippingCost = (shippingText: string): number => {
-    const match = shippingText.match(/(\d+,?\d*)/);
-    if (!match) return 1200;
-    return parseInt(match[1].replace(',', ''), 10);
-};
 
 export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalProps) => {
     const { toast } = useToast();
@@ -64,12 +56,10 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
 
     useEffect(() => {
         const fetchDetail = async () => {
-            if (selectedItem?.url) {
+            if (selectedItem?.item_id) {
                 try {
                     setDetailData(undefined);
-                    const shipping = selectedItem.shipping || '';
-                    const shippingCost = extractShippingCost(shipping);
-                    const response = await fetch(`/api/yahoo-auction/detail?url=${encodeURIComponent(selectedItem.url)}&shipping=${encodeURIComponent(shippingCost)}`);
+                    const response = await fetch(`/api/yahoo-free-market/detail?item_id=${encodeURIComponent(selectedItem.item_id)}`);
                     const data = await response.json();
                     if (data.success) {
                         setDetailData(data.data);
@@ -86,34 +76,24 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
     if (!selectedItem) return null;
 
     return (
-        <BaseRegisterModal isOpen={isOpen} onClose={onClose}>
-            <div className="grid grid-cols-[1fr,2fr] gap-8">
-                {/* 左側：選択商品の情報 */}
-                <div className="space-y-6">
-                    <ProductInfo selectedItem={selectedItem} detailData={detailData} />
-                </div>
-
-                {/* 右側：入力フォーム */}
-                <div className="space-y-6">
-                    <Card>
-                        <CardContent className="pt-6">
-                            {detailData ? (
-                                <ProductForm
-                                    detailData={detailData}
-                                    selectedItem={selectedItem}
-                                    onCancel={onClose}
-                                    policies={policies}
-                                    isLoadingPolicies={isLoadingPolicies}
-                                />
-                            ) : (
-                                <div className="flex justify-center items-center h-32 text-muted-foreground">
-                                    データを読み込み中...
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-        </BaseRegisterModal>
+        <CommonRegisterModal
+            isOpen={isOpen}
+            onClose={onClose}
+            isLoading={!detailData}
+            productInfoComponent={
+                <ProductInfo selectedItem={selectedItem} detailData={detailData} />
+            }
+            productFormComponent={
+                detailData && (
+                    <ProductForm
+                        detailData={detailData}
+                        selectedItem={selectedItem}
+                        onCancel={onClose}
+                        policies={policies}
+                        isLoadingPolicies={isLoadingPolicies}
+                    />
+                )
+            }
+        />
     );
 }; 
