@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
-import { showToast } from '@/lib/toast';
+import { toast } from 'sonner';
 
 export const EbayAuth = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -32,9 +32,7 @@ export const EbayAuth = () => {
 
             setIsConnected(data.is_connected);
         } catch (error) {
-            showToast.error({
-                description: error instanceof Error ? error.message : '認証状態の確認に失敗しました'
-            });
+            toast.error(error instanceof Error ? error.message : '認証状態の確認に失敗しました');
         }
     };
 
@@ -53,9 +51,7 @@ export const EbayAuth = () => {
                 throw new Error('認証URLの取得に失敗しました');
             }
         } catch (error) {
-            showToast.error({
-                description: error instanceof Error ? error.message : 'eBay認証の開始に失敗しました'
-            });
+            toast.error(error instanceof Error ? error.message : 'eBay認証の開始に失敗しました');
         } finally {
             setIsLoading(false);
         }
@@ -79,16 +75,12 @@ export const EbayAuth = () => {
             }
 
             setIsConnected(true);
-            showToast.success({
-                description: 'eBayとの連携が完了しました'
-            });
+            toast.success('eBayとの連携が完了しました');
 
             // URLからcodeパラメータを削除
             window.history.replaceState({}, document.title, window.location.pathname);
         } catch (error) {
-            showToast.error({
-                description: error instanceof Error ? error.message : '認証処理に失敗しました'
-            });
+            toast.error(error instanceof Error ? error.message : '認証処理に失敗しました');
         } finally {
             setIsLoading(false);
         }
@@ -107,13 +99,9 @@ export const EbayAuth = () => {
             }
 
             setIsConnected(false);
-            showToast.success({
-                description: 'eBayとの連携を解除しました'
-            });
+            toast.success('eBayとの連携を解除しました');
         } catch (error) {
-            showToast.error({
-                description: error instanceof Error ? error.message : '連携解除に失敗しました'
-            });
+            toast.error(error instanceof Error ? error.message : '連携解除に失敗しました');
         }
     };
 

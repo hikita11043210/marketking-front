@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { showToast } from "@/lib/toast";
+import { toast } from "sonner";
 
 interface ListItem {
     id: number;
@@ -302,9 +302,7 @@ function YahooFreeMarketListContent() {
             });
         } catch (error) {
             console.error('Error fetching items:', error);
-            showToast.error({
-                description: error instanceof Error ? error.message : '商品の取得に失敗しました'
-            });
+            toast.error(error instanceof Error ? error.message : '商品の取得に失敗しました');
         } finally {
             setLoading(false);
         }

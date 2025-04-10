@@ -28,16 +28,16 @@ import {
 } from "@/components/ui/select";
 
 const settingSchema = z.object({
-    ebay_client_id: z.string().min(1, "eBay Client IDは必須です"),
-    ebay_client_secret: z.string().min(1, "eBay Client Secretは必須です"),
-    ebay_dev_id: z.string().min(1, "eBay Dev IDは必須です"),
+    ebay_client_id: z.string(),
+    ebay_client_secret: z.string(),
+    ebay_dev_id: z.string(),
     ebay_store_type_id: z.string().min(1, "eBayストアタイプは必須です"),
-    yahoo_client_id: z.string().min(1, "Yahoo Client IDは必須です"),
-    yahoo_client_secret: z.string().min(1, "Yahoo Client Secretは必須です"),
+    yahoo_client_id: z.string(),
+    yahoo_client_secret: z.string(),
     rate: z.string()
         .min(1, "利益率は必須です")
         .regex(/^\d+(\.\d{1,2})?$/, "利益率は正の数値で入力してください（小数点以下2桁まで）"),
-    deepl_api_key: z.string().min(1, "DeepL APIキーは必須です"),
+    deepl_api_key: z.string(),
 });
 
 export default function SettingPage() {
@@ -53,7 +53,7 @@ export default function SettingPage() {
             ebay_store_type_id: "",
             yahoo_client_id: "",
             yahoo_client_secret: "",
-            rate: "30",
+            rate: "5",
             deepl_api_key: "",
         },
     });

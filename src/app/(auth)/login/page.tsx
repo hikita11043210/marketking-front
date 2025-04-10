@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { showToast } from '@/lib/toast';
+import { toast } from 'sonner';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -34,14 +34,12 @@ export default function LoginPage() {
                 throw new Error(data.message || 'ログインに失敗しました');
             }
 
-            showToast.success({ description: "ログインに成功しました" });
+            toast.success("ログインに成功しました");
             router.refresh();
             router.push('/dashboard');
 
         } catch (error) {
-            showToast.error({
-                description: error instanceof Error ? error.message : "ログインに失敗しました"
-            });
+            toast.error(error instanceof Error ? error.message : "ログインに失敗しました");
         } finally {
             setLoading(false);
         }
