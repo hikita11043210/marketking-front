@@ -16,7 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import type { ShippingResult, Service, Country } from '@/types/shipping-calculator';
 import { validateShippingCalculatorParams } from '@/validations/shipping-calculator';
-import { showToast } from '@/lib/toast';
+import { toast } from 'sonner';
 
 interface ShippingCalculatorFormProps {
     onCalculate: (result: ShippingResult) => void;
@@ -66,7 +66,7 @@ export function ShippingCalculatorForm({ onCalculate }: ShippingCalculatorFormPr
         // 必須項目のチェック
         if (!selectedService || !selectedCountry) {
             setLoading(false);
-            showToast.error({ description: "配送サービスと配送先国を選択してください" });
+            toast.error("配送サービスと配送先国を選択してください");
             return;
         }
 
@@ -84,7 +84,7 @@ export function ShippingCalculatorForm({ onCalculate }: ShippingCalculatorFormPr
         if (!validation.isValid) {
             setLoading(false);
             validation.errors.forEach((error: string) => {
-                showToast.error({ description: error });
+                toast.error(error);
             });
             return;
         }
@@ -100,14 +100,14 @@ export function ShippingCalculatorForm({ onCalculate }: ShippingCalculatorFormPr
             const data = await response.json();
             if (data.success && data.data) {
                 onCalculate(data.data);
-                showToast.success({ description: "送料の計算が完了しました" });
+                toast.success("送料の計算が完了しました");
             } else {
                 setError(data.message || '送料の計算に失敗しました');
-                showToast.error({ description: data.message || '送料の計算に失敗しました' });
+                toast.error(data.message || '送料の計算に失敗しました');
             }
         } catch (err) {
             setError('送料の計算中にエラーが発生しました');
-            showToast.error({ description: '送料の計算中にエラーが発生しました' });
+            toast.error('送料の計算中にエラーが発生しました');
         } finally {
             setLoading(false);
         }
