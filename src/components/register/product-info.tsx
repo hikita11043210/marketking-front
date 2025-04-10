@@ -64,7 +64,7 @@ export const ProductInfo = ({ selectedItem, detailData }: ProductInfoProps) => {
                     {detailData?.item_details.description && (
                         <div>
                             <div className="text-sm font-medium text-muted-foreground">商品説明</div>
-                            <div className="text-base mt-1">{detailData.item_details.description}</div>
+                            <div className="text-base mt-1 whitespace-pre-line">{detailData.item_details.description}</div>
                         </div>
                     )}
                 </div>
