@@ -23,7 +23,7 @@ export const SearchResultItem = ({
     onRegisterClick
 }: SearchResultItemProps) => {
     return (
-        <Card className={`flex flex-col h-[${height}]`}>
+        <Card className="flex flex-col" style={{ height }}>
             <div className="relative flex-1">
                 <div
                     className="absolute inset-0 cursor-pointer"

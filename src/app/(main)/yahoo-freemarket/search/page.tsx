@@ -82,8 +82,6 @@ export default function SearchPage() {
         const currentRequestPage = isLoadMore ? currentPage : 1;
 
         try {
-            console.log('検索ページ:', currentRequestPage); // デバッグ用
-
             const searchParams = new URLSearchParams({
                 searchText,
                 ...(minPrice && { minPrice }),

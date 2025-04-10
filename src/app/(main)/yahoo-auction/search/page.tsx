@@ -437,7 +437,7 @@ export default function SearchPage() {
         imageUrl: item.image_url,
         price: item.price,
         detailUrl: item.url,
-        height: '400px',
+        height: '360px',
         additionalInfo: (
             <div className="space-y-2">
                 <div className="flex justify-between items-center">
