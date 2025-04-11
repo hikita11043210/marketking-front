@@ -494,7 +494,7 @@ export const ProductForm = ({
                         </TooltipTrigger>
                         <TooltipContent className="w-80">
                             <div className="space-y-2 text-sm">
-                                <p><span className="font-bold">Almost Unused:</span> ほぼ未使用品</p>
+                                <p><span className="font-bold">Unused:</span> ほぼ未使用品</p>
                                 <p><span className="font-bold">MINT:</span> 使用感ほぼ無し　新品に近い備品</p>
                                 <p><span className="font-bold">Near MINT:</span> 使用感少しあり  傷ほぼ無い備品</p>
                                 <p><span className="font-bold">EXC+++++:</span> 小さい傷あり    状態は備品レベル</p>
@@ -543,7 +543,7 @@ export const ProductForm = ({
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="Almost Unused">Almost Unused</SelectItem>
+                                                    <SelectItem value="Unused">Unused</SelectItem>
                                                     <SelectItem value="MINT">MINT</SelectItem>
                                                     <SelectItem value="Near MINT">Near MINT</SelectItem>
                                                     <SelectItem value="EXC+++++">EXC+++++</SelectItem>
