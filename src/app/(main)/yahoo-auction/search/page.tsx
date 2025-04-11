@@ -37,7 +37,7 @@ export default function SearchPage() {
     const [p, setP] = useState('カメラ');
     const [url, setUrl] = useState('');
     const [min, setMin] = useState('10000');
-    const [max, setMax] = useState('30000');
+    const [max, setMax] = useState('50000');
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState<SearchResults['items']>([]);
     const [totalCount, setTotalCount] = useState(0);

@@ -15,7 +15,7 @@ export default function SearchPage() {
     const observerRef = useRef<HTMLDivElement>(null);
     const [searchText, setSearchText] = useState('カメラ');
     const [minPrice, setMinPrice] = useState('10000');
-    const [maxPrice, setMaxPrice] = useState('30000');
+    const [maxPrice, setMaxPrice] = useState('50000');
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState<PayPayFreeMarketSearchResult[]>([]);
     const [totalCount, setTotalCount] = useState(0);
@@ -31,7 +31,7 @@ export default function SearchPage() {
         const observer = new IntersectionObserver(
             (entries) => {
                 const first = entries[0];
-                if (first.isIntersecting && hasMore && !isLoadingMore && !loading) {
+                if (first.isIntersecting && hasMore && !isLoadingMore && !loading && results.length > 0) {
                     handleSearch(true);
                 }
             },
@@ -47,7 +47,7 @@ export default function SearchPage() {
                 observer.unobserve(observerRef.current);
             }
         };
-    }, [hasMore, isLoadingMore, loading]);
+    }, [hasMore, isLoadingMore, loading, results.length]);
 
     const conditionOptions = [
         { label: '未使用', value: 'NEW' },
@@ -107,10 +107,16 @@ export default function SearchPage() {
                     containerRef.current?.scrollIntoView({ behavior: 'smooth' });
                 }
             } else {
-                console.error('検索エラー:', data.message);
+                // エラーの場合、さらなる検索をストップする
+                setHasMore(false);
+                if (data.error) {
+                    // エラーが返された場合は検索結果なしとみなす
+                    setTotalCount(0);
+                }
             }
         } catch (error) {
             console.error('API呼び出しエラー:', error);
+            setHasMore(false);
         } finally {
             setLoading(false);
             setIsLoadingMore(false);
@@ -219,7 +225,12 @@ export default function SearchPage() {
                     <span className="text-sm text-muted-foreground">読み込み中...</span>
                 </div>
             )}
-            {!hasMore && results.length > 0 && (
+            {!loading && !isLoadingMore && totalCount === 0 && (
+                <p className="text-sm text-muted-foreground">
+                    検索結果はありません
+                </p>
+            )}
+            {!loading && !isLoadingMore && totalCount > 0 && !hasMore && (
                 <p className="text-sm text-muted-foreground">
                     すべての検索結果を表示しました
                 </p>
