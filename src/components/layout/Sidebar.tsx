@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from 'react';
-import { LogOut, Gavel, Store, Menu, X } from 'lucide-react';
+import { LogOut, Gavel, Store, Menu, X, Calculator } from 'lucide-react';
 import { BiHome } from 'react-icons/bi';
 import { toast } from "sonner";
 import {
@@ -62,6 +62,11 @@ const navigation: NavItem[] = [
                 href: "/yahoo-freemarket/list",
             },
         ],
+    },
+    {
+        title: "販売価格計算",
+        href: "/calculator",
+        icon: <Calculator className="h-5 w-5" />,
     },
     {
         title: "各種設定",
