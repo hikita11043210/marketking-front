@@ -497,13 +497,19 @@ export const ProductForm = ({
                         </TooltipTrigger>
                         <TooltipContent className="w-80">
                             <div className="space-y-2 text-sm">
-                                <p><span className="font-bold">Unused:</span> ほぼ未使用品</p>
-                                <p><span className="font-bold">MINT:</span> 使用感ほぼ無し　新品に近い備品</p>
-                                <p><span className="font-bold">Near MINT:</span> 使用感少しあり  傷ほぼ無い備品</p>
-                                <p><span className="font-bold">EXC+++++:</span> 小さい傷あり    状態は備品レベル</p>
-                                <p><span className="font-bold">EXC+～++++:</span> 傷が目立つ</p>
-                                <p><span className="font-bold">AS-IS:</span> 難あり（カビくもりあり、一部動作不良等）</p>
-                                <p><span className="font-bold">For Parts:</span> ジャンク・故障品・不良品</p>
+                                <p><span className="font-bold">New:</span> 新品</p>
+                                <p><span className="font-bold">New other:</span> 新品だけど一度人手に渡って開封され検品済みなどがここに分類される。Used扱い。</p>
+                                <p><span className="font-bold">Unopened:</span> 未開封品</p>
+                                <p><span className="font-bold">Top mint:</span> 非常に良い、その中でも最上位</p>
+                                <p><span className="font-bold">Mint:</span> 非常に良い</p>
+                                <p><span className="font-bold">Near mint:</span> Mintに近いが少し使用感はある</p>
+                                <p><span className="font-bold">Excellent+++++:</span> 使用感や傷はあるが程度はそこそこ良い</p>
+                                <p><span className="font-bold">Excellent+++:</span> 使用感や傷がある並品</p>
+                                <p><span className="font-bold">Excellent:</span> かなりの使用感や傷がある並品</p>
+                                <p><span className="font-bold">Very good:</span> 並品以下で一部特記事項あり</p>
+                                <p><span className="font-bold">AS-IS:</span> 現状品、不具合あり</p>
+                                <p><span className="font-bold">For Parts:</span> 部品取り品。ジャンク品</p>
+                                <p><span className="font-bold">Junk:</span> ジャンク品</p>
                             </div>
                         </TooltipContent>
                     </Tooltip>
@@ -546,16 +552,19 @@ export const ProductForm = ({
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="Unused">Unused</SelectItem>
+                                                    <SelectItem value="New">New</SelectItem>
+                                                    <SelectItem value="New other">New other</SelectItem>
+                                                    <SelectItem value="Unopened">Unopened</SelectItem>
+                                                    <SelectItem value="Top mint">Top mint</SelectItem>
                                                     <SelectItem value="MINT">MINT</SelectItem>
-                                                    <SelectItem value="Near MINT">Near MINT</SelectItem>
-                                                    <SelectItem value="EXC+++++">EXC+++++</SelectItem>
-                                                    <SelectItem value="EXC++++">EXC++++</SelectItem>
-                                                    <SelectItem value="EXC+++">EXC+++</SelectItem>
-                                                    <SelectItem value="EXC++">EXC++</SelectItem>
-                                                    <SelectItem value="EXC+">EXC+</SelectItem>
+                                                    <SelectItem value="Near mint">Near mint</SelectItem>
+                                                    <SelectItem value="Excellent+++++">Excellent+++++</SelectItem>
+                                                    <SelectItem value="Excellent+++">Excellent+++</SelectItem>
+                                                    <SelectItem value="Excellent">Excellent</SelectItem>
+                                                    <SelectItem value="Very good">Very good</SelectItem>
                                                     <SelectItem value="AS-IS">AS-IS</SelectItem>
                                                     <SelectItem value="For Parts">For Parts</SelectItem>
+                                                    <SelectItem value="Junk">Junk</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
