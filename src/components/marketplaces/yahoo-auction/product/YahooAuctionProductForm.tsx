@@ -356,7 +356,7 @@ export const ProductForm = ({
         try {
             setIsSubmitting(true);
             // タイトルの先頭にコンディションを追加
-            const finalTitle = values.titleCondition && values.titleCondition !== "none"
+            const finalTitle = values.titleCondition != ""
                 ? `"${values.titleCondition}" ${values.title}`
                 : values.title;
 
@@ -552,11 +552,12 @@ export const ProductForm = ({
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
+                                                    <SelectItem value=""></SelectItem>
                                                     <SelectItem value="New">New</SelectItem>
                                                     <SelectItem value="New other">New other</SelectItem>
                                                     <SelectItem value="Unopened">Unopened</SelectItem>
                                                     <SelectItem value="Top mint">Top mint</SelectItem>
-                                                    <SelectItem value="MINT">MINT</SelectItem>
+                                                    <SelectItem value="Mint">Mint</SelectItem>
                                                     <SelectItem value="Near mint">Near mint</SelectItem>
                                                     <SelectItem value="Excellent+++++">Excellent+++++</SelectItem>
                                                     <SelectItem value="Excellent+++">Excellent+++</SelectItem>
