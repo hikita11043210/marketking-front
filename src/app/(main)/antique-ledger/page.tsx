@@ -82,7 +82,7 @@ export default function AntiqueLedgerPage() {
             const params = new URLSearchParams();
             if (filter.transaction_date) params.append("transaction_date", filter.transaction_date);
             if (filter.transaction_type) params.append("transaction_type", filter.transaction_type);
-            if (filter.sku) params.append("sku", filter.sku);
+            if (filter.management_code) params.append("management_code", filter.management_code);
             if (filter.search) params.append("search", filter.search);
 
             const response = await fetch(`/api/antique-ledger/transactions?${params.toString()}`);
