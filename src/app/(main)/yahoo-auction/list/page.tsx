@@ -26,7 +26,8 @@ interface ListItem {
     final_profit: string;
     view_count: number;
     watch_count: number;
-    yahoo_auction_id: string;
+    yahoo_auction_id: number;
+    yahoo_auction_unique_id: string;
     yahoo_auction_url: string;
     yahoo_auction_item_name: string;
     yahoo_auction_item_price: string;
@@ -241,12 +242,41 @@ function ListPageContent() {
         }
     };
 
+    const handleStatusUpdate = async (id: number) => {
+        try {
+            setActionLoading(`status-${id}`);
+            const response = await fetch(`/api/yahoo-auction/status-update/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    status_id: 2 // 購入済みステータスID（適切な値に変更してください）
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || data.detail || 'ステータスの更新に失敗しました');
+            }
+
+            toast.success("ステータスを購入済みに変更しました");
+            // 成功したら一覧を再取得
+            fetchItems();
+        } catch (error) {
+            console.error('Failed to update status:', error);
+            toast.error(error instanceof Error ? error.message : 'ステータスの更新に失敗しました');
+        } finally {
+            setActionLoading('');
+        }
+    };
+
     const getStatusBadge = (status: string) => {
         const statusColors: { [key: string]: string } = {
             '出品中': 'bg-green-500 text-white',
             '取下げ': 'bg-gray-500 text-white',
             '売却': 'bg-blue-500 text-white',
-            '仕入済み': 'bg-yellow-500 text-white',
             '完了': 'bg-purple-500 text-white',
             '出品失敗': 'bg-red-500 text-white',
             '購入可': 'bg-green-500 text-white',
@@ -428,6 +458,17 @@ function ListPageContent() {
                                                         loading={actionLoading === `relist-${item.offer_id}`}
                                                         loadingText="再出品"
                                                         defaultText="再出品"
+                                                        disabled={!!actionLoading}
+                                                    />
+                                                )}
+                                                {item.yahoo_auction_status !== '購入済' && (
+                                                    <LoadingButton
+                                                        className="bg-blue-500 hover:bg-blue-600 text-white"
+                                                        size="sm"
+                                                        onClick={() => handleStatusUpdate(item.yahoo_auction_id)}
+                                                        loading={actionLoading === `status-${item.yahoo_auction_id}`}
+                                                        loadingText="更新中"
+                                                        defaultText="仕入"
                                                         disabled={!!actionLoading}
                                                     />
                                                 )}
