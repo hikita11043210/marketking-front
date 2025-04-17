@@ -143,7 +143,7 @@ export const ProductForm = ({
         defaultValues: {
             title: replaceSpecialCharacters(detailData?.item_details.title || ''),
             titleCondition: 'MINT',
-            description: 'Please make sure to carefully check the photos for details about the item.\nIf there’s anything unclear or if you have any questions, feel free to reach out — I’ll be happy to help!\nI’m here to make sure you have a great shopping experience and feel confident in your purchase.',
+            description: '',
             price: detailData?.price.calculated_price_dollar.toString(),
             final_profit: detailData?.price.final_profit_yen.toString(),
             final_profit_dollar: detailData?.price.final_profit_dollar.toString(),
@@ -552,7 +552,7 @@ export const ProductForm = ({
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value=""></SelectItem>
+                                                    <SelectItem value="none">選択なし</SelectItem>
                                                     <SelectItem value="New">New</SelectItem>
                                                     <SelectItem value="New other">New other</SelectItem>
                                                     <SelectItem value="Unopened">Unopened</SelectItem>
