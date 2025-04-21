@@ -28,16 +28,17 @@ type ImportFormProps = {
     requiresCountryCode?: boolean;
 };
 
-export function ImportForm({ type, requiresCountryCode }: ImportFormProps) {
-    const [isLoading, setIsLoading] = useState(false);
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const router = useRouter();
-
-    // フォームのスキーマを定義
-    const formSchema = z.object({
-        file: z.instanceof(File, {
+// ブラウザ環境でのみFileを使用するためのスキーマ作成関数
+const createFormSchema = (requiresCountryCode?: boolean, type?: string) => {
+    // クライアントサイドでのみFileを参照
+    const fileSchema = typeof window === 'undefined'
+        ? z.any()
+        : z.instanceof(File, {
             message: 'ファイルを選択してください',
-        }),
+        });
+
+    return z.object({
+        file: fileSchema,
         country_code: requiresCountryCode
             ? z.string().min(2, {
                 message: '国コードを選択してください',
@@ -49,6 +50,15 @@ export function ImportForm({ type, requiresCountryCode }: ImportFormProps) {
             })
             : z.string().optional(),
     });
+};
+
+export function ImportForm({ type, requiresCountryCode }: ImportFormProps) {
+    const [isLoading, setIsLoading] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const router = useRouter();
+
+    // フォームのスキーマを定義
+    const formSchema = createFormSchema(requiresCountryCode, type);
 
     // フォームの初期化
     const form = useForm<z.infer<typeof formSchema>>({
