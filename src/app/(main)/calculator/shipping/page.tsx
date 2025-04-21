@@ -39,15 +39,23 @@ interface ShippingWeights {
 interface ShippingResponse {
     success: boolean;
     message: string;
-    data: {
-        country: {
-            code: string;
-            name: string;
+    data?: {
+        country?: {
+            code?: string;
+            name?: string;
         };
-        physical_weight: number;
-        weights_used: ShippingWeights;
-        shipping_rates: ShippingRate;
-        recommended_service: string;
+        physical_weight?: number;
+        weights_used?: {
+            fedex?: number;
+            dhl?: number;
+            economy?: number;
+        };
+        shipping_rates?: {
+            fedex?: number;
+            dhl?: number;
+            economy?: number;
+        };
+        recommended_service?: string;
     };
 }
 
@@ -72,16 +80,17 @@ export default function ShippingCalculatorPage() {
     const fetchCountries = async () => {
         try {
             setIsInitialLoading(true);
-            const response = await fetch('/api/utils/calculator-shipping/');
+            const response = await fetch('/api/calculator/shipping/');
             if (!response.ok) {
                 throw new Error('国リストの取得に失敗しました');
             }
 
             const data = await response.json();
-            if (data.success) {
-                setCountries(data.data.countries);
+
+            if (data?.success && Array.isArray(data?.data?.countries)) {
+                setCountries(data.data.countries || []);
             } else {
-                throw new Error(data.message || '国リストの取得に失敗しました');
+                throw new Error(data?.message || '国リストの取得に失敗しました');
             }
         } catch (error) {
             setError(error instanceof Error ? error.message : '国リストの取得に失敗しました');
@@ -116,7 +125,7 @@ export default function ShippingCalculatorPage() {
                 is_document: isDocument
             };
 
-            const response = await fetch('/api/utils/calculator-shipping/', {
+            const response = await fetch('/api/calculator/shipping/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -126,15 +135,15 @@ export default function ShippingCalculatorPage() {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || '送料計算に失敗しました');
+                throw new Error(errorData?.message || '送料計算に失敗しました');
             }
 
             const responseData = await response.json() as ShippingResponse;
-            if (responseData.success) {
+            if (responseData?.success && responseData?.data) {
                 setResult(responseData.data);
                 toast.success('送料計算が完了しました');
             } else {
-                throw new Error(responseData.message || '送料計算に失敗しました');
+                throw new Error(responseData?.message || '送料計算に失敗しました');
             }
         } catch (error) {
             setError(error instanceof Error ? error.message : '送料計算に失敗しました');
@@ -180,8 +189,8 @@ export default function ShippingCalculatorPage() {
                                 <SelectContent>
                                     <SelectGroup>
                                         <SelectLabel>国名</SelectLabel>
-                                        {countries.map((country) => (
-                                            <SelectItem key={country.code} value={country.code}>
+                                        {countries.map((country, index) => (
+                                            <SelectItem key={`country-item-${index}`} value={country.code}>
                                                 {country.name}
                                             </SelectItem>
                                         ))}
@@ -269,7 +278,7 @@ export default function ShippingCalculatorPage() {
                     </Alert>
                 )}
 
-                {result && (
+                {result && result.weights_used && result.shipping_rates && (
                     <Card>
                         <CardHeader>
                             <CardTitle>送料計算結果</CardTitle>
@@ -277,36 +286,36 @@ export default function ShippingCalculatorPage() {
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-2 gap-2">
                                 <div className="text-sm font-medium">配送先国:</div>
-                                <div className="text-sm">{result.country.name}</div>
+                                <div className="text-sm">{result.country?.name || '不明'}</div>
 
                                 <div className="text-sm font-medium">実重量:</div>
-                                <div className="text-sm">{result.physical_weight.toFixed(2)} kg</div>
+                                <div className="text-sm">{result.physical_weight?.toFixed(2) || '0.00'} kg</div>
 
                                 <div className="col-span-2 mt-2 mb-1">
                                     <div className="text-sm font-medium">計算に使用された重量:</div>
                                 </div>
 
                                 <div className="text-sm font-medium">FedEx:</div>
-                                <div className="text-sm">{result.weights_used.fedex.toFixed(2)} kg</div>
+                                <div className="text-sm">{result.weights_used?.fedex?.toFixed(2) || '0.00'} kg</div>
 
                                 <div className="text-sm font-medium">DHL:</div>
-                                <div className="text-sm">{result.weights_used.dhl.toFixed(2)} kg</div>
+                                <div className="text-sm">{result.weights_used?.dhl?.toFixed(2) || '0.00'} kg</div>
 
                                 <div className="text-sm font-medium">Economy:</div>
-                                <div className="text-sm">{result.weights_used.economy.toFixed(2)} kg</div>
+                                <div className="text-sm">{result.weights_used?.economy?.toFixed(2) || '0.00'} kg</div>
 
                                 <div className="col-span-2 mt-2 mb-1">
                                     <div className="text-sm font-medium">送料:</div>
                                 </div>
 
                                 <div className="text-sm font-medium">FedEx:</div>
-                                <div className="text-sm">{result.shipping_rates.fedex.toLocaleString()} 円</div>
+                                <div className="text-sm">{result.shipping_rates?.fedex?.toLocaleString() || '0'} 円</div>
 
                                 <div className="text-sm font-medium">DHL:</div>
-                                <div className="text-sm">{result.shipping_rates.dhl.toLocaleString()} 円</div>
+                                <div className="text-sm">{result.shipping_rates?.dhl?.toLocaleString() || '0'} 円</div>
 
                                 <div className="text-sm font-medium">Economy:</div>
-                                <div className="text-sm">{result.shipping_rates.economy.toLocaleString()} 円</div>
+                                <div className="text-sm">{result.shipping_rates?.economy?.toLocaleString() || '0'} 円</div>
 
                                 <div className="col-span-2 border-t my-3"></div>
 
@@ -316,7 +325,7 @@ export default function ShippingCalculatorPage() {
                                         <div className="text-sm font-bold text-green-700">最もお得な配送方法:</div>
                                     </div>
                                     <div className="text-lg font-bold text-green-700">
-                                        {getServiceNameJapanese(result.recommended_service)}: {result.shipping_rates[result.recommended_service as keyof ShippingRate].toLocaleString()} 円
+                                        {getServiceNameJapanese(result.recommended_service || 'unknown')}: {result.recommended_service && result.shipping_rates?.[result.recommended_service as keyof ShippingRate]?.toLocaleString() || '0'} 円
                                     </div>
                                 </div>
                             </div>
