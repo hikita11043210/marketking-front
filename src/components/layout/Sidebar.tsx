@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from 'react';
-import { LogOut, Gavel, Store, Menu, X, Calculator, BookOpen, TruckIcon } from 'lucide-react';
+import { LogOut, Gavel, Store, Menu, X, Calculator, BookOpen, TruckIcon, Database } from 'lucide-react';
 import { BiHome } from 'react-icons/bi';
 import { toast } from "sonner";
 import {
@@ -80,6 +80,16 @@ const navigation: NavItem[] = [
             {
                 title: "- 送料計算",
                 href: "/calculator/shipping",
+            },
+        ],
+    },
+    {
+        title: "マスタ",
+        icon: <Database className="h-5 w-5" />,
+        subItems: [
+            {
+                title: "- インポート",
+                href: "/master/import",
             },
         ],
     },
