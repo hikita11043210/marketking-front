@@ -143,9 +143,9 @@ function YahooFreeMarketListContent() {
 
     const yahooStatusOptions = [
         { label: 'すべて', value: '' },
-        { label: '購入可', value: '購入可' },
-        { label: '購入済', value: '購入済' },
-        { label: '購入不可', value: '購入不可' },
+        { label: '仕入可', value: '仕入可' },
+        { label: '仕入済', value: '仕入済' },
+        { label: '仕入不可', value: '仕入不可' },
     ];
 
     const handleSearch = (e: React.FormEvent) => {
@@ -301,9 +301,9 @@ function YahooFreeMarketListContent() {
             '売却': 'bg-blue-500 text-white',
             '完了': 'bg-purple-500 text-white',
             '出品失敗': 'bg-red-500 text-white',
-            '購入可': 'bg-green-500 text-white',
-            '購入済': 'bg-gray-500 text-white',
-            '購入不可': 'bg-red-500 text-white',
+            '仕入可': 'bg-green-500 text-white',
+            '仕入済': 'bg-gray-500 text-white',
+            '仕入不可': 'bg-red-500 text-white',
         };
         return (
             <Badge className={`${statusColors[status] || 'bg-gray-500 text-white'} whitespace-nowrap min-w-[80px] justify-center`}>
@@ -536,7 +536,7 @@ function YahooFreeMarketListContent() {
                                                         disabled={!!actionLoading}
                                                     />
                                                 )}
-                                                {item.status === '取下げ' && item.yahoo_free_market_status === '購入可' && (
+                                                {item.status === '取下げ' && item.yahoo_free_market_status === '仕入可' && (
                                                     <LoadingButton
                                                         className="bg-green-500 hover:bg-green-600 text-white"
                                                         size="sm"

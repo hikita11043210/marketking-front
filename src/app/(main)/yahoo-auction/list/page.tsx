@@ -279,9 +279,9 @@ function ListPageContent() {
             '売却': 'bg-blue-500 text-white',
             '完了': 'bg-purple-500 text-white',
             '出品失敗': 'bg-red-500 text-white',
-            '購入可': 'bg-green-500 text-white',
-            '購入済': 'bg-gray-500 text-white',
-            '購入不可': 'bg-red-500 text-white',
+            '仕入可': 'bg-green-500 text-white',
+            '仕入済': 'bg-gray-500 text-white',
+            '仕入不可': 'bg-red-500 text-white',
         };
         return (
             <Badge className={`${statusColors[status] || 'bg-gray-500 text-white'} whitespace-nowrap min-w-[80px] justify-center`}>
