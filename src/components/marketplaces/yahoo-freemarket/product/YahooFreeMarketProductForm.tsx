@@ -80,8 +80,18 @@ const productFormSchema = z.object({
     description: z.string()
         .max(1152, { message: '説明は1152文字以内で入力してください' }),
     price: z.string().min(1, { message: '価格を入力してください' }),
-    final_profit: z.string(),
+    final_profit_yen: z.string(),
     final_profit_dollar: z.string(),
+    original_price: z.string().optional(),
+    shipping_cost: z.string().optional(),
+    rate: z.string().optional(),
+    ebay_fee: z.string().optional(),
+    international_fee: z.string().optional(),
+    tax_rate: z.string().optional(),
+    calculated_price_yen: z.string().optional(),
+    calculated_price_dollar: z.string().optional(),
+    exchange_rate: z.string().optional(),
+    ebay_shipping_price: z.number().optional(),
     quantity: z.string().min(1, { message: '数量を入力してください' }),
     condition: z.string().min(1, { message: '商品の状態を選択してください' }),
     conditionDescription: z.string().min(1, { message: '商品の詳細を入力してください' }),
@@ -133,11 +143,21 @@ export const ProductForm = ({
         resolver: zodResolver(productFormSchema),
         defaultValues: {
             title: replaceSpecialCharacters(detailData?.item_details.title || ''),
-            titleCondition: 'MINT',
+            titleCondition: '',
             description: '',
             price: detailData?.price.calculated_price_dollar.toString(),
-            final_profit: detailData?.price.final_profit_yen.toString(),
+            final_profit_yen: detailData?.price.final_profit_yen.toString(),
             final_profit_dollar: detailData?.price.final_profit_dollar.toString(),
+            original_price: detailData?.price.original_price?.toString() || '',
+            shipping_cost: detailData?.price.shipping_cost?.toString() || '',
+            rate: detailData?.price.rate?.toString() || '',
+            ebay_fee: detailData?.price.ebay_fee?.toString() || '',
+            international_fee: detailData?.price.international_fee?.toString() || '',
+            tax_rate: detailData?.price.tax_rate?.toString() || '',
+            calculated_price_yen: detailData?.price.calculated_price_yen?.toString() || '',
+            calculated_price_dollar: detailData?.price.calculated_price_dollar?.toString() || '',
+            exchange_rate: detailData?.price.exchange_rate?.toString() || '',
+            ebay_shipping_price: 3000,
             quantity: "1",
             condition: detailData?.selected_condition.toString() || '',
             conditionDescription: detailData?.condition_description_en.translated_text,
@@ -283,7 +303,7 @@ export const ProductForm = ({
         const numericValue = value.replace(/,/g, '');
 
         if (!numericValue) {
-            form.setValue('final_profit', '0');
+            form.setValue('final_profit_yen', '0');
             form.setValue('final_profit_dollar', '0');
             return;
         }
@@ -296,7 +316,17 @@ export const ProductForm = ({
             const response = await fetch(`/api/calculator/price?${priceArray.map(price => `money[]=${encodeURIComponent(price)}`).join('&')}&price=${encodeURIComponent(numericValue)}`);
             const data = await response.json();
             if (data.success) {
-                form.setValue('final_profit', data.data.final_profit_yen.toString());
+                // 全ての計算値をフォームにセット
+                form.setValue('original_price', data.data.original_price.toString());
+                form.setValue('shipping_cost', data.data.shipping_cost.toString());
+                form.setValue('rate', data.data.rate.toString());
+                form.setValue('ebay_fee', data.data.ebay_fee.toString());
+                form.setValue('international_fee', data.data.international_fee.toString());
+                form.setValue('tax_rate', data.data.tax_rate.toString());
+                form.setValue('calculated_price_yen', data.data.calculated_price_yen.toString());
+                form.setValue('calculated_price_dollar', data.data.calculated_price_dollar.toString());
+                form.setValue('exchange_rate', data.data.exchange_rate.toString());
+                form.setValue('final_profit_yen', data.data.final_profit_yen.toString());
                 form.setValue('final_profit_dollar', data.data.final_profit_dollar.toString());
             }
         } catch (error) {
@@ -386,8 +416,18 @@ export const ProductForm = ({
                     yahoo_free_market_shipping: '0',
                 },
                 other_data: {
-                    ebay_shipping_price: '',
-                    final_profit: values.final_profit_dollar,
+                    ebay_shipping_price: values.ebay_shipping_price,
+                    original_price: values.original_price,
+                    shipping_cost: values.shipping_cost,
+                    rate: values.rate,
+                    ebay_fee: values.ebay_fee,
+                    international_fee: values.international_fee,
+                    tax_rate: values.tax_rate,
+                    calculated_price_yen: values.calculated_price_yen,
+                    calculated_price_dollar: values.calculated_price_dollar,
+                    exchange_rate: values.exchange_rate,
+                    final_profit_yen: values.final_profit_yen,
+                    final_profit_dollar: values.final_profit_dollar,
                 }
             };
 
@@ -549,7 +589,7 @@ export const ProductForm = ({
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="none">選択なし</SelectItem>
+                                                    <SelectItem value="">選択なし</SelectItem>
                                                     <SelectItem value="New">New</SelectItem>
                                                     <SelectItem value="New other">New other</SelectItem>
                                                     <SelectItem value="Unopened">Unopened</SelectItem>
@@ -646,7 +686,7 @@ export const ProductForm = ({
                     <FormLabel className="text-muted-foreground whitespace-nowrap ml-4 mr-2">最終利益</FormLabel>
                     <FormField
                         control={form.control}
-                        name="final_profit"
+                        name="final_profit_yen"
                         render={({ field }) => (
                             <FormItem>
                                 <div className="h-11 px-3 border rounded-md bg-muted flex items-center text-muted-foreground">

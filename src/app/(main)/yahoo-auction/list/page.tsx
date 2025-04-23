@@ -15,29 +15,46 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { RemainingTime } from "@/components/layout/RemainingTime";
 import { toast } from "sonner";
+import {
+    ArrowDown01Icon,
+    ArrowUpIcon,
+    RefreshCcwIcon,
+    ShoppingCartIcon,
+    BanknoteIcon
+} from "lucide-react";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { MarketplaceActionButtons } from '@/components/marketplaces/ActionButtons';
+import { handleAuctionAction, handleGlobalSync } from '@/utils/marketplaceActions';
+import { getStatusBadge } from '@/components/marketplaces/StatusBadge';
 
 interface ListItem {
-    id: number;
-    status: string;
-    sku: string;
-    offer_id: string;
-    ebay_price: string;
-    ebay_shipping_price: string;
-    final_profit: string;
-    view_count: number;
-    watch_count: number;
-    yahoo_auction_id: number;
-    yahoo_auction_unique_id: string;
-    yahoo_auction_url: string;
-    yahoo_auction_item_name: string;
-    yahoo_auction_item_price: string;
-    yahoo_auction_shipping: string;
-    yahoo_auction_end_time: string;
-    purchase_price: string;
-    remaining_time: string;
-    yahoo_auction_status: string;
-    update_datetime: string;
+    ebay_id: number;
+    ebay_status: string;
+    ebay_sku: string;
+    ebay_offer_id: string;
+    ebay_price_dollar: number;
+    ebay_price_yen: number;
+    ebay_shipping_price: number;
+    ebay_final_profit_dollar: number;
+    ebay_final_profit_yen: number;
+    ebay_view_count: number;
+    ebay_watch_count: number;
+    ya_id: number;
+    ya_unique_id: string;
+    ya_url: string;
+    ya_item_name: string;
+    ya_item_price: string;
+    ya_shipping: string;
+    ya_purchase_amount: number;
+    ya_end_time: string;
+    ya_status: string;
     insert_datetime: string;
+    update_datetime: string;
 }
 
 interface PaginationInfo {
@@ -79,17 +96,18 @@ const LoadingButton = ({
     onClick,
     disabled,
     className,
-    size = 'default'
-}: LoadingButtonProps) => {
+    size = 'default',
+    children
+}: LoadingButtonProps & { children?: React.ReactNode }) => {
     return (
         <Button
-            className={`${className} relative min-w-[64px] px-2`}
+            className={`${className} relative min-w-[36px] px-2`}
             size={size}
             onClick={onClick}
             disabled={disabled || loading}
         >
             <span className={`${loading ? 'invisible' : ''}`}>
-                {defaultText}
+                {children || defaultText}
             </span>
             {loading && (
                 <span className="absolute inset-0 flex items-center justify-center">
@@ -137,157 +155,49 @@ function ListPageContent() {
         router.push(`/list?${params.toString()}`);
     };
 
-    const handleWithdraw = async (offer_id: string, sku: string) => {
-        try {
-            setActionLoading(`withdraw-${offer_id}`);
-            const response = await fetch(`/api/ebay/offer`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'withdraw',
-                    offer_id,
-                    sku
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || '取下げに失敗しました');
-            }
-
-            // 成功したら一覧を再取得
-            fetchItems();
-        } catch (error) {
-            console.error('Failed to withdraw item:', error);
-            setError(error instanceof Error ? error.message : '取下げに失敗しました');
-        } finally {
-            setActionLoading('');
-        }
+    const handleWithdraw = async (sku: string) => {
+        handleAuctionAction({
+            actionType: 'withdraw',
+            sku,
+            setActionLoading,
+            fetchItems
+        });
     };
 
-    const handleRelist = async (offer_id: string, sku: string) => {
-        try {
-            setActionLoading(`relist-${offer_id}`);
-            const response = await fetch(`/api/ebay/offer`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'publish',
-                    offer_id,
-                    sku
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || '再出品に失敗しました');
-            }
-
-            // 成功したら一覧を再取得
-            fetchItems();
-        } catch (error) {
-            console.error('Failed to relist item:', error);
-            setError(error instanceof Error ? error.message : '再出品に失敗しました');
-        } finally {
-            setActionLoading('');
-        }
+    const handleRelist = async (sku: string) => {
+        handleAuctionAction({
+            actionType: 'relist',
+            sku,
+            setActionLoading,
+            fetchItems
+        });
     };
 
-    const handleSynchronize = async () => {
-        try {
-            setActionLoading('sync');
-            const response = await fetch('/api/synchronize/ebay', {
-                method: 'GET',
-            });
-
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.message || '同期に失敗しました');
-            }
-
-            // 成功したら一覧を再取得
-            fetchItems();
-        } catch (error) {
-            console.error('Failed to synchronize:', error);
-            setError(error instanceof Error ? error.message : '同期に失敗しました');
-        } finally {
-            setActionLoading('');
-        }
+    const handleSynchronize = async (sku: string) => {
+        handleAuctionAction({
+            actionType: 'sync',
+            sku,
+            setActionLoading,
+            fetchItems
+        });
     };
 
-    const handleYahooSynchronize = async () => {
-        try {
-            setActionLoading('yahoo-sync');
-            const response = await fetch('/api/synchronize/yahoo-auction', {
-                method: 'GET',
-            });
-
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.message || 'Yahoo同期に失敗しました');
-            }
-            // 成功したら一覧を再取得
-            fetchItems();
-        } catch (error) {
-            console.error('Failed to synchronize Yahoo:', error);
-            setError(error instanceof Error ? error.message : 'Yahoo同期に失敗しました');
-        } finally {
-            setActionLoading('');
-        }
+    const handlePurchase = async (sku: string) => {
+        handleAuctionAction({
+            actionType: 'purchase',
+            sku,
+            setActionLoading,
+            fetchItems
+        });
     };
 
-    const handleStatusUpdate = async (id: number) => {
-        try {
-            setActionLoading(`status-${id}`);
-            const response = await fetch(`/api/yahoo-auction/status-update/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    status_id: 2 // 購入済みステータスID（適切な値に変更してください）
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || data.detail || 'ステータスの更新に失敗しました');
-            }
-
-            toast.success("ステータスを購入済みに変更しました");
-            // 成功したら一覧を再取得
-            fetchItems();
-        } catch (error) {
-            console.error('Failed to update status:', error);
-            toast.error(error instanceof Error ? error.message : 'ステータスの更新に失敗しました');
-        } finally {
-            setActionLoading('');
-        }
-    };
-
-    const getStatusBadge = (status: string) => {
-        const statusColors: { [key: string]: string } = {
-            '出品中': 'bg-green-500 text-white',
-            '取下げ': 'bg-gray-500 text-white',
-            '売却': 'bg-blue-500 text-white',
-            '完了': 'bg-purple-500 text-white',
-            '出品失敗': 'bg-red-500 text-white',
-            '仕入可': 'bg-green-500 text-white',
-            '仕入済': 'bg-gray-500 text-white',
-            '仕入不可': 'bg-red-500 text-white',
-        };
-        return (
-            <Badge className={`${statusColors[status] || 'bg-gray-500 text-white'} whitespace-nowrap min-w-[80px] justify-center`}>
-                {status}
-            </Badge>
-        );
+    const handleSalesRegistration = async (sku: string) => {
+        handleAuctionAction({
+            actionType: 'sales',
+            sku,
+            setActionLoading,
+            fetchItems
+        });
     };
 
     const fetchItems = useCallback(async () => {
@@ -322,6 +232,16 @@ function ListPageContent() {
         fetchItems();
     }, [fetchItems]);
 
+    // グローバルな同期ボタン用のハンドラー
+    const handleGlobalSynchronize = async () => {
+        handleGlobalSync('ebay', setActionLoading, fetchItems);
+    };
+
+    // Yahoo用グローバル同期ボタン用のハンドラー
+    const handleGlobalYahooSynchronize = async () => {
+        handleGlobalSync('yahoo-auction', setActionLoading, fetchItems);
+    };
+
     return (
         <div>
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
@@ -331,7 +251,7 @@ function ListPageContent() {
                         <LoadingButton
                             className="bg-blue-500 hover:bg-blue-600 text-white flex-1 md:flex-none"
                             size="sm"
-                            onClick={handleSynchronize}
+                            onClick={handleGlobalSynchronize}
                             loading={actionLoading === 'sync'}
                             loadingText="同期中..."
                             defaultText="eBay同期"
@@ -340,7 +260,7 @@ function ListPageContent() {
                         <LoadingButton
                             className="bg-red-500 hover:bg-red-600 text-white flex-1 md:flex-none"
                             size="sm"
-                            onClick={handleYahooSynchronize}
+                            onClick={handleGlobalYahooSynchronize}
                             loading={actionLoading === 'yahoo-sync'}
                             loadingText="同期中..."
                             defaultText="Yahoo同期"
@@ -381,106 +301,71 @@ function ListPageContent() {
                                 <TableHead className="w-10 whitespace-nowrap">Views</TableHead>
                                 <TableHead className="w-10 whitespace-nowrap">Watchers</TableHead>
                                 <TableHead className="w-24 whitespace-nowrap text-center">仕入状態</TableHead>
+                                <TableHead className="whitespace-nowrap">終了時間</TableHead>
                                 <TableHead className="w-96 whitespace-nowrap">商品名</TableHead>
-                                <TableHead className="w-36 whitespace-nowrap">残り</TableHead>
-                                <TableHead className="w-40 whitespace-nowrap">登録日時</TableHead>
-                                <TableHead className="w-40 whitespace-nowrap">更新日時</TableHead>
                                 <TableHead className="w-20 whitespace-nowrap text-center">操作</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={9} className="text-center">
+                                    <TableCell colSpan={11} className="text-center">
                                         読み込み中...
                                     </TableCell>
                                 </TableRow>
                             ) : items.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={9} className="text-center">
+                                    <TableCell colSpan={11} className="text-center">
                                         データがありません
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 items.map((item) => (
-                                    <TableRow key={item.id}>
-                                        <TableCell>{getStatusBadge(item.status)}</TableCell>
+                                    <TableRow key={item.ebay_id}>
+                                        <TableCell className="text-center">{getStatusBadge(item.ebay_status)}</TableCell>
                                         <TableCell>
-                                            <div className="truncate max-w-[160px]" title={item.sku}>
-                                                {item.sku}
+                                            <div className="truncate max-w-[160px]" title={item.ebay_sku}>
+                                                {item.ebay_sku}
                                             </div>
                                         </TableCell>
-                                        <TableCell>¥{Number(item.ebay_price).toLocaleString()}</TableCell>
-                                        <TableCell>¥{Number(item.purchase_price).toLocaleString()}</TableCell>
-                                        <TableCell>¥{Number(item.ebay_shipping_price).toLocaleString()}</TableCell>
-                                        <TableCell>¥{Number(item.final_profit).toLocaleString()}</TableCell>
-                                        <TableCell className="text-center">{item.view_count}</TableCell>
-                                        <TableCell className="text-center">{item.watch_count}</TableCell>
-                                        <TableCell className="text-center">{getStatusBadge(item.yahoo_auction_status)}</TableCell>
-                                        <TableCell className="max-w-[200px]">
+                                        <TableCell className="text-right">¥{Number(item.ebay_price_yen).toLocaleString()}</TableCell>
+                                        <TableCell className="text-right">¥{Number(item.ya_purchase_amount).toLocaleString()}</TableCell>
+                                        <TableCell className="text-right">¥{Number(item.ebay_shipping_price).toLocaleString()}</TableCell>
+                                        <TableCell className="text-right">¥{Number(item.ebay_final_profit_yen).toLocaleString()}</TableCell>
+                                        <TableCell className="text-center">{item.ebay_view_count}</TableCell>
+                                        <TableCell className="text-center">{item.ebay_watch_count}</TableCell>
+                                        <TableCell className="text-center">{getStatusBadge(item.ya_status)}</TableCell>
+                                        <TableCell className="whitespace-nowrap">
+                                            {item.ya_end_time ? (
+                                                <RemainingTime endDate={new Date(item.ya_end_time)} />
+                                            ) : (
+                                                '-'
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
                                             <a
-                                                href={item.yahoo_auction_url}
+                                                href={item.ya_url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-blue-600 hover:text-blue-800 hover:underline truncate block"
-                                                title={item.yahoo_auction_item_name}
+                                                className="text-blue-600 hover:text-blue-800 hover:underline truncate block max-w-[300px]"
+                                                title={item.ya_item_name}
                                             >
-                                                {item.yahoo_auction_item_name}
+                                                {item.ya_item_name}
                                             </a>
                                         </TableCell>
-                                        <TableCell className="whitespace-nowrap">
-                                            <RemainingTime endDate={new Date(item.yahoo_auction_end_time)} />
-                                        </TableCell>
-                                        <TableCell className="whitespace-nowrap">
-                                            {item.insert_datetime ? new Date(item.insert_datetime).toLocaleString('ja-JP') : '-'}
-                                        </TableCell>
-                                        <TableCell className="whitespace-nowrap">
-                                            {item.update_datetime ? new Date(item.update_datetime).toLocaleString('ja-JP') : '-'}
-                                        </TableCell>
                                         <TableCell>
-                                            <div className="flex gap-2">
-                                                {item.status === '出品中' && (
-                                                    <LoadingButton
-                                                        className="bg-gray-500 hover:bg-gray-600 text-white"
-                                                        size="sm"
-                                                        onClick={() => handleWithdraw(item.offer_id, item.sku)}
-                                                        loading={actionLoading === `withdraw-${item.offer_id}`}
-                                                        loadingText="取下げ"
-                                                        defaultText="取下げ"
-                                                        disabled={!!actionLoading}
-                                                    />
-                                                )}
-                                                {item.status === '取下げ' && (
-                                                    <LoadingButton
-                                                        className="bg-green-500 hover:bg-green-600 text-white"
-                                                        size="sm"
-                                                        onClick={() => handleRelist(item.offer_id, item.sku)}
-                                                        loading={actionLoading === `relist-${item.offer_id}`}
-                                                        loadingText="再出品"
-                                                        defaultText="再出品"
-                                                        disabled={!!actionLoading}
-                                                    />
-                                                )}
-                                                {item.yahoo_auction_status !== '購入済' && (
-                                                    <LoadingButton
-                                                        className="bg-blue-500 hover:bg-blue-600 text-white"
-                                                        size="sm"
-                                                        onClick={() => handleStatusUpdate(item.yahoo_auction_id)}
-                                                        loading={actionLoading === `status-${item.yahoo_auction_id}`}
-                                                        loadingText="更新中"
-                                                        defaultText="仕入"
-                                                        disabled={!!actionLoading}
-                                                    />
-                                                )}
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => {/* 編集処理 */ }}
-                                                    disabled={!!actionLoading}
-                                                >
-                                                    編集
-                                                </Button>
-                                            </div>
+                                            <MarketplaceActionButtons
+                                                itemType="auction"
+                                                marketStatus={item.ebay_status}
+                                                purchaseStatus={item.ya_status}
+                                                sku={item.ebay_sku}
+                                                actionLoading={actionLoading}
+                                                onWithdraw={handleWithdraw}
+                                                onRelist={handleRelist}
+                                                onSynchronize={handleSynchronize}
+                                                onPurchase={handlePurchase}
+                                                onSalesRegistration={handleSalesRegistration}
+                                            />
                                         </TableCell>
                                     </TableRow>
                                 ))

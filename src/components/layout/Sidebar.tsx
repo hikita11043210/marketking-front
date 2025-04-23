@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from 'react';
-import { LogOut, Gavel, Store, Menu, X, Calculator, BookOpen, TruckIcon, Database } from 'lucide-react';
+import { LogOut, Gavel, Store, Menu, X, Calculator, BookOpen, TruckIcon, Database, DollarSign } from 'lucide-react';
 import { BiHome } from 'react-icons/bi';
 import { toast } from "sonner";
 import {
@@ -39,6 +39,24 @@ const navigation: NavItem[] = [
         title: "古物台帳",
         href: "/antique-ledger",
         icon: <BookOpen className="h-5 w-5" />,
+    },
+    {
+        title: "収支管理",
+        icon: <DollarSign className="h-5 w-5" />,
+        subItems: [
+            {
+                title: "- 売上管理",
+                href: "/accounting/sales",
+            },
+            {
+                title: "- 仕入管理",
+                href: "/accounting/purchases",
+            },
+            {
+                title: "- 経費管理",
+                href: "/accounting/expenses",
+            },
+        ],
     },
     {
         title: "Yahooオークション",

@@ -1,0 +1,538 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { SalesItem, ClientInfo } from '@/types/accounting';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { CalendarIcon, Loader2 } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { ja } from 'date-fns/locale';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+// バリデーションスキーマの定義
+const salesFormSchema = z.object({
+    transaction_date: z.date({
+        required_error: "取引日を選択してください",
+    }),
+    product_name: z.string().min(1, "商品名を入力してください"),
+    management_code: z.string().min(1, "管理コードを入力してください"),
+    quantity: z.coerce.number().min(1, "1以上の数量を入力してください"),
+    price: z.coerce.number().min(0, "0以上の金額を入力してください"),
+    tax: z.coerce.number().min(0, "0以上の金額を入力してください"),
+    shipping_cost: z.coerce.number().min(0, "0以上の金額を入力してください"),
+    total_amount: z.coerce.number().min(0, "0以上の金額を入力してください"),
+    url: z.string().optional(),
+    invoice_number: z.string().optional(),
+    identification_type: z.string().optional(),
+    identification_number: z.string().optional(),
+    // 顧客情報
+    client_name: z.string().optional(),
+    client_company_name: z.string().optional(),
+    client_postal_code: z.string().optional(),
+    client_address: z.string().optional(),
+    client_occupation: z.string().optional(),
+    client_age: z.coerce.number().optional(),
+});
+
+type SalesFormValues = z.infer<typeof salesFormSchema>;
+
+interface SalesFormProps {
+    sale?: SalesItem;
+    isOpen: boolean;
+    onClose: () => void;
+    onSubmit: (data: Partial<SalesItem>) => Promise<void>;
+    isSubmitting?: boolean;
+}
+
+export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = false }: SalesFormProps) {
+    const [activeTab, setActiveTab] = useState('basic');
+
+    const form = useForm<SalesFormValues>({
+        resolver: zodResolver(salesFormSchema),
+        defaultValues: {
+            transaction_date: new Date(),
+            product_name: '',
+            management_code: '',
+            quantity: 1,
+            price: 0,
+            tax: 0,
+            shipping_cost: 0,
+            total_amount: 0,
+            url: '',
+            invoice_number: '',
+            identification_type: '',
+            identification_number: '',
+            client_name: '',
+            client_company_name: '',
+            client_postal_code: '',
+            client_address: '',
+            client_occupation: '',
+            client_age: undefined,
+        },
+    });
+
+    // 既存データの読み込み
+    useEffect(() => {
+        if (sale) {
+            const values = {
+                transaction_date: new Date(sale.transaction_date),
+                product_name: sale.product_name,
+                management_code: sale.management_code,
+                quantity: sale.quantity,
+                price: sale.price,
+                tax: sale.tax,
+                shipping_cost: sale.shipping_cost,
+                total_amount: sale.total_amount,
+                url: sale.url || '',
+                invoice_number: sale.invoice_number || '',
+                identification_type: sale.identification_type || '',
+                identification_number: sale.identification_number || '',
+                client_name: sale.client_info.client_name || '',
+                client_company_name: sale.client_info.client_company_name || '',
+                client_postal_code: sale.client_info.client_postal_code || '',
+                client_address: sale.client_info.client_address || '',
+                client_occupation: sale.client_info.client_occupation || '',
+                client_age: sale.client_info.client_age,
+            };
+            form.reset(values);
+        } else {
+            form.reset({
+                transaction_date: new Date(),
+                product_name: '',
+                management_code: '',
+                quantity: 1,
+                price: 0,
+                tax: 0,
+                shipping_cost: 0,
+                total_amount: 0,
+                url: '',
+                invoice_number: '',
+                identification_type: '',
+                identification_number: '',
+                client_name: '',
+                client_company_name: '',
+                client_postal_code: '',
+                client_address: '',
+                client_occupation: '',
+                client_age: undefined,
+            });
+        }
+    }, [sale, form]);
+
+    // 小計・消費税・合計を自動計算
+    useEffect(() => {
+        const quantity = form.watch('quantity') || 0;
+        const price = form.watch('price') || 0;
+        const tax = form.watch('tax') || 0;
+        const shipping_cost = form.watch('shipping_cost') || 0;
+
+        const subtotal = quantity * price;
+        const total = subtotal + tax + shipping_cost;
+
+        form.setValue('total_amount', total);
+    }, [form.watch('quantity'), form.watch('price'), form.watch('tax'), form.watch('shipping_cost'), form]);
+
+    const handleSubmit = async (values: SalesFormValues) => {
+        // フォームデータをAPIの形式に変換
+        const formattedData: Partial<SalesItem> = {
+            transaction_date: format(values.transaction_date, 'yyyy-MM-dd'),
+            product_name: values.product_name,
+            management_code: values.management_code,
+            quantity: values.quantity,
+            price: values.price,
+            tax: values.tax,
+            shipping_cost: values.shipping_cost,
+            total_amount: values.total_amount,
+            url: values.url,
+            invoice_number: values.invoice_number,
+            identification_type: values.identification_type,
+            identification_number: values.identification_number,
+            client_info: {
+                client_name: values.client_name,
+                client_company_name: values.client_company_name,
+                client_postal_code: values.client_postal_code,
+                client_address: values.client_address,
+                client_occupation: values.client_occupation,
+                client_age: values.client_age,
+            } as ClientInfo,
+        };
+
+        // 既存の売上データがある場合はIDを追加
+        if (sale?.id) {
+            formattedData.id = sale.id;
+        }
+
+        await onSubmit(formattedData);
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-[725px]">
+                <DialogHeader>
+                    <DialogTitle>{sale ? '売上データ編集' : '新規売上データ登録'}</DialogTitle>
+                </DialogHeader>
+
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                            <TabsList className="grid w-full grid-cols-3">
+                                <TabsTrigger value="basic">基本情報</TabsTrigger>
+                                <TabsTrigger value="client">顧客情報</TabsTrigger>
+                                <TabsTrigger value="other">その他情報</TabsTrigger>
+                            </TabsList>
+
+                            <TabsContent value="basic" className="space-y-4 pt-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="transaction_date"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-col">
+                                                <FormLabel>取引日 *</FormLabel>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <FormControl>
+                                                            <Button
+                                                                variant="outline"
+                                                                className={cn(
+                                                                    "w-full pl-3 text-left font-normal",
+                                                                    !field.value && "text-muted-foreground"
+                                                                )}
+                                                            >
+                                                                {field.value ? (
+                                                                    format(field.value, 'yyyy年MM月dd日', { locale: ja })
+                                                                ) : (
+                                                                    <span>日付を選択</span>
+                                                                )}
+                                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                            </Button>
+                                                        </FormControl>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto p-0" align="start">
+                                                        <Calendar
+                                                            mode="single"
+                                                            selected={field.value}
+                                                            onSelect={field.onChange}
+                                                            disabled={(date) =>
+                                                                date > new Date() || date < new Date("1900-01-01")
+                                                            }
+                                                            initialFocus
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="product_name"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>商品名 *</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="商品名を入力" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="management_code"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>管理コード *</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="SKU-001" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="quantity"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>数量 *</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" min="1" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="price"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>単価 *</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" min="0" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="tax"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>消費税 *</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" min="0" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="shipping_cost"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>送料 *</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" min="0" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="total_amount"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>合計金額 *</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" min="0" readOnly {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </TabsContent>
+
+                            <TabsContent value="client" className="space-y-4 pt-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="client_name"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>顧客名</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="顧客名を入力" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="client_company_name"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>会社名</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="会社名を入力" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="client_postal_code"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>郵便番号</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="123-4567" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="client_address"
+                                        render={({ field }) => (
+                                            <FormItem className="col-span-2">
+                                                <FormLabel>住所</FormLabel>
+                                                <FormControl>
+                                                    <Textarea
+                                                        placeholder="住所を入力"
+                                                        className="resize-none"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="client_occupation"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>職業</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="職業を入力" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="client_age"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>年齢</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        type="number"
+                                                        min="0"
+                                                        placeholder="年齢を入力"
+                                                        value={field.value || ''}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value ? parseInt(e.target.value) : undefined;
+                                                            field.onChange(value);
+                                                        }}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </TabsContent>
+
+                            <TabsContent value="other" className="space-y-4 pt-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="invoice_number"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>請求書番号</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="INV-001" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="url"
+                                        render={({ field }) => (
+                                            <FormItem className="col-span-2">
+                                                <FormLabel>URL</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="https://example.com"
+                                                        type="url"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="identification_type"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>識別タイプ</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="識別タイプを入力" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="identification_number"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>識別番号</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="識別番号を入力" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </TabsContent>
+                        </Tabs>
+
+                        <DialogFooter>
+                            <Button variant="outline" type="button" onClick={onClose}>キャンセル</Button>
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        保存中...
+                                    </>
+                                ) : (
+                                    "保存"
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
+            </DialogContent>
+        </Dialog>
+    );
+} 
