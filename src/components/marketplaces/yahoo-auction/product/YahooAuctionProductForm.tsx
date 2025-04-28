@@ -584,15 +584,18 @@ export const ProductForm = ({
                                         <FormItem className="grid grid-cols-[200px,1fr] items-center">
                                             <Select
                                                 value={field.value}
-                                                onValueChange={field.onChange}
+                                                onValueChange={(value) => {
+                                                    // "none" が選択された場合は空文字列を設定
+                                                    field.onChange(value === "none" ? "" : value);
+                                                }}
                                             >
                                                 <FormControl>
                                                     <SelectTrigger className="h-11">
-                                                        <SelectValue placeholder="コンディション" />
+                                                        <SelectValue placeholder="" />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="">選択なし</SelectItem>
+                                                    <SelectItem value="none">選択なし</SelectItem>
                                                     <SelectItem value="New">New</SelectItem>
                                                     <SelectItem value="New other">New other</SelectItem>
                                                     <SelectItem value="Unopened">Unopened</SelectItem>
