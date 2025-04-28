@@ -185,7 +185,7 @@ export function ExpensesForm({ expense, isOpen, onClose, onSubmit, isSubmitting 
                                 <TabsTrigger value="other">その他情報</TabsTrigger>
                             </TabsList>
 
-                            <TabsContent value="basic" className="space-y-4 mt-4">
+                            <TabsContent value="basic" className="space-y-4 pt-4 h-[520px] overflow-y-auto">
                                 <div className="grid grid-cols-2 gap-4">
                                     <FormField
                                         control={form.control}
@@ -227,7 +227,12 @@ export function ExpensesForm({ expense, isOpen, onClose, onSubmit, isSubmitting 
                                         <FormItem>
                                             <FormLabel>詳細</FormLabel>
                                             <FormControl>
-                                                <Textarea placeholder="詳細情報" {...field} />
+                                                <Textarea
+                                                    placeholder="詳細情報"
+                                                    className="min-h-[120px]"
+                                                    rows={5}
+                                                    {...field}
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -299,7 +304,7 @@ export function ExpensesForm({ expense, isOpen, onClose, onSubmit, isSubmitting 
                                 />
                             </TabsContent>
 
-                            <TabsContent value="client" className="space-y-4 mt-4">
+                            <TabsContent value="client" className="space-y-4 pt-4 h-[520px] overflow-y-auto">
                                 <FormField
                                     control={form.control}
                                     name="client_name"
@@ -351,7 +356,12 @@ export function ExpensesForm({ expense, isOpen, onClose, onSubmit, isSubmitting 
                                         <FormItem>
                                             <FormLabel>取引先 住所</FormLabel>
                                             <FormControl>
-                                                <Textarea placeholder="東京都渋谷区..." {...field} />
+                                                <Textarea
+                                                    placeholder="東京都渋谷区..."
+                                                    className="min-h-[120px]"
+                                                    rows={5}
+                                                    {...field}
+                                                />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -359,7 +369,7 @@ export function ExpensesForm({ expense, isOpen, onClose, onSubmit, isSubmitting 
                                 />
                             </TabsContent>
 
-                            <TabsContent value="other" className="space-y-4 mt-4">
+                            <TabsContent value="other" className="space-y-4 pt-4 h-[520px] overflow-y-auto">
                                 <FormField
                                     control={form.control}
                                     name="url"

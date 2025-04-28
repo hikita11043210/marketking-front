@@ -165,7 +165,7 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
 
         // 合計金額の計算: (単価×数量) - 輸入税 - 最終価値手数料 - 国際手数料 + 消費税 + 送料
         const subtotal = quantity * price;
-        const total = subtotal - import_tax - final_value_fee - international_fee + tax + shipping_cost;
+        const total = subtotal - import_tax - final_value_fee - international_fee + tax - shipping_cost;
 
         // NaNチェック
         if (!isNaN(total)) {
@@ -184,6 +184,13 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
         form.watch('international_fee'),
         form
     ]);
+
+    // Tabsが存在しないタブ値を持っている場合に備えて、コンポーネントがマウントされたときに確認
+    useEffect(() => {
+        if (activeTab === 'fees') {
+            setActiveTab('basic');
+        }
+    }, [activeTab]);
 
     const handleSubmit = async (values: SalesFormValues) => {
         // フォームデータをAPIの形式に変換
@@ -228,14 +235,13 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                            <TabsList className="grid w-full grid-cols-4">
+                            <TabsList className="grid w-full grid-cols-3">
                                 <TabsTrigger value="basic">基本情報</TabsTrigger>
-                                <TabsTrigger value="fees">手数料情報</TabsTrigger>
                                 <TabsTrigger value="client">顧客情報</TabsTrigger>
                                 <TabsTrigger value="other">その他情報</TabsTrigger>
                             </TabsList>
 
-                            <TabsContent value="basic" className="space-y-4 pt-4 h-[420px] overflow-y-auto">
+                            <TabsContent value="basic" className="space-y-4 pt-4 h-[520px] overflow-y-auto">
                                 <div className="grid grid-cols-2 gap-4">
                                     <FormField
                                         control={form.control}
@@ -313,30 +319,12 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
 
                                     <FormField
                                         control={form.control}
-                                        name="shipping_cost"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>送料 *</FormLabel>
-                                                <FormControl>
-                                                    <Input type="number" min="0" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-                            </TabsContent>
-
-                            <TabsContent value="fees" className="space-y-4 pt-4 h-[420px] overflow-y-auto">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
                                         name="import_tax"
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>輸入税</FormLabel>
                                                 <FormControl>
-                                                    <Input type="number" min="0" {...field} />
+                                                    <Input type="number" placeholder="0" min="0" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -350,7 +338,7 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
                                             <FormItem>
                                                 <FormLabel>最終価値手数料</FormLabel>
                                                 <FormControl>
-                                                    <Input type="number" min="0" {...field} />
+                                                    <Input type="number" placeholder="0" min="0" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -364,6 +352,20 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
                                             <FormItem>
                                                 <FormLabel>国際手数料</FormLabel>
                                                 <FormControl>
+                                                    <Input type="number" placeholder="0" min="0" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="shipping_cost"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>送料 *</FormLabel>
+                                                <FormControl>
                                                     <Input type="number" min="0" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
@@ -376,32 +378,38 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
                                         name="tax"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>消費税 *</FormLabel>
+                                                <FormLabel>消費税</FormLabel>
                                                 <FormControl>
-                                                    <Input type="number" min="0" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="total_amount"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>合計金額 *</FormLabel>
-                                                <FormControl>
-                                                    <Input type="number" min="0" readOnly {...field} />
+                                                    <Input type="number" placeholder="0" min="0" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
                                 </div>
+
+                                <FormField
+                                    control={form.control}
+                                    name="total_amount"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>合計金額</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="0"
+                                                    className="bg-gray-100"
+                                                    readOnly
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                             </TabsContent>
 
-                            <TabsContent value="client" className="space-y-4 pt-4 h-[420px] overflow-y-auto">
+                            <TabsContent value="client" className="space-y-4 pt-4 h-[520px] overflow-y-auto">
                                 <div className="grid grid-cols-2 gap-4">
                                     <FormField
                                         control={form.control}
@@ -502,7 +510,7 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
                                 </div>
                             </TabsContent>
 
-                            <TabsContent value="other" className="space-y-4 pt-4 h-[420px] overflow-y-auto">
+                            <TabsContent value="other" className="space-y-4 pt-4 h-[520px] overflow-y-auto">
                                 <div className="grid grid-cols-2 gap-4">
                                     <FormField
                                         control={form.control}
