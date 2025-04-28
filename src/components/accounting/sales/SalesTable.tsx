@@ -70,6 +70,7 @@ export function SalesTable({ sales, onView, onEdit, onDelete, onSearch }: SalesT
                             <TableHead className="text-right">数量</TableHead>
                             <TableHead className="text-right">価格</TableHead>
                             <TableHead className="text-right">税</TableHead>
+                            <TableHead className="text-right">送料</TableHead>
                             <TableHead className="text-right">合計</TableHead>
                             <TableHead className="text-right">アクション</TableHead>
                         </TableRow>
@@ -87,37 +88,32 @@ export function SalesTable({ sales, onView, onEdit, onDelete, onSearch }: SalesT
                                     <TableCell>{formatDate(sale.transaction_date)}</TableCell>
                                     <TableCell>{sale.product_name}</TableCell>
                                     <TableCell>{sale.management_code}</TableCell>
-                                    <TableCell>{sale.client_info.client_name || '-'}</TableCell>
+                                    <TableCell>{sale.client_name || '-'}</TableCell>
                                     <TableCell className="text-right">{sale.quantity}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(sale.price)}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(sale.tax)}</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(sale.shipping_cost)}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(sale.total_amount)}</TableCell>
                                     <TableCell className="text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon">
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                    <span className="sr-only">メニューを開く</span>
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onClick={() => onView(sale)}>
-                                                    <EyeIcon className="mr-2 h-4 w-4" />
-                                                    <span>詳細</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => onEdit(sale)}>
-                                                    <PencilIcon className="mr-2 h-4 w-4" />
-                                                    <span>編集</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    onClick={() => onDelete(sale.id)}
-                                                    className="text-destructive focus:text-destructive"
-                                                >
-                                                    <Trash2Icon className="mr-2 h-4 w-4" />
-                                                    <span>削除</span>
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                                        <div className="flex justify-end space-x-2">
+                                            <Button variant="ghost" size="icon" onClick={() => onView(sale)}>
+                                                <EyeIcon className="h-4 w-4" />
+                                                <span className="sr-only">詳細</span>
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => onEdit(sale)}>
+                                                <PencilIcon className="h-4 w-4" />
+                                                <span className="sr-only">編集</span>
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => onDelete(sale.id)}
+                                                className="text-destructive hover:text-destructive"
+                                            >
+                                                <Trash2Icon className="h-4 w-4" />
+                                                <span className="sr-only">削除</span>
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))

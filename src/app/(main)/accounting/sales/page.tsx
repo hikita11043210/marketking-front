@@ -49,7 +49,7 @@ export default function SalesPage() {
             }
 
             const data = await response.json();
-            console.log(data);
+
             setSales(data.results || []);
             setTotalPages(Math.ceil((data.count || 0) / 10));
             setCurrentPage(page);
@@ -206,13 +206,19 @@ export default function SalesPage() {
             <SalesDetailModal
                 sale={selectedSale || null}
                 isOpen={showDetailModal}
-                onClose={() => setShowDetailModal(false)}
+                onClose={() => {
+                    setShowDetailModal(false);
+                    setTimeout(() => setSelectedSale(undefined), 100);
+                }}
             />
 
             <SalesForm
                 sale={selectedSale}
                 isOpen={showFormModal}
-                onClose={() => setShowFormModal(false)}
+                onClose={() => {
+                    setShowFormModal(false);
+                    setTimeout(() => setSelectedSale(undefined), 100);
+                }}
                 onSubmit={handleSubmit}
                 isSubmitting={isSubmitting}
             />

@@ -27,7 +27,7 @@ export function SalesDetailModal({ sale, isOpen, onClose }: SalesDetailModalProp
                     <DialogTitle>売上詳細</DialogTitle>
                 </DialogHeader>
 
-                <div className="grid grid-cols-2 gap-4 py-4">
+                <div className="space-y-6 py-4">
                     <div className="space-y-3">
                         <h3 className="font-semibold text-sm">基本情報</h3>
                         <div className="grid grid-cols-2 gap-2 text-sm">
@@ -65,30 +65,30 @@ export function SalesDetailModal({ sale, isOpen, onClose }: SalesDetailModalProp
                         </div>
                     </div>
 
-                    <div className="col-span-2 space-y-3">
+                    <div className="space-y-3">
                         <h3 className="font-semibold text-sm">顧客情報</h3>
                         <div className="grid grid-cols-2 gap-2 text-sm">
                             <div className="text-muted-foreground">顧客名</div>
-                            <div>{sale.client_info.client_name || '-'}</div>
+                            <div>{sale.client_name || '-'}</div>
 
                             <div className="text-muted-foreground">会社名</div>
-                            <div>{sale.client_info.client_company_name || '-'}</div>
+                            <div>{sale.client_company_name || '-'}</div>
 
                             <div className="text-muted-foreground">郵便番号</div>
-                            <div>{sale.client_info.client_postal_code || '-'}</div>
+                            <div>{sale.client_postal_code || '-'}</div>
 
                             <div className="text-muted-foreground">住所</div>
-                            <div>{sale.client_info.client_address || '-'}</div>
+                            <div>{sale.client_address || '-'}</div>
 
                             <div className="text-muted-foreground">職業</div>
-                            <div>{sale.client_info.client_occupation || '-'}</div>
+                            <div>{sale.client_occupation || '-'}</div>
 
                             <div className="text-muted-foreground">年齢</div>
-                            <div>{sale.client_info.client_age || '-'}</div>
+                            <div>{sale.client_age || '-'}</div>
                         </div>
                     </div>
 
-                    <div className="col-span-2 space-y-3">
+                    <div className="space-y-3">
                         <h3 className="font-semibold text-sm">その他情報</h3>
                         <div className="grid grid-cols-2 gap-2 text-sm">
                             <div className="text-muted-foreground">URL</div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { SalesItem, ClientInfo } from '@/types/accounting';
+import { SalesItem } from '@/types/accounting';
 import {
     Dialog,
     DialogContent,
@@ -23,23 +23,13 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { CalendarIcon, Loader2 } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { ja } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // バリデーションスキーマの定義
 const salesFormSchema = z.object({
-    transaction_date: z.date({
-        required_error: "取引日を選択してください",
-    }),
+    transaction_date: z.string().min(1, "取引日を選択してください"),
     product_name: z.string().min(1, "商品名を入力してください"),
     management_code: z.string().min(1, "管理コードを入力してください"),
     quantity: z.coerce.number().min(1, "1以上の数量を入力してください"),
@@ -76,7 +66,7 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
     const form = useForm<SalesFormValues>({
         resolver: zodResolver(salesFormSchema),
         defaultValues: {
-            transaction_date: new Date(),
+            transaction_date: format(new Date(), 'yyyy-MM-dd'),
             product_name: '',
             management_code: '',
             quantity: 1,
@@ -101,7 +91,7 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
     useEffect(() => {
         if (sale) {
             const values = {
-                transaction_date: new Date(sale.transaction_date),
+                transaction_date: format(new Date(sale.transaction_date), 'yyyy-MM-dd'),
                 product_name: sale.product_name,
                 management_code: sale.management_code,
                 quantity: sale.quantity,
@@ -113,17 +103,26 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
                 invoice_number: sale.invoice_number || '',
                 identification_type: sale.identification_type || '',
                 identification_number: sale.identification_number || '',
-                client_name: sale.client_info.client_name || '',
-                client_company_name: sale.client_info.client_company_name || '',
-                client_postal_code: sale.client_info.client_postal_code || '',
-                client_address: sale.client_info.client_address || '',
-                client_occupation: sale.client_info.client_occupation || '',
-                client_age: sale.client_info.client_age,
+                client_name: sale.client_name || '',
+                client_company_name: sale.client_company_name || '',
+                client_postal_code: sale.client_postal_code || '',
+                client_address: sale.client_address || '',
+                client_occupation: sale.client_occupation || '',
+                client_age: sale.client_age,
             };
-            form.reset(values);
+            // 値をセットしてからバリデーションを実行
+            form.reset(values, {
+                keepIsSubmitted: false,
+                keepSubmitCount: false,
+                keepErrors: false,
+                keepIsValid: false,
+                keepDirty: false,
+                keepTouched: false,
+                keepDefaultValues: false
+            });
         } else {
             form.reset({
-                transaction_date: new Date(),
+                transaction_date: format(new Date(), 'yyyy-MM-dd'),
                 product_name: '',
                 management_code: '',
                 quantity: 1,
@@ -145,23 +144,31 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
         }
     }, [sale, form]);
 
-    // 小計・消費税・合計を自動計算
+    // 小計・消費税・合計を自動計算（数量・単価・税・送料のいずれかが変更された場合のみ）
     useEffect(() => {
-        const quantity = form.watch('quantity') || 0;
-        const price = form.watch('price') || 0;
-        const tax = form.watch('tax') || 0;
-        const shipping_cost = form.watch('shipping_cost') || 0;
+        // 値が変更された場合は常に自動計算を実行
+        const quantity = Number(form.watch('quantity')) || 0;
+        const price = Number(form.watch('price')) || 0;
+        const tax = Number(form.watch('tax')) || 0;
+        const shipping_cost = Number(form.watch('shipping_cost')) || 0;
 
+        // 粗利の計算: 単価×数量+消費税-送料
         const subtotal = quantity * price;
-        const total = subtotal + tax + shipping_cost;
+        const total = subtotal + tax - shipping_cost;
 
-        form.setValue('total_amount', total);
+        // NaNチェック
+        if (!isNaN(total)) {
+            // フォームの値が変更された場合のみ更新
+            if (form.formState.isDirty) {
+                form.setValue('total_amount', total, { shouldValidate: true });
+            }
+        }
     }, [form.watch('quantity'), form.watch('price'), form.watch('tax'), form.watch('shipping_cost'), form]);
 
     const handleSubmit = async (values: SalesFormValues) => {
         // フォームデータをAPIの形式に変換
         const formattedData: Partial<SalesItem> = {
-            transaction_date: format(values.transaction_date, 'yyyy-MM-dd'),
+            transaction_date: values.transaction_date,
             product_name: values.product_name,
             management_code: values.management_code,
             quantity: values.quantity,
@@ -173,14 +180,12 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
             invoice_number: values.invoice_number,
             identification_type: values.identification_type,
             identification_number: values.identification_number,
-            client_info: {
-                client_name: values.client_name,
-                client_company_name: values.client_company_name,
-                client_postal_code: values.client_postal_code,
-                client_address: values.client_address,
-                client_occupation: values.client_occupation,
-                client_age: values.client_age,
-            } as ClientInfo,
+            client_name: values.client_name,
+            client_company_name: values.client_company_name,
+            client_postal_code: values.client_postal_code,
+            client_address: values.client_address,
+            client_occupation: values.client_occupation,
+            client_age: values.client_age,
         };
 
         // 既存の売上データがある場合はIDを追加
@@ -213,39 +218,15 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
                                         control={form.control}
                                         name="transaction_date"
                                         render={({ field }) => (
-                                            <FormItem className="flex flex-col">
+                                            <FormItem>
                                                 <FormLabel>取引日 *</FormLabel>
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <FormControl>
-                                                            <Button
-                                                                variant="outline"
-                                                                className={cn(
-                                                                    "w-full pl-3 text-left font-normal",
-                                                                    !field.value && "text-muted-foreground"
-                                                                )}
-                                                            >
-                                                                {field.value ? (
-                                                                    format(field.value, 'yyyy年MM月dd日', { locale: ja })
-                                                                ) : (
-                                                                    <span>日付を選択</span>
-                                                                )}
-                                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                            </Button>
-                                                        </FormControl>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0" align="start">
-                                                        <Calendar
-                                                            mode="single"
-                                                            selected={field.value}
-                                                            onSelect={field.onChange}
-                                                            disabled={(date) =>
-                                                                date > new Date() || date < new Date("1900-01-01")
-                                                            }
-                                                            initialFocus
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
+                                                <FormControl>
+                                                    <Input
+                                                        type="date"
+                                                        placeholder="取引日"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
@@ -340,7 +321,7 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
                                         name="total_amount"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>合計金額 *</FormLabel>
+                                                <FormLabel>粗利 *</FormLabel>
                                                 <FormControl>
                                                     <Input type="number" min="0" readOnly {...field} />
                                                 </FormControl>
