@@ -200,7 +200,7 @@ function YahooFreeMarketListContent() {
     };
 
     const handleYahooSynchronize = async () => {
-        handleGlobalSync('yahoo-auction', setActionLoading, fetchItems);
+        handleGlobalSync('yahoo-free-market', setActionLoading, fetchItems);
     };
 
     const handleGlobalSynchronize = async () => {
@@ -208,6 +208,7 @@ function YahooFreeMarketListContent() {
     };
 
     const handlePurchase = async (sku: string) => {
+        console.log('handlePurchase');
         handleFreeMarketAction({
             actionType: 'purchase',
             sku,
@@ -217,6 +218,7 @@ function YahooFreeMarketListContent() {
     };
 
     const handleSalesRegistration = async (sku: string) => {
+        console.log('handleSalesRegistration');
         handleFreeMarketAction({
             actionType: 'sales',
             sku,
@@ -447,6 +449,7 @@ function YahooFreeMarketListContent() {
                                                 onRelist={handleRelist}
                                                 onSynchronize={handleSynchronize}
                                                 onPurchase={handlePurchase}
+                                                onSalesRegistration={handleSalesRegistration}
                                             />
                                         </TableCell>
                                     </TableRow>

@@ -93,6 +93,7 @@ export const handleFreeMarketAction = async ({
   setActionLoading,
   fetchItems
 }: ActionHandlerParams) => {
+  console.log(actionType);
   if (!offerId && (actionType === 'withdraw' || actionType === 'relist')) {
     toast.error('Offer IDが必要です');
     return;
@@ -188,13 +189,14 @@ export const handleFreeMarketAction = async ({
 
 // グローバル同期アクション用のハンドラー
 export const handleGlobalSync = async (
-  marketplaceType: 'ebay' | 'yahoo-auction',
+  marketplaceType: 'ebay' | 'yahoo-auction' | 'yahoo-free-market',
   setActionLoading: (value: string) => void,
   fetchItems: () => void
 ) => {
   const loadingKey = marketplaceType === 'ebay' ? 'sync' : 'yahoo-sync';
   const endpoint = `/api/synchronize/${marketplaceType}`;
   const errorMessage = marketplaceType === 'ebay' ? '同期に失敗しました' : 'Yahoo同期に失敗しました';
+  console.log(endpoint);
   
   try {
     setActionLoading(loadingKey);

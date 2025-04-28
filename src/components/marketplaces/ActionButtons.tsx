@@ -176,19 +176,17 @@ export function MarketplaceActionButtons({
         }
 
         // 売上登録ボタン（オークションのみ）
-        if (itemType === 'auction' && onSalesRegistration) {
-            buttons.push(
-                <LoadingButton
-                    key="sales"
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                    onClick={() => onSalesRegistration(sku)}
-                    loading={actionLoading === `sales-${sku}`}
-                    icon={<BanknoteIcon className="h-4 w-4" />}
-                    disabled={!!actionLoading}
-                    tooltipText="売上登録"
-                />
-            );
-        }
+        buttons.push(
+            <LoadingButton
+                key="sales"
+                className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                onClick={() => onSalesRegistration?.(sku)}
+                loading={actionLoading === `sales-${sku}`}
+                icon={<BanknoteIcon className="h-4 w-4" />}
+                disabled={!!actionLoading}
+                tooltipText="売上登録"
+            />
+        );
 
         // 同期ボタン
         buttons.push(
