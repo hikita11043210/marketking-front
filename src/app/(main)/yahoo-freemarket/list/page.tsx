@@ -16,7 +16,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { MarketplaceActionButtons } from '@/components/marketplaces/ActionButtons';
-import { handleFreeMarketAction, handleGlobalSync } from '@/utils/marketplaceActions';
+import { handleAuctionAction, handleGlobalSync } from '@/utils/marketplaceActions';
 import { RemainingTime } from "@/components/layout/RemainingTime";
 import { getStatusBadge } from '@/components/marketplaces/StatusBadge';
 
@@ -54,22 +54,6 @@ interface PaginationInfo {
     totalItems: number;
     hasNext: boolean;
     hasPrevious: boolean;
-}
-
-interface ApiResponse {
-    items: ListItem[];
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    hasNext: boolean;
-    hasPrevious: boolean;
-    counts: {
-        active: number;
-        sold_out: number;
-    };
-    error?: {
-        message: string;
-    };
 }
 
 interface LoadingButtonProps {
@@ -171,7 +155,8 @@ function YahooFreeMarketListContent() {
     };
 
     const handleWithdraw = async (sku: string, offerId?: string) => {
-        handleFreeMarketAction({
+        console.log(sku)
+        handleAuctionAction({
             actionType: 'withdraw',
             sku,
             offerId,
@@ -181,7 +166,7 @@ function YahooFreeMarketListContent() {
     };
 
     const handleRelist = async (sku: string, offerId?: string) => {
-        handleFreeMarketAction({
+        handleAuctionAction({
             actionType: 'relist',
             sku,
             offerId,
@@ -191,7 +176,7 @@ function YahooFreeMarketListContent() {
     };
 
     const handleSynchronize = async (sku: string) => {
-        handleFreeMarketAction({
+        handleAuctionAction({
             actionType: 'sync',
             sku,
             setActionLoading,
@@ -208,8 +193,7 @@ function YahooFreeMarketListContent() {
     };
 
     const handlePurchase = async (sku: string) => {
-        console.log('handlePurchase');
-        handleFreeMarketAction({
+        handleAuctionAction({
             actionType: 'purchase',
             sku,
             setActionLoading,
@@ -218,8 +202,7 @@ function YahooFreeMarketListContent() {
     };
 
     const handleSalesRegistration = async (sku: string) => {
-        console.log('handleSalesRegistration');
-        handleFreeMarketAction({
+        handleAuctionAction({
             actionType: 'sales',
             sku,
             setActionLoading,
@@ -237,7 +220,7 @@ function YahooFreeMarketListContent() {
             if (!response.ok) {
                 throw new Error(data.message || 'Failed to fetch items');
             }
-
+            console.log(data)
             setItems(data.items);
             setCounts(data.counts);
             setPagination({
@@ -444,6 +427,7 @@ function YahooFreeMarketListContent() {
                                                 marketStatus={item.ebay_status}
                                                 purchaseStatus={item.yfm_status}
                                                 sku={item.ebay_sku}
+                                                offerId={item.ebay_offer_id}
                                                 actionLoading={actionLoading}
                                                 onWithdraw={handleWithdraw}
                                                 onRelist={handleRelist}

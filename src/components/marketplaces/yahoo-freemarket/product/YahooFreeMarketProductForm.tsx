@@ -78,7 +78,7 @@ const productFormSchema = z.object({
         .max(80, { message: 'タイトルは80文字以内で入力してください' }),
     titleCondition: z.string().optional(),
     description: z.string()
-        .max(1152, { message: '説明は1152文字以内で入力してください' }),
+        .max(4000, { message: '説明は4000文字以内で入力してください' }),
     price: z.string().min(1, { message: '価格を入力してください' }),
     final_profit_yen: z.string(),
     final_profit_dollar: z.string(),
@@ -389,11 +389,14 @@ export const ProductForm = ({
                 ? `"${values.titleCondition}" ${values.title}`
                 : values.title;
 
+            // 説明文の改行を<br>タグに変換して保存
+            const formattedDescription = values.description.replace(/\n/g, '<br>');
+
             const productData = {
                 product_data: {
                     images: values.images,
                     title: finalTitle,
-                    description: values.description,
+                    description: formattedDescription,
                     price: values.price,
                     quantity: parseInt(values.quantity),
                     categoryId: values.categoryId,
@@ -581,7 +584,10 @@ export const ProductForm = ({
                                         <FormItem className="grid grid-cols-[200px,1fr] items-center">
                                             <Select
                                                 value={field.value}
-                                                onValueChange={field.onChange}
+                                                onValueChange={(value) => {
+                                                    // "none" が選択された場合は空文字列を設定
+                                                    field.onChange(value === "none" ? "" : value);
+                                                }}
                                             >
                                                 <FormControl>
                                                     <SelectTrigger className="h-11">
@@ -589,7 +595,7 @@ export const ProductForm = ({
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="">選択なし</SelectItem>
+                                                    <SelectItem value="none">選択なし</SelectItem>
                                                     <SelectItem value="New">New</SelectItem>
                                                     <SelectItem value="New other">New other</SelectItem>
                                                     <SelectItem value="Unopened">Unopened</SelectItem>
@@ -626,7 +632,7 @@ export const ProductForm = ({
                                 <FormLabel className="text-muted-foreground">説明</FormLabel>
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm text-muted-foreground">
-                                        {field.value.length === 0 ? 0 : field.value.length + (field.value.split('\n').length) * 7} / 1152文字
+                                        {field.value.length === 0 ? 0 : field.value.length + (field.value.split('\n').length) * 7} / 4000文字
                                     </span>
                                     <Button
                                         type="button"

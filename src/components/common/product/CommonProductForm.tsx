@@ -58,7 +58,7 @@ export const productFormSchema = z.object({
         .max(80, { message: 'タイトルは80文字以内で入力してください' }),
     titleCondition: z.string().optional(),
     description: z.string()
-        .max(1152, { message: '説明は1152文字以内で入力してください' }),
+        .max(4000, { message: '説明は4000文字以内で入力してください' }),
     price: z.string().min(1, { message: '価格を入力してください' }),
     final_profit: z.string(),
     final_profit_dollar: z.string(),

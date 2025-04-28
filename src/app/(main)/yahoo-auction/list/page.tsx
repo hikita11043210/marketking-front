@@ -359,6 +359,7 @@ function ListPageContent() {
                                                 marketStatus={item.ebay_status}
                                                 purchaseStatus={item.ya_status}
                                                 sku={item.ebay_sku}
+                                                offerId={item.ebay_offer_id}
                                                 actionLoading={actionLoading}
                                                 onWithdraw={handleWithdraw}
                                                 onRelist={handleRelist}

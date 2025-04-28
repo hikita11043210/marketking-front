@@ -61,8 +61,9 @@ interface MarketplaceActionButtonsProps {
     marketStatus: string;
     purchaseStatus: string;
     sku: string;
+    offerId: string;
     actionLoading: string | null;
-    onWithdraw: (sku: string) => void;
+    onWithdraw: (sku: string, offerId: string) => void;
     onRelist: (sku: string) => void;
     onSynchronize: (sku: string) => void;
     onPurchase: (sku: string) => void;
@@ -74,6 +75,7 @@ export function MarketplaceActionButtons({
     marketStatus,
     purchaseStatus,
     sku,
+    offerId,
     actionLoading,
     onWithdraw,
     onRelist,
@@ -90,7 +92,7 @@ export function MarketplaceActionButtons({
             <LoadingButton
                 key="withdraw"
                 className="bg-gray-500 hover:bg-gray-600 text-white"
-                onClick={() => onWithdraw(sku)}
+                onClick={() => onWithdraw(sku, offerId)}
                 loading={actionLoading === `withdraw-${sku}`}
                 icon={<ArrowDown01Icon className="h-4 w-4" />}
                 disabled={!!actionLoading}
