@@ -1,8 +1,8 @@
-export interface SalesItem {
+export interface PurchaseItem {
   id: string;
   transaction_date: string;
   product_name: string;
-  management_code: string;
+  management_code?: string;
   url?: string;
   identification_type?: string;
   identification_number?: string;
@@ -20,7 +20,7 @@ export interface SalesItem {
   client_age?: number;
 }
 
-export interface PurchaseItem {
+export interface SalesItem {
   id: string;
   transaction_date: string;
   product_name: string;

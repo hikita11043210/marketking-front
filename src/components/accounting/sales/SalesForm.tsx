@@ -38,9 +38,11 @@ const salesFormSchema = z.object({
     shipping_cost: z.coerce.number().min(0, "0以上の金額を入力してください"),
     total_amount: z.coerce.number().min(0, "0以上の金額を入力してください"),
     url: z.string().optional(),
-    invoice_number: z.string().optional(),
     identification_type: z.string().optional(),
     identification_number: z.string().optional(),
+    import_tax: z.coerce.number(),
+    final_value_fee: z.coerce.number(),
+    international_fee: z.coerce.number(),
     // 顧客情報
     client_name: z.string().optional(),
     client_company_name: z.string().optional(),
@@ -75,9 +77,11 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
             shipping_cost: 0,
             total_amount: 0,
             url: '',
-            invoice_number: '',
             identification_type: '',
             identification_number: '',
+            import_tax: 0,
+            final_value_fee: 0,
+            international_fee: 0,
             client_name: '',
             client_company_name: '',
             client_postal_code: '',
@@ -100,9 +104,11 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
                 shipping_cost: sale.shipping_cost,
                 total_amount: sale.total_amount,
                 url: sale.url || '',
-                invoice_number: sale.invoice_number || '',
                 identification_type: sale.identification_type || '',
                 identification_number: sale.identification_number || '',
+                import_tax: sale.import_tax || 0,
+                final_value_fee: sale.final_value_fee || 0,
+                international_fee: sale.international_fee || 0,
                 client_name: sale.client_name || '',
                 client_company_name: sale.client_company_name || '',
                 client_postal_code: sale.client_postal_code || '',
@@ -131,9 +137,11 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
                 shipping_cost: 0,
                 total_amount: 0,
                 url: '',
-                invoice_number: '',
                 identification_type: '',
                 identification_number: '',
+                import_tax: 0,
+                final_value_fee: 0,
+                international_fee: 0,
                 client_name: '',
                 client_company_name: '',
                 client_postal_code: '',
@@ -151,10 +159,13 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
         const price = Number(form.watch('price')) || 0;
         const tax = Number(form.watch('tax')) || 0;
         const shipping_cost = Number(form.watch('shipping_cost')) || 0;
+        const import_tax = Number(form.watch('import_tax')) || 0;
+        const final_value_fee = Number(form.watch('final_value_fee')) || 0;
+        const international_fee = Number(form.watch('international_fee')) || 0;
 
-        // 粗利の計算: 単価×数量+消費税-送料
+        // 合計金額の計算: (単価×数量) - 輸入税 - 最終価値手数料 - 国際手数料 + 消費税 + 送料
         const subtotal = quantity * price;
-        const total = subtotal + tax - shipping_cost;
+        const total = subtotal - import_tax - final_value_fee - international_fee + tax + shipping_cost;
 
         // NaNチェック
         if (!isNaN(total)) {
@@ -163,7 +174,16 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
                 form.setValue('total_amount', total, { shouldValidate: true });
             }
         }
-    }, [form.watch('quantity'), form.watch('price'), form.watch('tax'), form.watch('shipping_cost'), form]);
+    }, [
+        form.watch('quantity'),
+        form.watch('price'),
+        form.watch('tax'),
+        form.watch('shipping_cost'),
+        form.watch('import_tax'),
+        form.watch('final_value_fee'),
+        form.watch('international_fee'),
+        form
+    ]);
 
     const handleSubmit = async (values: SalesFormValues) => {
         // フォームデータをAPIの形式に変換
@@ -177,9 +197,11 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
             shipping_cost: values.shipping_cost,
             total_amount: values.total_amount,
             url: values.url,
-            invoice_number: values.invoice_number,
             identification_type: values.identification_type,
             identification_number: values.identification_number,
+            import_tax: values.import_tax,
+            final_value_fee: values.final_value_fee,
+            international_fee: values.international_fee,
             client_name: values.client_name,
             client_company_name: values.client_company_name,
             client_postal_code: values.client_postal_code,
@@ -206,13 +228,14 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                            <TabsList className="grid w-full grid-cols-3">
+                            <TabsList className="grid w-full grid-cols-4">
                                 <TabsTrigger value="basic">基本情報</TabsTrigger>
+                                <TabsTrigger value="fees">手数料情報</TabsTrigger>
                                 <TabsTrigger value="client">顧客情報</TabsTrigger>
                                 <TabsTrigger value="other">その他情報</TabsTrigger>
                             </TabsList>
 
-                            <TabsContent value="basic" className="space-y-4 pt-4">
+                            <TabsContent value="basic" className="space-y-4 pt-4 h-[420px] overflow-y-auto">
                                 <div className="grid grid-cols-2 gap-4">
                                     <FormField
                                         control={form.control}
@@ -290,6 +313,66 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
 
                                     <FormField
                                         control={form.control}
+                                        name="shipping_cost"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>送料 *</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" min="0" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </TabsContent>
+
+                            <TabsContent value="fees" className="space-y-4 pt-4 h-[420px] overflow-y-auto">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="import_tax"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>輸入税</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" min="0" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="final_value_fee"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>最終価値手数料</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" min="0" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="international_fee"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>国際手数料</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" min="0" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
                                         name="tax"
                                         render={({ field }) => (
                                             <FormItem>
@@ -304,24 +387,10 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
 
                                     <FormField
                                         control={form.control}
-                                        name="shipping_cost"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>送料 *</FormLabel>
-                                                <FormControl>
-                                                    <Input type="number" min="0" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
                                         name="total_amount"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>粗利 *</FormLabel>
+                                                <FormLabel>合計金額 *</FormLabel>
                                                 <FormControl>
                                                     <Input type="number" min="0" readOnly {...field} />
                                                 </FormControl>
@@ -332,7 +401,7 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
                                 </div>
                             </TabsContent>
 
-                            <TabsContent value="client" className="space-y-4 pt-4">
+                            <TabsContent value="client" className="space-y-4 pt-4 h-[420px] overflow-y-auto">
                                 <div className="grid grid-cols-2 gap-4">
                                     <FormField
                                         control={form.control}
@@ -433,22 +502,8 @@ export function SalesForm({ sale, isOpen, onClose, onSubmit, isSubmitting = fals
                                 </div>
                             </TabsContent>
 
-                            <TabsContent value="other" className="space-y-4 pt-4">
+                            <TabsContent value="other" className="space-y-4 pt-4 h-[420px] overflow-y-auto">
                                 <div className="grid grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="invoice_number"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>請求書番号</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="INV-001" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
                                     <FormField
                                         control={form.control}
                                         name="url"

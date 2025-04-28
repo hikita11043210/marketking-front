@@ -45,12 +45,12 @@ const navigation: NavItem[] = [
         icon: <DollarSign className="h-5 w-5" />,
         subItems: [
             {
-                title: "- 売上管理",
-                href: "/accounting/sales",
-            },
-            {
                 title: "- 仕入管理",
                 href: "/accounting/purchases",
+            },
+            {
+                title: "- 売上管理",
+                href: "/accounting/sales",
             },
             {
                 title: "- 経費管理",
