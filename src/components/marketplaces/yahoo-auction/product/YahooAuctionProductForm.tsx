@@ -148,12 +148,26 @@ export const ProductForm = ({
         })) || []
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const description_template_start = `** Description **\n`;
+    const description_template_end = `
+
+** Shipping **
+1. We always send the item with a tracking number. So please place an order without any concern on delivery. You can always track the delivery status.
+2. Shipping is only available to the address registered in eBay. If you want us to send another address, please change your address on eBay and then place an order.
+3. Shipping is available from Monday to Friday. Weekends are not available because freight (shipping) companies are closed.
+4. We do not mark merchandise values below value or mark items as “gifts” – Japan, US and International government regulations prohibit such behavior.
+
+** About Importer's Obligation **
+Import duties, taxes, and charges are not included in the item price or shipping cost.
+These charges are the buyer's responsibility. Please check with your country's customs office to determine what these additional costs will be prior to bidding or buying.
+Thank you for your understanding.
+`;
     const form = useForm<ProductFormValues>({
         resolver: zodResolver(productFormSchema),
         defaultValues: {
-            title: replaceSpecialCharacters(detailData?.item_details.title || ''),
+            title: replaceSpecialCharacters(detailData?.title_en || ''),
             titleCondition: '',
-            description: '',
+            description: description_template_start + detailData?.description_en.replace(/(\. )/g, ".\n") + description_template_end || '',
             price: detailData?.price.calculated_price_dollar.toString(),
             final_profit_yen: detailData?.price.final_profit_yen.toString(),
             final_profit_dollar: detailData?.price.final_profit_dollar.toString(),
@@ -175,11 +189,14 @@ export const ProductForm = ({
             shippingPolicyId: "263632634014",
             paymentPolicyId: "263467812014",
             returnPolicyId: "264716224014",
-            itemSpecifics: detailData?.item_specifics
-                ? Object.entries(detailData.item_specifics).map(([key, value]) => ({
-                    name: key,
-                    value: [typeof value === 'string' ? value : '']
-                }))
+            itemSpecifics: Array.isArray(detailData?.item_specifics)
+                ? detailData.item_specifics.map(item => {
+                    const [key, value] = Object.entries(item)[0];
+                    return {
+                        name: key,
+                        value: [typeof value === 'string' ? value : '']
+                    };
+                })
                 : [{ name: '', value: [''] }],
             images: detailData?.item_details.images.url || [],
         },
@@ -352,24 +369,17 @@ export const ProductForm = ({
             // Item Specifics取得処理を追加
             const itemSpecificsResponse = await fetch(`/api/ebay/categoryItemSpecifics?categoryId=${categoryId}&title=${title}&description=${description}`);
             const itemSpecificsData = await itemSpecificsResponse.json();
-            if (itemSpecificsData.success && itemSpecificsData.data) {
+            if (itemSpecificsData.success && itemSpecificsData.data && itemSpecificsData.data.specifics) {
                 // 既存のItem Specificsをクリア
                 form.setValue('itemSpecifics', []);
-                const currentItemSpecifics = form.getValues('itemSpecifics');
 
-                Object.entries(itemSpecificsData.data).forEach(([name, value]) => {
-                    // 既存の項目名を検索
-                    const existingIndex = currentItemSpecifics.findIndex(
-                        item => item.name.toLowerCase() === name.toLowerCase()
-                    );
-
-                    if (existingIndex === -1) {
-                        // 新規項目の場合は追加
-                        appendItemSpecific({
-                            name: name,
-                            value: [value as string]
-                        }, { focusIndex: -1 });
-                    }
+                // 配列形式のデータを処理
+                itemSpecificsData.data.specifics.forEach((item: Record<string, string>) => {
+                    const [name, value] = Object.entries(item)[0];
+                    appendItemSpecific({
+                        name: name,
+                        value: [typeof value === 'string' ? value : '']
+                    }, { focusIndex: -1 });
                 });
 
                 toast.success('必須のItem Specificsを更新しました');
@@ -390,11 +400,14 @@ export const ProductForm = ({
                 ? `"${values.titleCondition}" ${values.title}`
                 : values.title;
 
+            // 説明文の改行を<br>タグに変換して保存
+            const formattedDescription = values.description.replace(/\n/g, '<br>');
+
             const productData = {
                 product_data: {
                     images: values.images,
                     title: finalTitle,
-                    description: values.description,
+                    description: formattedDescription,
                     price: values.price,
                     quantity: parseInt(values.quantity),
                     categoryId: values.categoryId,

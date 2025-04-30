@@ -89,6 +89,10 @@ export type TranslatedText = {
 export type ItemDetailResponse = {
     item_details: SearchDetailResult;
     item_specifics: ItemSpecific[];
+    title_en: string;
+    title_ja: string;
+    description_en: string;
+    description_ja: string;
     category: CategoryInfo[];
     category_id: string;
     condition_description_en: TranslatedText;

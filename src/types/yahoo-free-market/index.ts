@@ -73,4 +73,8 @@ export type ItemDetailResponse = {
     price: PriceCalculation;
     conditions: ConditionOption[];
     selected_condition: number;
+    title_en: string;
+    title_ja: string;
+    description_en: string;
+    description_ja: string;
 }
