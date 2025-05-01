@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import type { ShippingPolicy, PaymentPolicy, ReturnPolicy, EbayPoliciesResponse } from '@/types/ebay/policy';
 import type { PayPayFreeMarketSearchResult, ItemDetailResponse } from '@/types/yahoo-free-market';
 import { CommonRegisterModal } from '@/components/common/product/CommonRegisterModal';
-
+import type { EbayStoreType } from '@/types/ebay-store-type';
 interface RegisterModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -15,6 +15,7 @@ interface RegisterModalProps {
 export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalProps) => {
     const [detailData, setDetailData] = useState<ItemDetailResponse>();
     const [isLoadingPolicies, setIsLoadingPolicies] = useState(true);
+    const [ebayStoreType, setEbayStoreType] = useState<EbayStoreType[]>([]);
     const [policies, setPolicies] = useState<{
         shipping: ShippingPolicy[];
         payment: PaymentPolicy[];
@@ -68,6 +69,25 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
         fetchDetail();
     }, [selectedItem]);
 
+    useEffect(() => {
+        console.log("aaa");
+        const fetchEbayStoreType = async () => {
+            if (selectedItem?.item_id) {
+                try {
+                    const response = await fetch(`/api/master/ebay-store-type`);
+                    const data = await response.json();
+                    if (data.success) {
+                        setEbayStoreType(data.data);
+                    }
+                } catch (error) {
+                    console.error('API呼び出しエラー:', error);
+                }
+            }
+        };
+
+        fetchEbayStoreType();
+    }, [selectedItem]);
+
     if (!selectedItem) return null;
 
     return (
@@ -86,6 +106,7 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
                         onCancel={onClose}
                         policies={policies}
                         isLoadingPolicies={isLoadingPolicies}
+                        ebayStoreType={ebayStoreType}
                     />
                 )
             }

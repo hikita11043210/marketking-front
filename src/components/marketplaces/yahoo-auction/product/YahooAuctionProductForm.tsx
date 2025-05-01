@@ -22,7 +22,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { HelpCircle } from "lucide-react";
-
+import type { EbayStoreType } from '@/types/ebay-store-type';
 interface LoadingButtonProps {
     loading: boolean;
     loadingText: string;
@@ -78,6 +78,7 @@ interface ProductFormProps {
         return: ReturnPolicy[];
     };
     isLoadingPolicies: boolean;
+    ebayStoreType: EbayStoreType[];
 }
 // フォームのバリデーションスキーマ
 const productFormSchema = z.object({
@@ -129,6 +130,7 @@ export const ProductForm = ({
     onCancel,
     policies,
     isLoadingPolicies,
+    ebayStoreType,
 }: ProductFormProps) => {
     const [allImages, setAllImages] = useState<string[]>(detailData?.item_details.images.url || []);
     const [isLoadingCategories, setIsLoadingCategories] = useState(false);

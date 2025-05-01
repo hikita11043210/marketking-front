@@ -14,6 +14,7 @@ import type { ItemDetailResponse, PayPayFreeMarketSearchResult, CategoryInfo, Co
 import { replaceSpecialCharacters } from '@/lib/utils/replace-special-characters';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
+import type { EbayStoreType } from '@/types/ebay-store-type';
 interface LoadingButtonProps {
     loading: boolean;
     loadingText: string;
@@ -69,6 +70,7 @@ interface ProductFormProps {
         return: ReturnPolicy[];
     };
     isLoadingPolicies: boolean;
+    ebayStoreType: EbayStoreType[];
 }
 
 // フォームのバリデーションスキーマ
@@ -120,6 +122,7 @@ export const ProductForm = ({
     onCancel,
     policies,
     isLoadingPolicies,
+    ebayStoreType,
 }: ProductFormProps) => {
     const [allImages, setAllImages] = useState<string[]>(detailData?.item_details.images || []);
     const [isLoadingCategories, setIsLoadingCategories] = useState(false);

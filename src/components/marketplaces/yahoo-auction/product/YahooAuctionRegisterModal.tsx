@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import type { ItemDetailResponse, SearchResult } from '@/types/yahoo-auction';
 import type { ShippingPolicy, PaymentPolicy, ReturnPolicy, EbayPoliciesResponse } from '@/types/ebay/policy';
 import { CommonRegisterModal } from '@/components/common/product/CommonRegisterModal';
-
+import type { EbayStoreType } from '@/types/ebay-store-type';
 interface RegisterModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -20,6 +20,7 @@ const extractShippingCost = (shippingText: string): number => {
 
 export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalProps) => {
     const [detailData, setDetailData] = useState<ItemDetailResponse>();
+    const [ebayStoreType, setEbayStoreType] = useState<EbayStoreType[]>([]);
     const [isLoadingPolicies, setIsLoadingPolicies] = useState(true);
     const [policies, setPolicies] = useState<{
         shipping: ShippingPolicy[];
@@ -76,6 +77,24 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
         fetchDetail();
     }, [selectedItem]);
 
+    useEffect(() => {
+        const fetchEbayStoreType = async () => {
+            if (selectedItem?.url) {
+                try {
+                    const response = await fetch(`/api/master/ebay-store-type`);
+                    const data = await response.json();
+                    if (data.success) {
+                        setEbayStoreType(data.data);
+                    }
+                } catch (error) {
+                    console.error('API呼び出しエラー:', error);
+                }
+            }
+        };
+
+        fetchEbayStoreType();
+    }, [selectedItem]);
+
     if (!selectedItem) return null;
 
     return (
@@ -94,6 +113,7 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
                         onCancel={onClose}
                         policies={policies}
                         isLoadingPolicies={isLoadingPolicies}
+                        ebayStoreType={ebayStoreType}
                     />
                 )
             }
