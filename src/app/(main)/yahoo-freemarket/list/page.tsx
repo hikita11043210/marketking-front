@@ -19,6 +19,7 @@ import { MarketplaceActionButtons } from '@/components/marketplaces/ActionButton
 import { handleAuctionAction, handleGlobalSync } from '@/utils/marketplaceActions';
 import { RemainingTime } from "@/components/layout/RemainingTime";
 import { getStatusBadge } from '@/components/marketplaces/StatusBadge';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 interface ListItem {
     ebay_id: number;
@@ -98,6 +99,98 @@ const LoadingButton = ({
     );
 };
 
+// ページネーションコンポーネント
+interface PaginationProps {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    onPageChange: (page: number) => void;
+    disabled?: boolean;
+}
+
+const Pagination = ({ currentPage, totalPages, totalItems, onPageChange, disabled }: PaginationProps) => {
+    // ページ範囲を計算する
+    const getPageRange = () => {
+        if (!totalPages || totalPages <= 7) {
+            return Array.from({ length: totalPages || 1 }, (_, i) => i + 1);
+        }
+
+        if (currentPage <= 4) {
+            return [1, 2, 3, 4, 5, '...', totalPages];
+        }
+
+        if (currentPage >= totalPages - 3) {
+            return [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+        }
+
+        return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+    };
+
+    const pageRange = getPageRange();
+
+    return (
+        <div className="flex items-center justify-between mt-4 select-none">
+            <div className="text-sm text-gray-500">
+                全 {totalItems || 0} 件中 {totalItems ? (currentPage - 1) * 10 + 1 : 0} - {Math.min(currentPage * 10, totalItems || 0)} 件を表示
+            </div>
+            <div className="flex items-center space-x-1">
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => onPageChange(1)}
+                    disabled={disabled || currentPage === 1}
+                    className="h-8 w-8"
+                >
+                    <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => onPageChange(currentPage - 1)}
+                    disabled={disabled || currentPage === 1}
+                    className="h-8 w-8"
+                >
+                    <ChevronLeft className="h-4 w-4" />
+                </Button>
+                {pageRange.map((page, i) => (
+                    page === '...' ? (
+                        <span key={`ellipsis-${i}`} className="px-2">...</span>
+                    ) : (
+                        <Button
+                            key={`page-${page}`}
+                            variant={currentPage === page ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => typeof page === 'number' && onPageChange(page)}
+                            disabled={disabled}
+                            className="h-8 w-8"
+                        >
+                            {page}
+                        </Button>
+                    )
+                ))}
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => onPageChange(currentPage + 1)}
+                    disabled={disabled || !totalPages || currentPage === totalPages}
+                    className="h-8 w-8"
+                >
+                    <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => onPageChange(totalPages || 1)}
+                    disabled={disabled || !totalPages || currentPage === totalPages}
+                    className="h-8 w-8"
+                >
+                    <ChevronsRight className="h-4 w-4" />
+                </Button>
+            </div>
+        </div>
+    );
+};
+
 export default function YahooFreeMarketListPage() {
     return (
         <Suspense fallback={<div>Loading...</div>}>
@@ -114,8 +207,12 @@ function YahooFreeMarketListContent() {
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
     const [searchSku, setSearchSku] = useState(searchParams.get('sku') || '');
-    const [searchStatus, setSearchStatus] = useState(searchParams.get('status') || '');
-    const [searchYahooStatus, setSearchYahooStatus] = useState(searchParams.get('yahoo_status') || '');
+    const [searchStatus, setSearchStatus] = useState<string[]>(
+        searchParams.get('status') ? searchParams.get('status')!.split(',') : ['1']
+    );
+    const [searchYahooStatus, setSearchYahooStatus] = useState<string[]>(
+        searchParams.get('yahoo_status') ? searchParams.get('yahoo_status')!.split(',') : ['1']
+    );
     const [pagination, setPagination] = useState<PaginationInfo>({
         currentPage: Number(searchParams.get('page')) || 1,
         totalPages: 1,
@@ -124,23 +221,22 @@ function YahooFreeMarketListContent() {
         hasPrevious: false,
     });
     const [actionLoading, setActionLoading] = useState<string>('');
-    const [counts, setCounts] = useState<{ active: number; sold_out: number }>({ active: 0, sold_out: 0 });
+    const [counts, setCounts] = useState<{ active: number; sold_out: number; completed: number; purchase_available: number }>({ active: 0, sold_out: 0, completed: 0, purchase_available: 0 });
 
     const statusOptions = [
-        { label: 'すべて', value: '' },
-        { label: '出品中', value: '出品中' },
-        { label: '取下げ', value: '取下げ' },
-        { label: '売却', value: '売却' },
-        { label: '完了', value: '完了' },
-        { label: '出品失敗', value: '出品失敗' },
-        { label: '再出品済', value: '再出品済' },
+        { label: '出品中', value: '1' },
+        { label: '取下げ', value: '2' },
+        { label: '売却', value: '3' },
+        { label: '完了', value: '4' },
+        { label: '出品失敗', value: '5' },
+        { label: '再出品済', value: '6' },
     ];
 
     const yahooStatusOptions = [
-        { label: 'すべて', value: '' },
-        { label: '仕入可', value: '仕入可' },
-        { label: '仕入済', value: '仕入済' },
-        { label: '仕入不可', value: '仕入不可' },
+        { label: '仕入可', value: '1' },
+        { label: '仕入済', value: '2' },
+        { label: '仕入不可', value: '3' },
+        { label: '再出品済', value: '4' },
     ];
 
     const handleSearch = (e: React.FormEvent) => {
@@ -148,10 +244,26 @@ function YahooFreeMarketListContent() {
         const params = new URLSearchParams();
         if (searchTerm) params.set('search', searchTerm);
         if (searchSku) params.set('sku', searchSku);
-        if (searchStatus) params.set('status', searchStatus);
-        if (searchYahooStatus) params.set('yahoo_status', searchYahooStatus);
+        if (searchStatus.length > 0) params.set('status', searchStatus.join(','));
+        if (searchYahooStatus.length > 0) params.set('yahoo_status', searchYahooStatus.join(','));
         params.set('page', '1');
-        router.push(`/yahoo-free-market/list?${params.toString()}`);
+        router.push(`/yahoo-freemarket/list?${params.toString()}`);
+    };
+
+    const handleStatusChange = (value: string) => {
+        setSearchStatus(prev =>
+            prev.includes(value)
+                ? prev.filter(status => status !== value)
+                : [...prev, value]
+        );
+    };
+
+    const handleYahooStatusChange = (value: string) => {
+        setSearchYahooStatus(prev =>
+            prev.includes(value)
+                ? prev.filter(status => status !== value)
+                : [...prev, value]
+        );
     };
 
     const handleWithdraw = async (sku: string, offerId?: string) => {
@@ -220,7 +332,7 @@ function YahooFreeMarketListContent() {
             if (!response.ok) {
                 throw new Error(data.message || 'Failed to fetch items');
             }
-            console.log(data)
+
             setItems(data.items);
             setCounts(data.counts);
             setPagination({
@@ -241,6 +353,12 @@ function YahooFreeMarketListContent() {
     useEffect(() => {
         fetchItems();
     }, [fetchItems]);
+
+    const handlePageChange = (page: number) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('page', page.toString());
+        router.push(`/yahoo-freemarket/list?${params.toString()}`);
+    };
 
     return (
         <div>
@@ -269,22 +387,10 @@ function YahooFreeMarketListContent() {
                     </div>
                 </div>
             </div>
-            {/* 
+
             <Card className="mb-6">
                 <form onSubmit={handleSearch} className="p-4 md:p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1">
-                                キーワード
-                            </label>
-                            <Input
-                                type="text"
-                                placeholder="商品名で検索..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full"
-                            />
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium mb-1">
                                 SKU
@@ -297,37 +403,47 @@ function YahooFreeMarketListContent() {
                                 className="w-full"
                             />
                         </div>
-                        <div>
+                        <div className="col-span-1 md:col-span-2">
                             <label className="block text-sm font-medium mb-1">
                                 状態
                             </label>
-                            <select
-                                value={searchStatus}
-                                onChange={(e) => setSearchStatus(e.target.value)}
-                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                            >
+                            <div className="flex flex-wrap gap-2">
                                 {statusOptions.map(option => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
+                                    <div key={option.value} className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            id={`status-${option.value}`}
+                                            checked={searchStatus.includes(option.value)}
+                                            onChange={() => handleStatusChange(option.value)}
+                                            className="mr-1"
+                                        />
+                                        <label htmlFor={`status-${option.value}`} className="text-sm mr-3">
+                                            {option.label}
+                                        </label>
+                                    </div>
                                 ))}
-                            </select>
+                            </div>
                         </div>
-                        <div>
+                        <div className="col-span-1 md:col-span-2">
                             <label className="block text-sm font-medium mb-1">
                                 仕入状態
                             </label>
-                            <select
-                                value={searchYahooStatus}
-                                onChange={(e) => setSearchYahooStatus(e.target.value)}
-                                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                            >
+                            <div className="flex flex-wrap gap-2">
                                 {yahooStatusOptions.map(option => (
-                                    <option key={option.value} value={option.value}>
-                                        {option.label}
-                                    </option>
+                                    <div key={option.value} className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            id={`yahoo-status-${option.value}`}
+                                            checked={searchYahooStatus.includes(option.value)}
+                                            onChange={() => handleYahooStatusChange(option.value)}
+                                            className="mr-1"
+                                        />
+                                        <label htmlFor={`yahoo-status-${option.value}`} className="text-sm mr-3">
+                                            {option.label}
+                                        </label>
+                                    </div>
                                 ))}
-                            </select>
+                            </div>
                         </div>
                     </div>
                     <div className="mt-4 flex justify-end">
@@ -336,16 +452,24 @@ function YahooFreeMarketListContent() {
                         </Button>
                     </div>
                 </form>
-            </Card> */}
+            </Card>
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-4 gap-4 mb-6">
                 <Card className="p-4">
                     <div className="text-sm text-gray-600">出品中</div>
                     <div className="text-2xl font-bold">{counts.active.toLocaleString()}件</div>
                 </Card>
                 <Card className="p-4">
-                    <div className="text-sm text-gray-600">取下げ</div>
+                    <div className="text-sm text-gray-600">売却</div>
                     <div className="text-2xl font-bold">{counts.sold_out.toLocaleString()}件</div>
+                </Card>
+                <Card className="p-4">
+                    <div className="text-sm text-gray-600">完了</div>
+                    <div className="text-2xl font-bold">{counts.completed.toLocaleString()}件</div>
+                </Card>
+                <Card className="p-4">
+                    <div className="text-sm text-gray-600">仕入可能</div>
+                    <div className="text-2xl font-bold">{counts.purchase_available.toLocaleString()}件</div>
                 </Card>
             </div>
 
@@ -441,6 +565,15 @@ function YahooFreeMarketListContent() {
                             )}
                         </TableBody>
                     </Table>
+                    <div className="p-4 border-t">
+                        <Pagination
+                            currentPage={pagination.currentPage}
+                            totalPages={pagination.totalPages || Math.ceil((pagination.totalItems || 0) / 10)}
+                            totalItems={pagination.totalItems}
+                            onPageChange={handlePageChange}
+                            disabled={loading || !!actionLoading}
+                        />
+                    </div>
                 </Card>
             </div>
         </div>

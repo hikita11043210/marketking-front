@@ -10,7 +10,6 @@ export async function GET(request: Request) {
 
     // バックエンドからのレスポンスを取得
     const data = await response.json();
-    console.log(data);
 
     // クライアントへレスポンスを返す
     return NextResponse.json(data, {

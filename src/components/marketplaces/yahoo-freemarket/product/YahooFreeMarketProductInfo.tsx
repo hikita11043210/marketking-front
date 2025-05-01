@@ -16,8 +16,8 @@ export const ProductInfo = ({ selectedItem, detailData }: ProductInfoProps) => {
         },
         {
             label: "価格",
-            value: `¥${Number(detailData?.price.original_price || 0).toLocaleString()}`,
-            condition: !!detailData?.item_details.price
+            value: `¥${Number(selectedItem?.price || 0).toLocaleString()}`,
+            condition: !!selectedItem?.price
         },
         {
             label: "商品の状態",

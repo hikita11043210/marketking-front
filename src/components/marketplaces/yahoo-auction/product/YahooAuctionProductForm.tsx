@@ -170,18 +170,18 @@ Thank you for your understanding.
             title: replaceSpecialCharacters(detailData?.title_en || ''),
             titleCondition: '',
             description: description_template_start + detailData?.description_en.replace(/(\. )/g, ".\n") + description_template_end || '',
-            price: detailData?.price.calculated_price_dollar.toString(),
-            final_profit_yen: detailData?.price.final_profit_yen.toString(),
-            final_profit_dollar: detailData?.price.final_profit_dollar.toString(),
-            original_price: detailData?.price.original_price?.toString() || '',
-            shipping_cost: detailData?.price.shipping_cost?.toString() || '',
-            rate: detailData?.price.rate?.toString() || '',
-            ebay_fee: detailData?.price.ebay_fee?.toString() || '',
-            international_fee: detailData?.price.international_fee?.toString() || '',
-            tax_rate: detailData?.price.tax_rate?.toString() || '',
-            calculated_price_yen: detailData?.price.calculated_price_yen?.toString() || '',
-            calculated_price_dollar: detailData?.price.calculated_price_dollar?.toString() || '',
-            exchange_rate: detailData?.price.exchange_rate?.toString() || '',
+            price: '',
+            final_profit_yen: '',
+            final_profit_dollar: '',
+            original_price: '',
+            shipping_cost: '',
+            rate: '',
+            ebay_fee: '',
+            international_fee: '',
+            tax_rate: '',
+            calculated_price_yen: '',
+            calculated_price_dollar: '',
+            exchange_rate: '',
             ebay_shipping_price: 3000,
             quantity: "1",
             condition: detailData?.selected_condition.toString() || '',
@@ -318,10 +318,9 @@ Thank you for your understanding.
 
     const handlePriceChange = async () => {
         const value = form.getValues('price');
-        // カンマを削除して数値処理
-        const numericValue = value.replace(/,/g, '');
+        const shippingCost = form.getValues('shipping_cost');
 
-        if (!numericValue) {
+        if (!value) {
             form.setValue('final_profit_yen', '0');
             form.setValue('final_profit_dollar', '0');
             return;
@@ -333,7 +332,19 @@ Thank you for your understanding.
         ];
 
         try {
-            const response = await fetch(`/api/calculator/price?${priceArray.map(price => `money[]=${encodeURIComponent(price)}`).join('&')}&price=${encodeURIComponent(numericValue)}`);
+            const response = await fetch(`/api/calculator/price`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    input_price: value,
+                    purchasePrice: priceArray[0],
+                    purchaseShipping: priceArray[1],
+                    shippingCost: shippingCost
+                })
+            });
+
             const data = await response.json();
             if (data.success) {
                 // 全ての計算値をフォームにセット
@@ -686,25 +697,36 @@ Thank you for your understanding.
                                         className="h-11"
                                         maxLength={5}
                                         placeholder="価格（＄）"
-                                        value={field.value ? field.value.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''}
-                                        onChange={(e) => {
-                                            // カンマを削除して数値のみを保持
-                                            const rawValue = e.target.value.replace(/,/g, '');
-                                            // 数値とドット以外を削除
-                                            const sanitizedValue = rawValue.replace(/[^\d.]/g, '');
-                                            // 小数点が2つ以上ある場合、最初の小数点以外を削除
-                                            const finalValue = sanitizedValue.replace(/\.(?=.*\.)/g, '');
-
-                                            field.onChange(finalValue);
-                                            handlePriceChange();
-                                        }}
+                                        value={field.value}
                                     />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
-                    <FormLabel className="text-muted-foreground whitespace-nowrap ml-4 mr-2">最終利益</FormLabel>
+                    <FormLabel className="text-muted-foreground whitespace-nowrap ml-4 mr-2">Ebay送料</FormLabel>
+                    <FormField
+                        control={form.control}
+                        name="shipping_cost"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormControl>
+                                    <Input
+                                        {...field}
+                                        type="text"
+                                        className="h-11"
+                                        maxLength={7}
+                                        placeholder="送料（＄）"
+                                        value={field.value}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                <div className="grid grid-cols-[200px,1fr,auto,1.5fr] items-center">
+                    <FormLabel className="text-muted-foreground">最終利益</FormLabel>
                     <FormField
                         control={form.control}
                         name="final_profit_yen"
@@ -722,6 +744,14 @@ Thank you for your understanding.
                             </FormItem>
                         )}
                     />
+                    <Button
+                        type="button"
+                        onClick={handlePriceChange}
+                        variant="secondary"
+                        className="ml-2 bg-blue-100 hover:bg-blue-200 text-blue-700"
+                    >
+                        価格計算
+                    </Button>
                 </div>
 
                 <FormField

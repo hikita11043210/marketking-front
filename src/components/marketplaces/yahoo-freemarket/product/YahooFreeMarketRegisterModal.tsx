@@ -70,7 +70,6 @@ export const RegisterModal = ({ isOpen, onClose, selectedItem }: RegisterModalPr
     }, [selectedItem]);
 
     useEffect(() => {
-        console.log("aaa");
         const fetchEbayStoreType = async () => {
             if (selectedItem?.item_id) {
                 try {

@@ -16,13 +16,13 @@ export const ProductInfo = ({ selectedItem, detailData }: ProductInfoProps) => {
         },
         {
             label: "現在価格",
-            value: `¥${Number(detailData?.item_details.current_price_in_tax || 0).toLocaleString()}`,
-            condition: !!detailData?.item_details.current_price_in_tax
+            value: `¥${Number(selectedItem?.price || 0).toLocaleString()}`,
+            condition: !!selectedItem?.price
         },
         {
             label: "即決価格",
-            value: `¥${Number(detailData?.item_details.buy_now_price_in_tax || 0).toLocaleString()}`,
-            condition: !!detailData?.item_details.buy_now_price_in_tax
+            value: `¥${Number(selectedItem?.buy_now_price || 0).toLocaleString()}`,
+            condition: !!selectedItem?.buy_now_price
         },
         {
             label: "送料",

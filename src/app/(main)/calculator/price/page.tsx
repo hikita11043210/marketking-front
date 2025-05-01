@@ -28,26 +28,26 @@ interface PriceCalculationResponse {
 
 export default function PriceCalculatorPage() {
     const [purchasePrice, setPurchasePrice] = useState<string>('');
+    const [purchaseShipping, setPurchaseShipping] = useState<string>('');
     const [shippingCost, setShippingCost] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [result, setResult] = useState<PriceCalculation | null>(null);
 
     const handleCalculate = async () => {
-        if (!purchasePrice || !shippingCost) {
+        if (!purchasePrice || !purchaseShipping) {
             toast.error('入力値を確認してください');
             return;
         }
 
         try {
             setIsLoading(true);
-            const response = await fetch(`/api/calculator/price-init?money[]=${purchasePrice}&money[]=${shippingCost}`);
+            const response = await fetch(`/api/calculator/price?purchasePrice=${purchasePrice}&purchaseShipping=${purchaseShipping}&shippingCost=${shippingCost}`);
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || '計算に失敗しました');
             }
 
             const responseData = await response.json() as PriceCalculationResponse;
-            console.log(responseData);
 
             if (responseData.success) {
                 setResult(responseData.data);
@@ -82,13 +82,23 @@ export default function PriceCalculatorPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="shippingCost">送料（円）</Label>
+                            <Label htmlFor="purchaseShipping">仕入れ送料（円）</Label>
+                            <Input
+                                id="purchaseShipping"
+                                type="number"
+                                value={purchaseShipping}
+                                onChange={(e) => setPurchaseShipping(e.target.value)}
+                                placeholder="送料を入力"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="shippingCost">Ebay送料（円）</Label>
                             <Input
                                 id="shippingCost"
                                 type="number"
                                 value={shippingCost}
                                 onChange={(e) => setShippingCost(e.target.value)}
-                                placeholder="送料を入力"
+                                placeholder="Ebay送料を入力"
                             />
                         </div>
                     </CardContent>
