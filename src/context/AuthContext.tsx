@@ -41,39 +41,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading: true,
     });
 
-    // クライアントサイドでローカルストレージからユーザー情報を読み込む
     useEffect(() => {
-        // ローカルストレージからユーザー情報を取得
-        const loadUserFromStorage = () => {
-            try {
-                const storedUser = localStorage.getItem(USER_STORAGE_KEY);
-                if (storedUser) {
-                    const user = JSON.parse(storedUser);
-                    setAuthState({
-                        user,
-                        isLoading: false,
-                    });
-                } else {
-                    setAuthState({
-                        user: null,
-                        isLoading: false,
-                    });
-                }
-            } catch (error) {
-                console.error('Failed to load user from localStorage:', error);
-                setAuthState({
-                    user: null,
-                    isLoading: false,
-                });
+        const loadUser = async () => {
+            // 1. localStorageを確認
+            const storedUser = localStorage.getItem(USER_STORAGE_KEY);
+            if (storedUser) {
+                setAuthState({ user: JSON.parse(storedUser), isLoading: false });
+                return;
             }
+            // 2. なければme API
+            try {
+                console.log('meAPI');
+                const res = await fetch('/api/auth/me');
+                if (res.ok) {
+                    const data = await res.json();
+                    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
+                    setAuthState({ user: data.user, isLoading: false });
+                    return;
+                }
+            } catch (e) {
+                // エラー時は何もしない
+            }
+            // 3. それでもなければログアウト状態
+            setAuthState({ user: null, isLoading: false });
         };
-
-        loadUserFromStorage();
+        loadUser();
     }, []);
 
-    // ログイン情報を設定
-    const setAuth = (data: { user: User; accessToken: string; refreshToken: string }) => {
-        // ユーザー情報をローカルストレージに保存（クライアントサイドのみ）
+    // setAuth, clearAuthをreturnの下に移動
+    const contextValue = {
+        user: auth.user,
+        isLoading: auth.isLoading,
+        setAuth,
+        clearAuth,
+    };
+
+    return (
+        <AuthContext.Provider value={contextValue}>
+            {children}
+        </AuthContext.Provider>
+    );
+
+    function setAuth(data: { user: User; accessToken: string; refreshToken: string }) {
         if (typeof window !== 'undefined' && data.user) {
             try {
                 localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data.user));
@@ -81,16 +90,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 console.error('Failed to save user to localStorage:', error);
             }
         }
+        setAuthState({ user: data.user, isLoading: false });
+    }
 
-        setAuthState({
-            user: data.user,
-            isLoading: false,
-        });
-    };
-
-    // ログイン情報をクリア
-    const clearAuth = () => {
-        // ローカルストレージからユーザー情報を削除（クライアントサイドのみ）
+    function clearAuth() {
         if (typeof window !== 'undefined') {
             try {
                 localStorage.removeItem(USER_STORAGE_KEY);
@@ -98,25 +101,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 console.error('Failed to remove user from localStorage:', error);
             }
         }
-
-        setAuthState({
-            user: null,
-            isLoading: false,
-        });
-    };
-
-    return (
-        <AuthContext.Provider
-            value={{
-                user: auth.user,
-                isLoading: auth.isLoading,
-                setAuth,
-                clearAuth,
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
-    );
+        setAuthState({ user: null, isLoading: false });
+    }
 }
 
 // カスタムフック

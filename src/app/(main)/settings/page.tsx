@@ -71,7 +71,7 @@ export default function SettingPage() {
                     const formData = {
                         ...data.data,
                         ebay_store_type_id: data.data.ebay_store_type_id?.toString() || "",
-                        rate: data.data.rate?.toString() || "30"
+                        rate: data.data.rate?.toString() || "0"
                     };
                     form.reset(formData);
                 } else {

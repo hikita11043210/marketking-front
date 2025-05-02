@@ -7,11 +7,18 @@ const API_BASE = process.env.BACKEND_URL?.replace('localhost', '127.0.0.1');
 export async function middleware(request: NextRequest) {
   const accessToken = request.cookies.get('accessToken')?.value;
   const refreshToken = request.cookies.get('refreshToken')?.value;
+  const isAuthCallback = request.nextUrl.searchParams.has('code');
 
   if (request.nextUrl.pathname === '/login') {
     if (accessToken) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
+    return NextResponse.next();
+  }
+
+  // コールバックURLの場合は、ログイン画面へのリダイレクトをスキップ
+  // ebay認証時にコールバックすると非同期処理のためクッキーが一時的にundefinedになるからコールバック時はトークン有無の確認をしないようにする
+  if (isAuthCallback) {
     return NextResponse.next();
   }
 
