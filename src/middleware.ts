@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
           const nextResponse = NextResponse.next();
           nextResponse.cookies.set('accessToken', tokens.accessToken, {
             ...cookieOptions,
-            maxAge: 5
+            maxAge: 60 * 60 * 10
           });
           return nextResponse;
         }
