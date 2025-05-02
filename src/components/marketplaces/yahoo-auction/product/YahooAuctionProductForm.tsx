@@ -150,7 +150,7 @@ export const ProductForm = ({
         })) || []
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const description_template_start = `** Description **\n`;
+    const description_template_start = '';
     const description_template_end = `
 
 ** Shipping **
