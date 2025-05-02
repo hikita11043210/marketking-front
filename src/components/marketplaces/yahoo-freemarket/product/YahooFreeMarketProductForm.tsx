@@ -377,23 +377,23 @@ Thank you for your understanding.
                 }
             }
 
-            // Item Specifics取得処理を追加
-            const itemSpecificsResponse = await fetch(`/api/ebay/categoryItemSpecifics?categoryId=${categoryId}&title=${title}&description=${description}`);
-            const itemSpecificsData = await itemSpecificsResponse.json();
-            if (itemSpecificsData.success && itemSpecificsData.data && itemSpecificsData.data.specifics) {
-                // 既存のItem Specificsをクリア
-                form.setValue('itemSpecifics', []);
+            // // Item Specifics取得処理を追加
+            // const itemSpecificsResponse = await fetch(`/api/ebay/categoryItemSpecifics?categoryId=${categoryId}&title=${title}&description=${description}`);
+            // const itemSpecificsData = await itemSpecificsResponse.json();
+            // if (itemSpecificsData.success && itemSpecificsData.data && itemSpecificsData.data.specifics) {
+            //     // 既存のItem Specificsをクリア
+            //     form.setValue('itemSpecifics', []);
 
-                // 配列形式のデータを処理
-                itemSpecificsData.data.specifics.forEach((item: Record<string, string>) => {
-                    const [name, value] = Object.entries(item)[0];
-                    appendItemSpecific({
-                        name: name,
-                        value: [typeof value === 'string' ? value : '']
-                    }, { focusIndex: -1 });
-                });
-                toast.success('必須のItem Specificsを更新しました');
-            }
+            //     // 配列形式のデータを処理
+            //     itemSpecificsData.data.specifics.forEach((item: Record<string, string>) => {
+            //         const [name, value] = Object.entries(item)[0];
+            //         appendItemSpecific({
+            //             name: name,
+            //             value: [typeof value === 'string' ? value : '']
+            //         }, { focusIndex: -1 });
+            //     });
+            //     toast.success('必須のItem Specificsを更新しました');
+            // }
 
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Conditionの取得に失敗しました');
