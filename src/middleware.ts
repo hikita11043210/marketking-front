@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { cookieOptions } from '@/lib/auth/cookies';
 
+const API_BASE = process.env.BACKEND_URL?.replace('localhost', '127.0.0.1');
+
 export async function middleware(request: NextRequest) {
   const accessToken = request.cookies.get('accessToken')?.value;
   const refreshToken = request.cookies.get('refreshToken')?.value;
@@ -16,11 +18,12 @@ export async function middleware(request: NextRequest) {
   if (!accessToken) {
     if (refreshToken) {
       try {
-        const response = await fetch(`${request.nextUrl.origin}/api/auth/refresh`, {
+        const response = await fetch(`${API_BASE}/api/v1/auth/refresh/`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${refreshToken}`
-          }
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ refresh_token: refreshToken }),
         });
 
         if (response.ok) {
@@ -28,7 +31,7 @@ export async function middleware(request: NextRequest) {
           const nextResponse = NextResponse.next();
           nextResponse.cookies.set('accessToken', tokens.accessToken, {
             ...cookieOptions,
-            maxAge: 60 * 60 * 10
+            maxAge: 5
           });
           return nextResponse;
         }
