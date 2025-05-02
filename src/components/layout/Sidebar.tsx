@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter } from "next/navigation";
-import { useState } from 'react';
-import { LogOut, Gavel, Store, Menu, X, Calculator, BookOpen, TruckIcon, Database, DollarSign } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { LogOut, Gavel, Store, Menu, X, Calculator, BookOpen, TruckIcon, Database, DollarSign, User as UserIcon } from 'lucide-react';
 import { BiHome } from 'react-icons/bi';
 import { toast } from "sonner";
 import {
@@ -18,6 +18,9 @@ import {
     SheetTitle
 } from "@/components/ui/sheet";
 import { VisuallyHidden } from '@/components/ui/visually-hidden';
+import { useAuth } from "@/context/AuthContext";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
 type NavItem = {
     title: string;
@@ -132,8 +135,15 @@ const navigation: NavItem[] = [
 
 export function Sidebar() {
     const router = useRouter();
+    const { user, clearAuth } = useAuth();
     const [openItems, setOpenItems] = useState<string[]>([]);
     const [isOpen, setIsOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    // クライアントサイドでのみレンダリングされるように
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const toggleItem = (title: string) => {
         setOpenItems(prev =>
@@ -150,6 +160,7 @@ export function Sidebar() {
             });
 
             if (response.ok) {
+                clearAuth();
                 router.push('/login');
             } else {
                 throw new Error('ログアウトに失敗しました');
@@ -162,6 +173,24 @@ export function Sidebar() {
     const SidebarContent = () => (
         <div className="flex h-full flex-col bg-background">
             <VisuallyHidden>メインメニュー</VisuallyHidden>
+
+            {/* ユーザー情報セクション - クライアントサイドでのみレンダリング */}
+            {mounted && user && (
+                <div className="p-4 border-b">
+                    <div className="flex items-center space-x-3">
+                        <Avatar>
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                                {user.name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-1">
+                            <p className="text-sm font-medium leading-none">{user.name}</p>
+                            <p className="text-xs text-muted-foreground">{user.email}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex-1 overflow-y-auto py-4 px-3">
                 <nav className="space-y-2">
                     {navigation.map((item) => (

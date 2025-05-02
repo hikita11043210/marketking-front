@@ -8,9 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { LockKeyhole, User } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
     const router = useRouter();
+    const { setAuth } = useAuth();
     const [loading, setLoading] = useState(false);
     const [credentials, setCredentials] = useState({
         username: '',
@@ -33,6 +35,13 @@ export default function LoginPage() {
             if (!response.ok) {
                 throw new Error(data.message || 'ログインに失敗しました');
             }
+
+            // ユーザー情報をコンテキストに保存
+            setAuth({
+                user: data.user,
+                accessToken: data.accessToken,
+                refreshToken: data.refreshToken
+            });
 
             toast.success("ログインに成功しました");
             router.refresh();

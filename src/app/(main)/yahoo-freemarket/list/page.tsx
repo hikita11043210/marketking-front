@@ -267,7 +267,6 @@ function YahooFreeMarketListContent() {
     };
 
     const handleWithdraw = async (sku: string, offerId?: string) => {
-        console.log(sku)
         handleAuctionAction({
             actionType: 'withdraw',
             sku,

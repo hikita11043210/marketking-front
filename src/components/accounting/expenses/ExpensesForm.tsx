@@ -143,8 +143,6 @@ export function ExpensesForm({ expense, isOpen, onClose, onSubmit, isSubmitting 
     ]);
 
     const handleSubmit = (values: ExpenseFormValues) => {
-        console.log('フォーム送信:', values);
-
         // フォームデータをAPIの形式に変換
         const formattedData: Partial<ExpenseItem> = {
             transaction_date: values.transaction_date,
