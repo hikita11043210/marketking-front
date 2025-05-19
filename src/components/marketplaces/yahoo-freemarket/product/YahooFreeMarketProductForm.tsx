@@ -155,6 +155,9 @@ export const ProductForm = ({
 Import duties, taxes, and charges are not included in the item price or shipping cost.
 These charges are the buyer's responsibility. Please check with your country's customs office to determine what these additional costs will be prior to bidding or buying.
 Thank you for your understanding.
+
+** Other **
+Please note that we sometimes withdraw items suddenly because we are selling them on other websites as well.
 `;
     const form = useForm<ProductFormValues>({
         resolver: zodResolver(productFormSchema),
